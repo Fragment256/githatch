@@ -57,6 +57,9 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - run: pnpm build
+        env:
+          VITE_GITHUB_CLIENT_ID: ${{ vars.VITE_GITHUB_CLIENT_ID }}
+          VITE_TOKEN_PROXY_URL: ${{ vars.VITE_TOKEN_PROXY_URL }}
 
       - run: touch dist/.nojekyll
 

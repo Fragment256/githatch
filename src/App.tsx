@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { GITHUB_CLIENT_ID } from '@/lib/config'
 import { useAuth } from '@/hooks/useAuth'
 import { useRepo } from '@/hooks/useRepo'
 import { useTasks } from '@/hooks/useTasks'
@@ -79,7 +80,14 @@ export default function App() {
           <div className="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
         )}
 
-        {!user && !loading && (
+        {!GITHUB_CLIENT_ID && (
+          <div className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">
+            <strong>VITE_GITHUB_CLIENT_ID</strong> is not configured. Set it as a repository
+            variable and redeploy.
+          </div>
+        )}
+
+        {!user && !loading && GITHUB_CLIENT_ID && (
           <div className="text-center">
             <h1 className="text-3xl font-bold tracking-tight text-gray-900">Githatch</h1>
             <p className="mt-2 text-gray-500">
