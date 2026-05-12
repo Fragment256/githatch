@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { listPushableRepos, type GitHubRepo } from './github'
+import { listPushableRepos, upsertWorkflowFile, type GitHubRepo } from './github'
 
 const mockRepo = (overrides: Partial<GitHubRepo> = {}): GitHubRepo => ({
   id: 1,
@@ -65,5 +65,72 @@ describe('listPushableRepos', () => {
       vi.fn().mockResolvedValue({ ok: false, status: 401, headers: { get: () => null } }),
     )
     await expect(listPushableRepos('gho_test')).rejects.toThrow()
+  })
+})
+
+describe('upsertWorkflowFile', () => {
+  const params = {
+    token: 'gho_test',
+    owner: 'testuser',
+    repo: 'my-repo',
+    slug: 'weekly-digest',
+    yaml: 'name: githatch-weekly-digest\n',
+  }
+
+  beforeEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('creates a new file when none exists (GET returns 404)', async () => {
+    const fetchMock = vi
+      .fn()
+      // GET — file not found
+      .mockResolvedValueOnce({ ok: false, status: 404 })
+      // PUT — creation succeeds
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({}) })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await upsertWorkflowFile(params)
+
+    const putCall = fetchMock.mock.calls[1] as [string, RequestInit]
+    const body = JSON.parse(putCall[1].body as string) as {
+      message: string
+      content: string
+      sha?: string
+    }
+    expect(putCall[0]).toContain('.github/workflows/githatch-weekly-digest.yml')
+    expect(body.sha).toBeUndefined()
+    // content should be base64 of the yaml
+    expect(atob(body.content)).toBe(params.yaml)
+  })
+
+  it('updates an existing file using the SHA from GET', async () => {
+    const existingSha = 'abc123def456'
+    const fetchMock = vi
+      .fn()
+      // GET — file exists
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ sha: existingSha }),
+      })
+      // PUT — update succeeds
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({}) })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await upsertWorkflowFile(params)
+
+    const putCall = fetchMock.mock.calls[1] as [string, RequestInit]
+    const body = JSON.parse(putCall[1].body as string) as { sha?: string }
+    expect(body.sha).toBe(existingSha)
+  })
+
+  it('throws when PUT fails', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: false, status: 404 })
+      .mockResolvedValueOnce({ ok: false, status: 422, json: () => Promise.resolve({}) })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(upsertWorkflowFile(params)).rejects.toThrow()
   })
 })

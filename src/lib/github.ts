@@ -27,6 +27,51 @@ function parseNextUrl(linkHeader: string | null): string | null {
   return match ? match[1] : null
 }
 
+export interface UpsertWorkflowParams {
+  token: string
+  owner: string
+  repo: string
+  slug: string
+  yaml: string
+}
+
+export async function upsertWorkflowFile({
+  token,
+  owner,
+  repo,
+  slug,
+  yaml,
+}: UpsertWorkflowParams): Promise<void> {
+  const path = `.github/workflows/githatch-${slug}.yml`
+  const url = `${API}/repos/${owner}/${repo}/contents/${path}`
+  const headers = authHeaders(token)
+
+  const getResponse = await fetch(url, { headers })
+  let sha: string | undefined
+  if (getResponse.ok) {
+    const data = (await getResponse.json()) as { sha: string }
+    sha = data.sha
+  }
+
+  const content = btoa(unescape(encodeURIComponent(yaml)))
+
+  const body: { message: string; content: string; sha?: string } = {
+    message: `chore: add githatch workflow ${slug}`,
+    content,
+    ...(sha ? { sha } : {}),
+  }
+
+  const putResponse = await fetch(url, {
+    method: 'PUT',
+    headers: { ...headers, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+
+  if (!putResponse.ok) {
+    throw new Error(`Failed to write workflow file: ${putResponse.status}`)
+  }
+}
+
 export async function listPushableRepos(token: string): Promise<GitHubRepo[]> {
   const all: GitHubRepo[] = []
   let url: string | null = `${API}/user/repos?per_page=100&sort=pushed`

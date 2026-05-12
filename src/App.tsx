@@ -5,7 +5,7 @@ import { LoginButton } from '@/components/LoginButton'
 import { UserMenu } from '@/components/UserMenu'
 import { RepoPicker } from '@/components/RepoPicker'
 import { TaskForm } from '@/components/TaskForm'
-import type { TaskConfig } from '@/lib/yamlGenerator'
+import { upsertWorkflowFile } from '@/lib/github'
 
 type View = 'home' | 'new-task'
 
@@ -13,11 +13,22 @@ export default function App() {
   const { user, loading, error, login, logout, token } = useAuth()
   const { repos, reposLoading, reposError, activeRepo, setActiveRepo } = useRepo(token)
   const [view, setView] = useState<View>('home')
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
-  function handleTaskFormSubmit(yaml: string, slug: string, config: TaskConfig) {
-    // #6 will handle persisting the workflow file via Contents API
-    console.debug('task created', { slug, config, yaml: yaml.slice(0, 80) })
-    setView('home')
+  async function handleTaskFormSubmit(yaml: string, slug: string) {
+    if (!token || !activeRepo) return
+    setSaving(true)
+    setSaveError(null)
+    try {
+      const [owner, repo] = activeRepo.full_name.split('/')
+      await upsertWorkflowFile({ token, owner, repo, slug, yaml })
+      setView('home')
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Failed to save workflow')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -105,7 +116,12 @@ export default function App() {
             >
               ← Back
             </button>
-            <TaskForm onSubmit={handleTaskFormSubmit} />
+            {saveError && (
+              <div className="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">
+                {saveError}
+              </div>
+            )}
+            <TaskForm onSubmit={handleTaskFormSubmit} loading={saving} />
           </div>
         )}
       </main>
