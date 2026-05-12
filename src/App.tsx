@@ -5,9 +5,10 @@ import { LoginButton } from '@/components/LoginButton'
 import { UserMenu } from '@/components/UserMenu'
 import { RepoPicker } from '@/components/RepoPicker'
 import { TaskForm } from '@/components/TaskForm'
+import { TokenSetup } from '@/components/TokenSetup'
 import { upsertWorkflowFile } from '@/lib/github'
 
-type View = 'home' | 'new-task'
+type View = 'home' | 'token-setup' | 'new-task'
 
 export default function App() {
   const { user, loading, error, login, logout, token } = useAuth()
@@ -93,6 +94,12 @@ export default function App() {
             </p>
             <div className="flex gap-3">
               <button
+                onClick={() => setView('token-setup')}
+                className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Setup Claude token
+              </button>
+              <button
                 onClick={() => setView('new-task')}
                 className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
               >
@@ -105,6 +112,23 @@ export default function App() {
                 Change repository
               </button>
             </div>
+          </div>
+        )}
+
+        {user && activeRepo && token && view === 'token-setup' && (
+          <div className="w-full max-w-lg">
+            <button
+              onClick={() => setView('home')}
+              className="mb-4 text-xs text-gray-500 hover:text-gray-700"
+            >
+              ← Back
+            </button>
+            <TokenSetup
+              token={token}
+              owner={activeRepo.full_name.split('/')[0]}
+              repo={activeRepo.full_name.split('/')[1]}
+              onDone={() => setView('home')}
+            />
           </div>
         )}
 
