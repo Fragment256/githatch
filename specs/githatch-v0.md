@@ -1,9 +1,11 @@
 # SPEC: Githatch — v0
 
 ## Goal
+
 A static web app that lets a single user schedule recurring agentic GitHub Actions on their own repos, without writing YAML. The thinness is the point: GitHub holds the data, runs the work, and stores the secrets; Githatch is the UI for configuring it.
 
 ## Non-goals
+
 - Not a general workflow editor — Githatch only creates a specific shape of workflow (cron + agent-runs-prompt + write-back-to-repo).
 - Not a Claude-skill marketplace, prompt library, or chat interface.
 - Not a replacement for GitHub UI (no code browsing, PR review, branch management).
@@ -12,15 +14,18 @@ A static web app that lets a single user schedule recurring agentic GitHub Actio
 - No backend, no database, no secrets server-side — the user's repo is the backend.
 
 ## Users / scenario
+
 **Primary user (v0):** Luke (Fragment256 operator). Uses Githatch as his own operating tool to schedule recurring agentic work on his repos.
 
 **Concrete v0 use cases:**
+
 - **GSD status digest** — every Monday 9am, summarise the last week of Practice Thinkers session actions, post as a comment on a tracking issue.
 - **AI news processing** — periodic pass over `kb/ai-news/raw/`, surface candidates against `kb/ai-news/selections.md` rules.
 
 **Demo audience:** Pete (Practice Thinkers). Watches Luke configure and run a task; reaction is a data point on whether non-technical operators see the value, not whether Pete is the target buyer.
 
 ## Requirements (must)
+
 - [ ] GitHub OAuth login via PKCE (no server-side secret).
 - [ ] Repo picker — list user's repos (filter `permissions.push = true`), select one as the active repo; selection persists in `sessionStorage`.
 - [ ] Scheduled task creation form:
@@ -39,11 +44,13 @@ A static web app that lets a single user schedule recurring agentic GitHub Actio
 - [ ] Static deploy on GitHub Pages at `Fragment256.github.io/githatch`.
 
 ## Nice-to-haves (v0, only if cheap)
+
 - [ ] Delete a scheduled task (delete the workflow file).
 - [ ] Enable/disable a task without deleting (workflows enable/disable API).
 - [ ] Dark mode.
 
 ## Acceptance criteria (definition of done)
+
 - [ ] Public URL loads and shows "Login with GitHub".
 - [ ] After login, user sees their repos and can pick one.
 - [ ] User can fill the task creation form and submit; a workflow file appears at `.github/workflows/githatch-{slug}.yml` in the active repo with the configured schedule and prompt.
@@ -54,6 +61,7 @@ A static web app that lets a single user schedule recurring agentic GitHub Actio
 - [ ] Lint, format, type-check, and tests pass in CI.
 
 ## Risks / constraints
+
 - **OAuth scopes.** Requires `repo` + `workflow` scopes. The `workflow` scope on the consent screen reads as "this app can write code that runs in your CI with your secrets" — alarming for non-technical users. Mitigation: clear in-app explanation; GitHub App migration path documented for v1 if external users emerge.
 - **No webhooks.** Run status is polled (5–10s intervals). Acceptable for runs lasting 30s–30min.
 - **GitHub API rate limit.** 5000/hr authenticated. Plenty for solo use.
@@ -105,6 +113,7 @@ A static web app that lets a single user schedule recurring agentic GitHub Actio
    - Test plan: create, list, trigger, verify run + output; cover failure path by setting an invalid prompt.
 
 ## PR discipline
+
 - Branch → PR only. No pushing to main.
 - PR body includes `Closes #N`.
 - Commands to run (paste output in PR):
