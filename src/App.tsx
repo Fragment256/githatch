@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useRepo } from '@/hooks/useRepo'
+import { useTasks } from '@/hooks/useTasks'
 import { LoginButton } from '@/components/LoginButton'
 import { UserMenu } from '@/components/UserMenu'
 import { RepoPicker } from '@/components/RepoPicker'
 import { TaskForm } from '@/components/TaskForm'
+import { TaskList } from '@/components/TaskList'
 import { TokenSetup } from '@/components/TokenSetup'
 import { upsertWorkflowFile } from '@/lib/github'
 
@@ -17,13 +19,28 @@ export default function App() {
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
 
+  const [owner, repo] = activeRepo ? activeRepo.full_name.split('/') : ['', '']
+  const defaultBranch = activeRepo?.default_branch ?? 'main'
+  const {
+    tasks,
+    loading: tasksLoading,
+    error: tasksError,
+    load: loadTasks,
+  } = useTasks(token, owner, repo)
+
+  useEffect(() => {
+    if (activeRepo && token) {
+      loadTasks()
+    }
+  }, [activeRepo, token, loadTasks])
+
   async function handleTaskFormSubmit(yaml: string, slug: string) {
     if (!token || !activeRepo) return
     setSaving(true)
     setSaveError(null)
     try {
-      const [owner, repo] = activeRepo.full_name.split('/')
       await upsertWorkflowFile({ token, owner, repo, slug, yaml })
+      loadTasks()
       setView('home')
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Failed to save workflow')
@@ -88,30 +105,42 @@ export default function App() {
         )}
 
         {user && activeRepo && view === 'home' && (
-          <div className="flex flex-col items-center gap-4 text-center">
-            <p className="text-gray-500">
-              Active repo: <strong>{activeRepo.full_name}</strong>
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setView('token-setup')}
-                className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-              >
-                Setup Claude token
-              </button>
-              <button
-                onClick={() => setView('new-task')}
-                className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
-              >
-                New task
-              </button>
-              <button
-                onClick={() => setActiveRepo(null)}
-                className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-              >
-                Change repository
-              </button>
+          <div className="flex w-full max-w-2xl flex-col gap-6">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-600">
+                <strong>{activeRepo.full_name}</strong>
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setView('token-setup')}
+                  className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  Claude token
+                </button>
+                <button
+                  onClick={() => setView('new-task')}
+                  className="rounded-md bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700"
+                >
+                  + New task
+                </button>
+                <button
+                  onClick={() => setActiveRepo(null)}
+                  className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  Change repo
+                </button>
+              </div>
             </div>
+            <TaskList
+              tasks={tasks}
+              token={token!}
+              owner={owner}
+              repo={repo}
+              defaultBranch={defaultBranch}
+              loading={tasksLoading}
+              error={tasksError}
+              onRefresh={loadTasks}
+            />
           </div>
         )}
 

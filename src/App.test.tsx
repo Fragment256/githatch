@@ -121,7 +121,7 @@ describe('App — authenticated, repo selected', () => {
 
   it('shows a change repository button', () => {
     render(<App />, { wrapper })
-    expect(screen.getByRole('button', { name: /change repository/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /change rep/i })).toBeInTheDocument()
   })
 })
 
