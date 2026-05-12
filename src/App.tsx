@@ -1,19 +1,36 @@
+import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useRepo } from '@/hooks/useRepo'
 import { LoginButton } from '@/components/LoginButton'
 import { UserMenu } from '@/components/UserMenu'
 import { RepoPicker } from '@/components/RepoPicker'
+import { TaskForm } from '@/components/TaskForm'
+import type { TaskConfig } from '@/lib/yamlGenerator'
+
+type View = 'home' | 'new-task'
 
 export default function App() {
   const { user, loading, error, login, logout, token } = useAuth()
   const { repos, reposLoading, reposError, activeRepo, setActiveRepo } = useRepo(token)
+  const [view, setView] = useState<View>('home')
+
+  function handleTaskFormSubmit(yaml: string, slug: string, config: TaskConfig) {
+    // #6 will handle persisting the workflow file via Contents API
+    console.debug('task created', { slug, config, yaml: yaml.slice(0, 80) })
+    setView('home')
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b border-gray-200 bg-white px-6 py-3">
         <div className="mx-auto flex max-w-4xl items-center justify-between">
           <div className="flex items-center gap-4">
-            <span className="text-lg font-semibold tracking-tight">Githatch</span>
+            <button
+              onClick={() => setView('home')}
+              className="text-lg font-semibold tracking-tight"
+            >
+              Githatch
+            </button>
             {activeRepo && (
               <span className="rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600">
                 {activeRepo.full_name}
@@ -58,17 +75,37 @@ export default function App() {
           </div>
         )}
 
-        {user && activeRepo && (
-          <div className="text-center">
+        {user && activeRepo && view === 'home' && (
+          <div className="flex flex-col items-center gap-4 text-center">
             <p className="text-gray-500">
               Active repo: <strong>{activeRepo.full_name}</strong>
             </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setView('new-task')}
+                className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
+              >
+                New task
+              </button>
+              <button
+                onClick={() => setActiveRepo(null)}
+                className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Change repository
+              </button>
+            </div>
+          </div>
+        )}
+
+        {user && activeRepo && view === 'new-task' && (
+          <div className="w-full max-w-lg">
             <button
-              onClick={() => setActiveRepo(null)}
-              className="mt-2 text-xs text-gray-400 hover:text-gray-600"
+              onClick={() => setView('home')}
+              className="mb-4 text-xs text-gray-500 hover:text-gray-700"
             >
-              Change repository
+              ← Back
             </button>
+            <TaskForm onSubmit={handleTaskFormSubmit} />
           </div>
         )}
       </main>
