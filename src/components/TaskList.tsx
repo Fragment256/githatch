@@ -18,23 +18,20 @@ interface Props {
 function RunStatus({ run }: { run: WorkflowRun }) {
   if (run.status !== 'completed') {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800">
-        <span className="h-1.5 w-1.5 rounded-full bg-yellow-500" />
+      <span className="inline-flex items-center bg-black px-2 py-0.5 font-mono text-xs tracking-widest text-white uppercase">
         {run.status === 'queued' ? 'Queued' : 'Running'}
       </span>
     )
   }
   if (run.conclusion === 'success') {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
-        <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+      <span className="inline-flex items-center border border-black px-2 py-0.5 font-mono text-xs tracking-widest uppercase">
         Success
       </span>
     )
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">
-      <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+    <span className="inline-flex items-center border border-black bg-black px-2 py-0.5 font-mono text-xs tracking-widest text-white uppercase">
       {run.conclusion ?? 'Failed'}
     </span>
   )
@@ -77,18 +74,21 @@ function RunHistoryPanel({
   }, [])
 
   return (
-    <div className="mt-2 rounded-md border border-gray-200 bg-gray-50 p-4">
+    <div className="mt-2 border border-black bg-white p-4">
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-sm font-medium text-gray-700">Run history</span>
+        <span className="font-mono text-xs tracking-widest uppercase">Run history</span>
         <div className="flex gap-2">
           <button
             onClick={fetchRuns}
             disabled={loadingRuns}
-            className="text-xs text-gray-400 hover:text-gray-600 disabled:opacity-50"
+            className="font-mono text-xs tracking-widest text-gray-400 uppercase hover:text-black disabled:opacity-50"
           >
             Refresh
           </button>
-          <button onClick={onClose} className="text-xs text-gray-400 hover:text-gray-600">
+          <button
+            onClick={onClose}
+            className="font-mono text-xs tracking-widest text-gray-400 uppercase hover:text-black"
+          >
             Close
           </button>
         </div>
@@ -176,35 +176,37 @@ function TaskRow({
   }
 
   return (
-    <li className="rounded-lg border border-gray-200 bg-white p-4">
+    <li className="border-2 border-black bg-white p-4">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <p className="truncate font-medium text-gray-900">{task.displayName}</p>
+          <p className="truncate font-semibold text-black">{task.displayName}</p>
           {task.schedule && (
-            <p className="mt-0.5 font-mono text-xs text-gray-500">{task.schedule}</p>
+            <p className="mt-0.5 font-mono text-xs text-black/50">{task.schedule}</p>
           )}
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {task.workflowId === undefined ? (
-            <span className="text-xs text-gray-400 italic">Registering…</span>
+            <span className="font-mono text-xs tracking-widest text-gray-400 uppercase">
+              Registering…
+            </span>
           ) : (
             <>
               <button
                 onClick={() => onEdit(task)}
-                className="rounded border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"
+                className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white"
               >
                 Edit
               </button>
               <button
                 onClick={() => setShowHistory((v) => !v)}
-                className="rounded border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"
+                className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white"
               >
                 {showHistory ? 'Hide history' : 'History'}
               </button>
               <button
                 onClick={handleTrigger}
                 disabled={triggering}
-                className="rounded-md bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700 disabled:opacity-50"
+                className="border-2 border-black bg-black px-3 py-1.5 font-mono text-xs tracking-widest text-white uppercase transition-colors duration-100 hover:bg-white hover:text-black disabled:opacity-50"
               >
                 {triggering ? 'Triggering…' : triggered ? 'Triggered!' : 'Run now'}
               </button>
@@ -216,17 +218,19 @@ function TaskRow({
       <div className="mt-2 flex items-center justify-end gap-2">
         {confirmDelete ? (
           <>
-            <span className="text-xs text-gray-500">Delete this task?</span>
+            <span className="font-mono text-xs tracking-widest text-black uppercase">
+              Delete this task?
+            </span>
             <button
               onClick={handleDelete}
               disabled={deleting}
-              className="text-xs font-medium text-red-600 hover:text-red-800 disabled:opacity-50"
+              className="font-mono text-xs tracking-widest text-black uppercase hover:text-black disabled:opacity-50"
             >
               {deleting ? 'Deleting…' : 'Confirm'}
             </button>
             <button
               onClick={() => setConfirmDelete(false)}
-              className="text-xs text-gray-400 hover:text-gray-600"
+              className="font-mono text-xs tracking-widest text-gray-400 uppercase hover:text-black"
             >
               Cancel
             </button>
@@ -234,7 +238,7 @@ function TaskRow({
         ) : (
           <button
             onClick={() => setConfirmDelete(true)}
-            className="text-xs text-gray-400 hover:text-red-600"
+            className="font-mono text-xs tracking-widest text-gray-400 uppercase hover:text-black"
           >
             Delete
           </button>
@@ -290,11 +294,11 @@ function ScheduledRow({
   }
 
   return (
-    <li className="flex flex-col gap-1 rounded-lg border border-gray-200 bg-white px-4 py-3">
+    <li className="flex flex-col gap-1 border border-black bg-white px-4 py-3">
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <span className="truncate text-sm font-medium text-gray-900">{task.displayName}</span>
-          <span className="ml-2 font-mono text-xs text-gray-500">{task.schedule}</span>
+          <span className="truncate text-sm font-semibold text-black">{task.displayName}</span>
+          <span className="ml-2 font-mono text-xs text-black/50">{task.schedule}</span>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <button
@@ -306,7 +310,7 @@ function ScheduledRow({
           <button
             onClick={handleCancel}
             disabled={cancelling}
-            className="rounded border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+            className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white disabled:opacity-50"
           >
             {cancelling ? 'Cancelling…' : 'Cancel'}
           </button>
@@ -339,12 +343,14 @@ export function TaskList({
   onEdit,
 }: Props) {
   if (loading) {
-    return <p className="text-sm text-gray-500">Loading tasks…</p>
+    return (
+      <p className="font-mono text-xs tracking-widest text-gray-400 uppercase">Loading tasks…</p>
+    )
   }
 
   if (error) {
     return (
-      <div className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">
+      <div className="border-2 border-black px-4 py-3 text-sm text-black">
         {error}{' '}
         <button onClick={onRefresh} className="underline">
           Retry
@@ -355,7 +361,7 @@ export function TaskList({
 
   if (tasks.length === 0) {
     return (
-      <div className="text-center text-sm text-gray-500">
+      <div className="text-center font-mono text-sm tracking-widest text-gray-500 uppercase">
         <p>No tasks yet.</p>
         <p className="mt-1">Create your first task with the "+ New task" button.</p>
       </div>
@@ -368,8 +374,13 @@ export function TaskList({
     <div className="w-full space-y-8">
       <div>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-gray-700">Tasks ({tasks.length})</h2>
-          <button onClick={onRefresh} className="text-xs text-gray-400 hover:text-gray-600">
+          <h2 className="font-mono text-xs tracking-widest text-black uppercase">
+            Tasks ({tasks.length})
+          </h2>
+          <button
+            onClick={onRefresh}
+            className="font-mono text-xs tracking-widest text-gray-400 uppercase hover:text-black"
+          >
             Refresh
           </button>
         </div>
@@ -391,7 +402,7 @@ export function TaskList({
 
       {scheduled.length > 0 && (
         <div>
-          <h2 className="mb-4 text-sm font-semibold text-gray-700">
+          <h2 className="mb-4 font-mono text-xs tracking-widest text-black uppercase">
             Scheduled ({scheduled.length})
           </h2>
           <ul className="space-y-2">

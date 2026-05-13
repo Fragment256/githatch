@@ -19,7 +19,10 @@ export function RepoPicker({ repos, activeRepo, loading, error, onSelect }: Prop
 
   return (
     <div className="w-full max-w-sm">
-      <label htmlFor="repo-select" className="mb-1 block text-sm font-medium text-gray-700">
+      <label
+        htmlFor="repo-select"
+        className="mb-1 block font-mono text-xs tracking-widest uppercase"
+      >
         Active repository
       </label>
       <select
@@ -29,7 +32,7 @@ export function RepoPicker({ repos, activeRepo, loading, error, onSelect }: Prop
           const repo = repos.find((r) => r.full_name === e.target.value)
           if (repo) onSelect(repo)
         }}
-        className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-gray-500 focus:ring-1 focus:ring-gray-500 focus:outline-none"
+        className="block w-full border-2 border-black bg-white px-3 py-2 text-sm focus:outline-none"
       >
         <option value="" disabled>
           — select a repository —

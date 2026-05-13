@@ -123,15 +123,18 @@ export function TaskForm({ onSubmit, loading = false, initialConfig }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="flex w-full max-w-lg flex-col gap-5">
-      <h2 className="text-lg font-semibold text-gray-900">
+      <h2 className="font-display text-2xl font-bold tracking-tight">
         {isEditing ? 'Edit task' : 'New task'}
       </h2>
 
-      {error && <div className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+      {error && <div className="border-2 border-black px-4 py-3 text-sm">{error}</div>}
 
       {/* Name */}
       <div>
-        <label htmlFor="task-name" className="mb-1 block text-sm font-medium text-gray-700">
+        <label
+          htmlFor="task-name"
+          className="mb-1 block font-mono text-xs tracking-widest text-black uppercase"
+        >
           Task name
         </label>
         <input
@@ -140,20 +143,23 @@ export function TaskForm({ onSubmit, loading = false, initialConfig }: Props) {
           value={values.name}
           onChange={(e) => set('name', e.target.value)}
           placeholder="Weekly GSD digest"
-          className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-500 focus:ring-1 focus:ring-gray-500 focus:outline-none"
+          className="block w-full border-2 border-black bg-white px-3 py-2 text-sm focus:outline-none"
         />
       </div>
 
       {/* Schedule */}
       <div>
-        <label htmlFor="task-schedule" className="mb-1 block text-sm font-medium text-gray-700">
+        <label
+          htmlFor="task-schedule"
+          className="mb-1 block font-mono text-xs tracking-widest text-black uppercase"
+        >
           Schedule
         </label>
         <select
           id="task-schedule"
           value={values.schedule}
           onChange={(e) => set('schedule', e.target.value)}
-          className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-gray-500 focus:ring-1 focus:ring-gray-500 focus:outline-none"
+          className="block w-full border-2 border-black bg-white px-3 py-2 text-sm focus:outline-none"
         >
           {SCHEDULE_PRESETS.map((p) => (
             <option key={p.value} value={p.value}>
@@ -167,21 +173,24 @@ export function TaskForm({ onSubmit, loading = false, initialConfig }: Props) {
             value={values.customCron}
             onChange={(e) => set('customCron', e.target.value)}
             placeholder="e.g. 0 9 * * 1"
-            className="mt-2 block w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm shadow-sm focus:border-gray-500 focus:ring-1 focus:ring-gray-500 focus:outline-none"
+            className="mt-2 block w-full border-2 border-black bg-white px-3 py-2 font-mono text-sm focus:outline-none"
           />
         )}
       </div>
 
       {/* Provider */}
       <div>
-        <label htmlFor="task-provider" className="mb-1 block text-sm font-medium text-gray-700">
+        <label
+          htmlFor="task-provider"
+          className="mb-1 block font-mono text-xs tracking-widest text-black uppercase"
+        >
           Provider
         </label>
         <select
           id="task-provider"
           value={values.provider}
           onChange={(e) => set('provider', e.target.value as 'claude_oauth')}
-          className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-gray-500 focus:ring-1 focus:ring-gray-500 focus:outline-none"
+          className="block w-full border-2 border-black bg-white px-3 py-2 text-sm focus:outline-none"
         >
           <option value="claude_oauth">Claude (OAuth)</option>
         </select>
@@ -189,7 +198,10 @@ export function TaskForm({ onSubmit, loading = false, initialConfig }: Props) {
 
       {/* Prompt */}
       <div>
-        <label htmlFor="task-prompt" className="mb-1 block text-sm font-medium text-gray-700">
+        <label
+          htmlFor="task-prompt"
+          className="mb-1 block font-mono text-xs tracking-widest text-black uppercase"
+        >
           Prompt / instructions
         </label>
         <textarea
@@ -198,20 +210,23 @@ export function TaskForm({ onSubmit, loading = false, initialConfig }: Props) {
           onChange={(e) => set('prompt', e.target.value)}
           rows={5}
           placeholder="Summarise the last week of Practice Thinkers actions and post as a comment on issue #42."
-          className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-500 focus:ring-1 focus:ring-gray-500 focus:outline-none"
+          className="block w-full border-2 border-black bg-white px-3 py-2 text-sm focus:outline-none"
         />
       </div>
 
       {/* Output destination */}
       <div>
-        <label htmlFor="task-output" className="mb-1 block text-sm font-medium text-gray-700">
+        <label
+          htmlFor="task-output"
+          className="mb-1 block font-mono text-xs tracking-widest text-black uppercase"
+        >
           Output destination
         </label>
         <select
           id="task-output"
           value={values.outputType}
           onChange={(e) => set('outputType', e.target.value as TaskFormValues['outputType'])}
-          className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-gray-500 focus:ring-1 focus:ring-gray-500 focus:outline-none"
+          className="block w-full border-2 border-black bg-white px-3 py-2 text-sm focus:outline-none"
         >
           <option value="issue_comment">Comment on existing issue</option>
           <option value="new_issue">Create new issue</option>
@@ -227,7 +242,7 @@ export function TaskForm({ onSubmit, loading = false, initialConfig }: Props) {
             value={values.issueNumber}
             onChange={(e) => set('issueNumber', e.target.value)}
             placeholder="Issue number (e.g. 42)"
-            className="mt-2 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-500 focus:ring-1 focus:ring-gray-500 focus:outline-none"
+            className="mt-2 block w-full border-2 border-black bg-white px-3 py-2 text-sm focus:outline-none"
           />
         )}
 
@@ -237,7 +252,7 @@ export function TaskForm({ onSubmit, loading = false, initialConfig }: Props) {
             value={values.filePath}
             onChange={(e) => set('filePath', e.target.value)}
             placeholder="e.g. reports/weekly.md"
-            className="mt-2 block w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm shadow-sm focus:border-gray-500 focus:ring-1 focus:ring-gray-500 focus:outline-none"
+            className="mt-2 block w-full border-2 border-black bg-white px-3 py-2 font-mono text-sm focus:outline-none"
           />
         )}
       </div>
@@ -245,7 +260,7 @@ export function TaskForm({ onSubmit, loading = false, initialConfig }: Props) {
       <button
         type="submit"
         disabled={loading}
-        className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
+        className="border-2 border-black bg-black px-4 py-3 font-mono text-xs tracking-widest text-white uppercase transition-colors duration-100 hover:bg-white hover:text-black disabled:opacity-50"
       >
         {loading
           ? isEditing

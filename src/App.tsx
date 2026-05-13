@@ -99,17 +99,17 @@ export default function App() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="border-b border-gray-200 bg-white px-6 py-3">
+      <header className="border-t-[8px] border-b-[4px] border-black bg-white px-6 py-3">
         <div className="mx-auto flex max-w-4xl items-center justify-between">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setView('tasks')}
-              className="text-lg font-semibold tracking-tight"
+              className="font-display text-xl font-black tracking-tighter"
             >
               Githatch
             </button>
             {activeRepo && (
-              <span className="rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600">
+              <span className="border border-black bg-white px-2 py-1 font-mono text-xs tracking-widest text-black uppercase">
                 {activeRepo.full_name}
               </span>
             )}
@@ -122,13 +122,15 @@ export default function App() {
         </div>
       </header>
 
-      <main className="flex flex-1 flex-col items-center justify-center bg-gray-50 p-6">
+      <main className="flex flex-1 flex-col items-center justify-center bg-white p-6">
         {error && (
-          <div className="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
+          <div className="mb-4 border-2 border-black bg-white px-4 py-3 text-sm text-black">
+            {error}
+          </div>
         )}
 
         {!GITHUB_CLIENT_ID && (
-          <div className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="border-2 border-black bg-white px-4 py-3 text-sm text-black">
             <strong>VITE_GITHUB_CLIENT_ID</strong> is not configured. Set it as a repository
             variable and redeploy.
           </div>
@@ -164,23 +166,19 @@ export default function App() {
             {/* Toolbar */}
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <div className="flex gap-1 rounded-lg border border-gray-200 bg-white p-1">
+                <div className="flex gap-1 border-2 border-black bg-white p-0.5">
                   <button
                     onClick={() => setView('tasks')}
-                    className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
-                      view === 'tasks'
-                        ? 'bg-gray-900 text-white'
-                        : 'text-gray-600 hover:bg-gray-100'
+                    className={`px-3 py-1 font-mono text-xs tracking-widest uppercase transition-colors duration-100 ${
+                      view === 'tasks' ? 'bg-black text-white' : 'text-black hover:bg-gray-100'
                     }`}
                   >
                     Tasks
                   </button>
                   <button
                     onClick={() => setView('tools')}
-                    className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
-                      view === 'tools'
-                        ? 'bg-gray-900 text-white'
-                        : 'text-gray-600 hover:bg-gray-100'
+                    className={`px-3 py-1 font-mono text-xs tracking-widest uppercase transition-colors duration-100 ${
+                      view === 'tools' ? 'bg-black text-white' : 'text-black hover:bg-gray-100'
                     }`}
                   >
                     Tools
@@ -189,7 +187,7 @@ export default function App() {
                 {view === 'tasks' && (
                   <button
                     onClick={() => setView('new-task')}
-                    className="rounded-md bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700"
+                    className="border-2 border-black bg-black px-3 py-1.5 font-mono text-xs tracking-widest text-white uppercase transition-colors duration-100 hover:bg-white hover:text-black"
                   >
                     + New task
                   </button>
@@ -198,13 +196,13 @@ export default function App() {
               <div className="flex gap-3">
                 <button
                   onClick={() => setView('token-setup')}
-                  className="text-xs text-gray-400 hover:text-gray-600"
+                  className="font-mono text-xs tracking-widest text-gray-400 uppercase hover:text-black"
                 >
                   Claude token
                 </button>
                 <button
                   onClick={() => setActiveRepo(null)}
-                  className="text-xs text-gray-400 hover:text-gray-600"
+                  className="font-mono text-xs tracking-widest text-gray-400 uppercase hover:text-black"
                 >
                   Change repo
                 </button>
@@ -233,7 +231,7 @@ export default function App() {
           <div className="w-full max-w-lg">
             <button
               onClick={() => setView('tasks')}
-              className="mb-4 text-xs text-gray-500 hover:text-gray-700"
+              className="mb-4 font-mono text-xs tracking-widest text-gray-500 uppercase hover:text-black"
             >
               ← Back
             </button>
@@ -250,12 +248,12 @@ export default function App() {
           <div className="w-full max-w-lg">
             <button
               onClick={() => setView('tasks')}
-              className="mb-4 text-xs text-gray-500 hover:text-gray-700"
+              className="mb-4 font-mono text-xs tracking-widest text-gray-500 uppercase hover:text-black"
             >
               ← Back
             </button>
             {saveError && (
-              <div className="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div className="mb-4 border-2 border-black bg-white px-4 py-3 text-sm text-black">
                 {saveError}
               </div>
             )}
@@ -271,12 +269,12 @@ export default function App() {
                 setEditingTask(null)
                 setEditingConfig(null)
               }}
-              className="mb-4 text-xs text-gray-500 hover:text-gray-700"
+              className="mb-4 font-mono text-xs tracking-widest text-gray-500 uppercase hover:text-black"
             >
               ← Back
             </button>
             {saveError && (
-              <div className="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div className="mb-4 border-2 border-black bg-white px-4 py-3 text-sm text-black">
                 {saveError}
               </div>
             )}

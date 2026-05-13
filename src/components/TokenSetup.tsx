@@ -49,7 +49,7 @@ export function TokenSetup({ token, owner, repo, onDone }: Props) {
 
   if (phase === 'not-needed') {
     return (
-      <div className="rounded-md bg-green-50 px-4 py-3 text-sm text-green-700">
+      <div className="border-2 border-black bg-white px-4 py-3 text-sm text-black">
         <strong>CLAUDE_CODE_OAUTH_TOKEN</strong> is already set on this repo.{' '}
         <button onClick={onDone} className="underline">
           Continue
@@ -60,7 +60,7 @@ export function TokenSetup({ token, owner, repo, onDone }: Props) {
 
   if (phase === 'done') {
     return (
-      <div className="rounded-md bg-green-50 px-4 py-3 text-sm text-green-700">
+      <div className="border-2 border-black bg-white px-4 py-3 text-sm text-black">
         Token stored successfully.{' '}
         <button onClick={onDone} className="underline">
           Continue
@@ -72,18 +72,19 @@ export function TokenSetup({ token, owner, repo, onDone }: Props) {
   return (
     <form onSubmit={handleSave} className="flex w-full max-w-lg flex-col gap-4">
       <div>
-        <h2 className="text-lg font-semibold text-gray-900">Set up Claude OAuth token</h2>
+        <h2 className="font-display text-2xl font-bold tracking-tight">
+          Set up Claude OAuth token
+        </h2>
         <p className="mt-1 text-sm text-gray-500">
           Scheduled tasks run via <strong>Claude Code Action</strong>, which needs a{' '}
-          <code className="rounded bg-gray-100 px-1 py-0.5 text-xs">CLAUDE_CODE_OAUTH_TOKEN</code>{' '}
-          secret on this repo. This token is encrypted in your browser before being stored in
-          GitHub.
+          <code className="bg-gray-50 px-1 font-mono text-xs">CLAUDE_CODE_OAUTH_TOKEN</code> secret
+          on this repo. This token is encrypted in your browser before being stored in GitHub.
         </p>
       </div>
 
-      <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3">
-        <p className="text-sm font-medium text-gray-700">Generate the token:</p>
-        <code className="mt-1 block rounded bg-gray-100 px-3 py-2 text-xs text-gray-800">
+      <div className="border-2 border-black bg-white px-4 py-3">
+        <p className="font-mono text-sm tracking-widest uppercase">Generate the token:</p>
+        <code className="mt-1 block border border-black bg-gray-50 px-3 py-2 font-mono text-xs">
           claude setup-token
         </code>
         <p className="mt-2 text-xs text-gray-500">
@@ -91,10 +92,15 @@ export function TokenSetup({ token, owner, repo, onDone }: Props) {
         </p>
       </div>
 
-      {error && <div className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+      {error && (
+        <div className="border-2 border-black bg-white px-4 py-3 text-sm text-black">{error}</div>
+      )}
 
       <div>
-        <label htmlFor="claude-token" className="mb-1 block text-sm font-medium text-gray-700">
+        <label
+          htmlFor="claude-token"
+          className="mb-1 block font-mono text-xs tracking-widest text-black uppercase"
+        >
           Paste token
         </label>
         <input
@@ -103,7 +109,7 @@ export function TokenSetup({ token, owner, repo, onDone }: Props) {
           value={claudeToken}
           onChange={(e) => setClaudeToken(e.target.value)}
           placeholder="gho_…"
-          className="block w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm shadow-sm focus:border-gray-500 focus:ring-1 focus:ring-gray-500 focus:outline-none"
+          className="block w-full border-2 border-black bg-white px-3 py-2 font-mono text-sm focus:outline-none"
           autoComplete="off"
         />
       </div>
@@ -111,7 +117,7 @@ export function TokenSetup({ token, owner, repo, onDone }: Props) {
       <button
         type="submit"
         disabled={phase === 'saving' || !claudeToken.trim()}
-        className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
+        className="border-2 border-black bg-black px-4 py-3 font-mono text-xs tracking-widest text-white uppercase transition-colors duration-100 hover:bg-white hover:text-black disabled:opacity-50"
       >
         {phase === 'saving' ? 'Encrypting & storing…' : 'Save token to repo'}
       </button>

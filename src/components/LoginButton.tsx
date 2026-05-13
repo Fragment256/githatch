@@ -8,7 +8,7 @@ export function LoginButton({ onLogin, loading }: Props) {
     <button
       onClick={onLogin}
       disabled={loading}
-      className="inline-flex items-center gap-2 rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
+      className="inline-flex items-center gap-2 border-2 border-black bg-black px-4 py-3 font-mono text-xs tracking-widest text-white uppercase transition-colors duration-100 hover:bg-white hover:text-black disabled:opacity-50"
     >
       {loading ? (
         'Connecting…'
