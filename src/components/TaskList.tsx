@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import type { GithatchTask, WorkflowRun } from '@/lib/workflows'
 import { triggerWorkflow, getWorkflowRuns, updateWorkflowSchedule } from '@/lib/workflows'
 import { deleteWorkflowFile } from '@/lib/github'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 
 interface Props {
   tasks: GithatchTask[]
@@ -210,43 +211,44 @@ function TaskRow({
               >
                 {triggering ? 'Triggering…' : triggered ? 'Triggered!' : 'Run now'}
               </button>
+              <button
+                onClick={() => setConfirmDelete(true)}
+                aria-label="Delete task"
+                className="ml-1 p-1 text-black/30 transition-colors duration-100 hover:text-black"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="square"
+                  strokeLinejoin="miter"
+                >
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6l-1 14H6L5 6" />
+                  <path d="M10 11v6M14 11v6" />
+                  <path d="M9 6V4h6v2" />
+                </svg>
+              </button>
             </>
           )}
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-2">
-        {confirmDelete ? (
-          <>
-            <span className="font-mono text-xs tracking-widest text-black uppercase">
-              Delete this task?
-            </span>
-            <button
-              onClick={handleDelete}
-              disabled={deleting}
-              className="font-mono text-xs tracking-widest text-black uppercase hover:text-black disabled:opacity-50"
-            >
-              {deleting ? 'Deleting…' : 'Confirm'}
-            </button>
-            <button
-              onClick={() => setConfirmDelete(false)}
-              className="font-mono text-xs tracking-widest text-gray-400 uppercase hover:text-black"
-            >
-              Cancel
-            </button>
-          </>
-        ) : (
-          <button
-            onClick={() => setConfirmDelete(true)}
-            className="font-mono text-xs tracking-widest text-gray-400 uppercase hover:text-black"
-          >
-            Delete
-          </button>
-        )}
-      </div>
-
       {triggerError && <p className="mt-1 text-xs text-red-600">{triggerError}</p>}
       {deleteError && <p className="mt-1 text-xs text-red-600">{deleteError}</p>}
+
+      <ConfirmDialog
+        open={confirmDelete}
+        title="Delete task"
+        message={`Remove "${task.displayName}" and its workflow file from the repo? This cannot be undone.`}
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDelete(false)}
+      />
 
       {showHistory && (
         <RunHistoryPanel
