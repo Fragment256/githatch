@@ -47,8 +47,9 @@ describe('TaskList', () => {
 
   it('renders task name and schedule', () => {
     render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
-    expect(screen.getByText('Daily Standup')).toBeInTheDocument()
-    expect(screen.getByText('0 9 * * 1-5')).toBeInTheDocument()
+    // Appears in both Tasks and Scheduled sections
+    expect(screen.getAllByText('Daily Standup').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('0 9 * * 1-5').length).toBeGreaterThanOrEqual(1)
   })
 
   it('calls triggerWorkflow when Run now is clicked', async () => {
@@ -72,7 +73,7 @@ describe('TaskList', () => {
     await waitFor(() => expect(screen.getByText(/Permission denied/)).toBeInTheDocument())
   })
 
-  it('loads run history when Run history is clicked', async () => {
+  it('loads run history when History is clicked', async () => {
     vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue([
       {
         id: 100,
@@ -83,7 +84,7 @@ describe('TaskList', () => {
       },
     ])
     render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
-    fireEvent.click(screen.getByRole('button', { name: /run history/i }))
+    fireEvent.click(screen.getAllByRole('button', { name: /^history$/i })[0])
     await waitFor(() => expect(screen.getByText(/Success/)).toBeInTheDocument())
     expect(screen.getByRole('link', { name: /view logs/i })).toBeInTheDocument()
   })
@@ -91,11 +92,11 @@ describe('TaskList', () => {
   it('shows empty run history message when no runs', async () => {
     vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue([])
     render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
-    fireEvent.click(screen.getByRole('button', { name: /run history/i }))
+    fireEvent.click(screen.getAllByRole('button', { name: /^history$/i })[0])
     await waitFor(() => expect(screen.getByText(/no runs yet/i)).toBeInTheDocument())
   })
 
-  it('places scheduled tasks under Scheduled section and manual tasks under Manual section', () => {
+  it('renders all tasks in the Tasks section and no Manual section', () => {
     const manualTask: GithatchTask = {
       ...TASK,
       slug: 'ad-hoc',
@@ -103,9 +104,8 @@ describe('TaskList', () => {
       schedule: '',
     }
     render(<TaskList {...BASE_PROPS} tasks={[TASK, manualTask]} />)
-    expect(screen.getByText('Scheduled')).toBeInTheDocument()
-    expect(screen.getByText('Manual')).toBeInTheDocument()
-    expect(screen.getByText('Daily Standup')).toBeInTheDocument()
+    expect(screen.queryByText('Manual')).not.toBeInTheDocument()
+    expect(screen.getAllByText('Daily Standup').length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText('Ad Hoc Task')).toBeInTheDocument()
   })
 
@@ -120,7 +120,7 @@ describe('TaskList', () => {
     expect(onRefresh).toHaveBeenCalled()
   })
 
-  it('shows Edit schedule button for scheduled tasks and Set schedule for manual tasks', () => {
+  it('shows Scheduled section only for tasks that have a schedule', () => {
     const manualTask: GithatchTask = {
       ...TASK,
       slug: 'ad-hoc',
@@ -128,7 +128,11 @@ describe('TaskList', () => {
       schedule: '',
     }
     render(<TaskList {...BASE_PROPS} tasks={[TASK, manualTask]} />)
-    expect(screen.getByRole('button', { name: /edit schedule/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /set schedule/i })).toBeInTheDocument()
+    // Scheduled task appears in both Tasks and Scheduled sections
+    expect(screen.getAllByText('Daily Standup').length).toBe(2)
+    // Manual task appears only in Tasks section
+    expect(screen.getAllByText('Ad Hoc Task').length).toBe(1)
+    // Cancel button appears in Scheduled section
+    expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument()
   })
 })
