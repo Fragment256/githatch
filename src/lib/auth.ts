@@ -70,19 +70,16 @@ export async function exchangeCodeForToken(
 
   // GitHub's token endpoint blocks browser CORS requests — route through a thin
   // CORS proxy. No client_secret is stored there; GitHub App + PKCE doesn't need one.
-  const response = await fetch(
-    'https://githatch-token-proxy.lukemaxwellshouse.workers.dev/token',
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        code,
-        client_id: clientId,
-        redirect_uri: redirectUri,
-        code_verifier: verifier,
-      }),
-    },
-  )
+  const response = await fetch('https://githatch-token-proxy.lukemaxwellshouse.workers.dev/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      code,
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      code_verifier: verifier,
+    }),
+  })
 
   if (!response.ok) {
     clearPkceSession()
