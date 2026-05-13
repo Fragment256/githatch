@@ -4,9 +4,12 @@
 
 **Parked.** Core scaffold, task creation, task list, manual trigger, run history, output viewer, and OAuth token setup helper are all built and on main. The app deploys to `https://fragment256.github.io/githatch/`.
 
-**Open blocker — auth rewrite.** The PKCE OAuth flow requires a server-side token proxy to exchange the code for a GitHub token. A Cloudflare Worker was built (`/githatch-token-proxy`) but never deployed. Decision: **drop PKCE OAuth; replace with PAT-based auth.** The target user is a developer — pasting a fine-grained PAT scoped to `repo` + `workflow` is acceptable friction and eliminates all infra. The worker repo can be archived.
+**Auth — migrated to GitHub App.** Dropped the Cloudflare Worker proxy. GitHub Apps as public clients support PKCE without `client_secret`; `exchangeCodeForToken` now calls `https://github.com/login/oauth/access_token` directly from the browser. One runtime uncertainty: whether GitHub's token endpoint sends CORS headers for GitHub App requests — will be confirmed on first login attempt after the app is registered.
 
-**Next action when resumed:** replace `src/lib/auth.ts` OAuth flow + `LoginButton` with a PAT input screen; update acceptance criteria accordingly.
+**Next action when resumed:**
+1. Create a GitHub App on GitHub (instructions below).
+2. Update `VITE_GITHUB_CLIENT_ID` repo variable with the new App's client ID.
+3. Test login end-to-end — if CORS blocks the token exchange, fallback is device flow (no infra, different UX).
 
 ---
 
@@ -92,10 +95,17 @@ A static web app that lets a single user schedule recurring agentic GitHub Actio
 7. **feat: Claude Code OAuth token setup helper** ✅ done
 8. **feat: tasks list + manual trigger + run history + output viewer** ✅ done
 
-9. **feat: PAT-based auth** *(next)*
-   - Description: Replace PKCE OAuth flow with a PAT input screen. User pastes a fine-grained GitHub PAT scoped to `repo` + `workflow`. Token stored in `sessionStorage`. Show a direct link to GitHub's fine-grained PAT creation page with the correct scope pre-explanation. Remove all OAuth App machinery (`buildAuthUrl`, `exchangeCodeForToken`, PKCE verifier/challenge), `LoginButton` component, and `VITE_GITHUB_CLIENT_ID` env var.
-   - Acceptance: blank URL loads PAT input; after pasting a valid token the app fetches the user and proceeds to repo picker. Invalid token shows a clear error.
-   - Test plan: unit-test the token validation call; manually verify end-to-end login → repo pick → task create.
+9. **feat: GitHub App registration + CORS verification** *(next)*
+   - Description: Register a GitHub App (see setup instructions below). Update `VITE_GITHUB_CLIENT_ID` repo variable. Test the login flow end-to-end to confirm GitHub's token endpoint returns CORS headers for the App. If CORS fails, implement device flow fallback.
+   - GitHub App settings to configure:
+     - Homepage URL: `https://fragment256.github.io/githatch/`
+     - Callback URL: `https://fragment256.github.io/githatch/` + `http://localhost:5173/`
+     - Webhooks: disabled
+     - Repository permissions: Contents (R/W), Actions (R), Workflows (R/W), Secrets (R/W)
+     - Installation: "Only on this account" (v0)
+     - Optional features: enable "Public client" / device flow if the option is present
+   - Acceptance: clicking "Login with GitHub" completes the full OAuth round-trip and lands the user on the repo picker.
+   - Test plan: login, pick repo, create task — full happy path.
 
 ## PR discipline
 
