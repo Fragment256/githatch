@@ -68,18 +68,21 @@ export async function exchangeCodeForToken(
     throw new Error('No PKCE code verifier found in session. Restart the login flow.')
   }
 
-  // GitHub Apps as public clients support PKCE without client_secret.
-  // The code_verifier is the proof of possession; no server-side secret required.
-  const response = await fetch('https://github.com/login/oauth/access_token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify({
-      code,
-      client_id: clientId,
-      redirect_uri: redirectUri,
-      code_verifier: verifier,
-    }),
-  })
+  // GitHub's token endpoint blocks browser CORS requests — route through a thin
+  // CORS proxy. No client_secret is stored there; GitHub App + PKCE doesn't need one.
+  const response = await fetch(
+    'https://githatch-token-proxy.lukemaxwellshouse.workers.dev/token',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        code,
+        client_id: clientId,
+        redirect_uri: redirectUri,
+        code_verifier: verifier,
+      }),
+    },
+  )
 
   if (!response.ok) {
     clearPkceSession()
