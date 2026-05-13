@@ -72,6 +72,28 @@ export async function upsertWorkflowFile({
   }
 }
 
+export async function deleteWorkflowFile(params: {
+  token: string
+  owner: string
+  repo: string
+  path: string
+}): Promise<void> {
+  const { token, owner, repo, path } = params
+  const headers = authHeaders(token)
+  const url = `${API}/repos/${owner}/${repo}/contents/${path}`
+
+  const getRes = await fetch(url, { headers })
+  if (!getRes.ok) throw new Error(`Workflow file not found: ${getRes.status}`)
+  const { sha } = (await getRes.json()) as { sha: string }
+
+  const deleteRes = await fetch(url, {
+    method: 'DELETE',
+    headers: { ...headers, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: `chore: remove githatch workflow`, sha }),
+  })
+  if (!deleteRes.ok) throw new Error(`Failed to delete workflow file: ${deleteRes.status}`)
+}
+
 export async function listPushableRepos(token: string): Promise<GitHubRepo[]> {
   const all: GitHubRepo[] = []
   let url: string | null = `${API}/user/repos?per_page=100&sort=pushed`

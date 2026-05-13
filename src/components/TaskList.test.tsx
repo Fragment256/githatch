@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { TaskList } from './TaskList'
 import type { GithatchTask } from '@/lib/workflows'
 import * as workflows from '@/lib/workflows'
+import * as github from '@/lib/github'
 
 const TASK: GithatchTask = {
   slug: 'daily-standup',
@@ -40,7 +41,7 @@ describe('TaskList', () => {
 
   it('shows empty state when no tasks', () => {
     render(<TaskList {...BASE_PROPS} tasks={[]} />)
-    expect(screen.getByText(/no scheduled tasks/i)).toBeInTheDocument()
+    expect(screen.getByText(/no tasks yet/i)).toBeInTheDocument()
   })
 
   it('renders task name and schedule', () => {
@@ -91,5 +92,42 @@ describe('TaskList', () => {
     render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
     fireEvent.click(screen.getByRole('button', { name: /run history/i }))
     await waitFor(() => expect(screen.getByText(/no runs yet/i)).toBeInTheDocument())
+  })
+
+  it('places scheduled tasks under Scheduled section and manual tasks under Manual section', () => {
+    const manualTask: GithatchTask = {
+      ...TASK,
+      slug: 'ad-hoc',
+      displayName: 'Ad Hoc Task',
+      schedule: '',
+    }
+    render(<TaskList {...BASE_PROPS} tasks={[TASK, manualTask]} />)
+    expect(screen.getByText('Scheduled')).toBeInTheDocument()
+    expect(screen.getByText('Manual')).toBeInTheDocument()
+    expect(screen.getByText('Daily Standup')).toBeInTheDocument()
+    expect(screen.getByText('Ad Hoc Task')).toBeInTheDocument()
+  })
+
+  it('shows delete confirmation then calls deleteWorkflowFile on confirm', async () => {
+    vi.spyOn(github, 'deleteWorkflowFile').mockResolvedValue(undefined)
+    const onRefresh = vi.fn()
+    render(<TaskList {...BASE_PROPS} tasks={[TASK]} onRefresh={onRefresh} />)
+    fireEvent.click(screen.getByRole('button', { name: /^delete$/i }))
+    expect(screen.getByText(/delete this task\?/i)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /confirm/i }))
+    await waitFor(() => expect(github.deleteWorkflowFile).toHaveBeenCalledOnce())
+    expect(onRefresh).toHaveBeenCalled()
+  })
+
+  it('shows Edit schedule button for scheduled tasks and Set schedule for manual tasks', () => {
+    const manualTask: GithatchTask = {
+      ...TASK,
+      slug: 'ad-hoc',
+      displayName: 'Ad Hoc Task',
+      schedule: '',
+    }
+    render(<TaskList {...BASE_PROPS} tasks={[TASK, manualTask]} />)
+    expect(screen.getByRole('button', { name: /edit schedule/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /set schedule/i })).toBeInTheDocument()
   })
 })

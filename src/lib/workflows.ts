@@ -103,6 +103,50 @@ export async function listGithatchTasks(params: TaskParams): Promise<GithatchTas
   return results.filter((t): t is GithatchTask => t !== null)
 }
 
+export function patchScheduleInYaml(yaml: string, schedule: string | undefined): string {
+  const onBlock = schedule
+    ? `on:\n  schedule:\n    - cron: '${schedule}'\n  workflow_dispatch:`
+    : `on:\n  workflow_dispatch:`
+  return yaml.replace(/\non:[\s\S]*?\n\npermissions:/, `\n${onBlock}\n\npermissions:`)
+}
+
+export async function updateWorkflowSchedule(params: {
+  token: string
+  owner: string
+  repo: string
+  task: GithatchTask
+  schedule: string | undefined
+}): Promise<void> {
+  const { token, owner, repo, task, schedule } = params
+  const headers = authHeaders(token)
+  const url = `${API}/repos/${owner}/${repo}/contents/${task.path}`
+
+  const getRes = await fetch(url, { headers })
+  if (!getRes.ok) throw new Error(`Failed to fetch workflow: ${getRes.status}`)
+  const { content: encoded, sha } = (await getRes.json()) as { content: string; sha: string }
+
+  const binary = atob(encoded.replace(/\s/g, ''))
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+  const currentYaml = new TextDecoder('utf-8').decode(bytes)
+
+  const updatedYaml = patchScheduleInYaml(currentYaml, schedule)
+  const updatedContent = btoa(unescape(encodeURIComponent(updatedYaml)))
+
+  const putRes = await fetch(url, {
+    method: 'PUT',
+    headers: { ...headers, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      message: schedule
+        ? `chore: set schedule for ${task.slug}`
+        : `chore: remove schedule for ${task.slug}`,
+      content: updatedContent,
+      sha,
+    }),
+  })
+  if (!putRes.ok) throw new Error(`Failed to update schedule: ${putRes.status}`)
+}
+
 export async function triggerWorkflow(params: WorkflowParams): Promise<void> {
   const { token, owner, repo, workflowId, defaultBranch } = params
   const res = await fetch(

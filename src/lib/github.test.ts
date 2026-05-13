@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { listPushableRepos, upsertWorkflowFile, type GitHubRepo } from './github'
+import {
+  listPushableRepos,
+  upsertWorkflowFile,
+  deleteWorkflowFile,
+  type GitHubRepo,
+} from './github'
 
 const mockRepo = (overrides: Partial<GitHubRepo> = {}): GitHubRepo => ({
   id: 1,
@@ -132,5 +137,46 @@ describe('upsertWorkflowFile', () => {
     vi.stubGlobal('fetch', fetchMock)
 
     await expect(upsertWorkflowFile(params)).rejects.toThrow()
+  })
+})
+
+describe('deleteWorkflowFile', () => {
+  const params = {
+    token: 'gho_test',
+    owner: 'testuser',
+    repo: 'my-repo',
+    path: '.github/workflows/githatch-weekly-digest.yml',
+  }
+
+  beforeEach(() => vi.restoreAllMocks())
+
+  it('GETs the file for SHA then DELETEs it', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ sha: 'abc123' }) })
+      .mockResolvedValueOnce({ ok: true })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await deleteWorkflowFile(params)
+
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    const [, opts] = fetchMock.mock.calls[1] as [string, RequestInit]
+    expect(opts.method).toBe('DELETE')
+    const body = JSON.parse(opts.body as string) as { sha: string }
+    expect(body.sha).toBe('abc123')
+  })
+
+  it('throws when file is not found', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 404 }))
+    await expect(deleteWorkflowFile(params)).rejects.toThrow()
+  })
+
+  it('throws when DELETE fails', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ sha: 'abc123' }) })
+      .mockResolvedValueOnce({ ok: false, status: 403 })
+    vi.stubGlobal('fetch', fetchMock)
+    await expect(deleteWorkflowFile(params)).rejects.toThrow()
   })
 })

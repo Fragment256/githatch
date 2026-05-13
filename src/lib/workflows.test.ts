@@ -1,5 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { parseGithatchYaml, listGithatchTasks, triggerWorkflow, getWorkflowRuns } from './workflows'
+import {
+  parseGithatchYaml,
+  listGithatchTasks,
+  triggerWorkflow,
+  getWorkflowRuns,
+  patchScheduleInYaml,
+  updateWorkflowSchedule,
+} from './workflows'
+import type { GithatchTask } from './workflows'
 
 describe('parseGithatchYaml', () => {
   const sampleYaml = `# Githatch — Daily Standup
@@ -174,6 +182,85 @@ describe('triggerWorkflow', () => {
         repo: 'my-repo',
         workflowId: 42,
         defaultBranch: 'main',
+      }),
+    ).rejects.toThrow()
+  })
+})
+
+describe('patchScheduleInYaml', () => {
+  const baseYaml = `# Githatch — Test\nname: githatch-test\n\non:\n  workflow_dispatch:\n\npermissions:\n  contents: write\n`
+  const scheduledYaml = `# Githatch — Test\nname: githatch-test\n\non:\n  schedule:\n    - cron: '0 9 * * 1'\n  workflow_dispatch:\n\npermissions:\n  contents: write\n`
+
+  it('adds a cron schedule to a manual-only workflow', () => {
+    const result = patchScheduleInYaml(baseYaml, '0 8 * * *')
+    expect(result).toContain("cron: '0 8 * * *'")
+    expect(result).toContain('workflow_dispatch')
+    expect(result).toContain('permissions:')
+  })
+
+  it('removes a cron schedule when schedule is undefined', () => {
+    const result = patchScheduleInYaml(scheduledYaml, undefined)
+    expect(result).not.toContain('schedule:')
+    expect(result).not.toContain('cron:')
+    expect(result).toContain('workflow_dispatch')
+    expect(result).toContain('permissions:')
+  })
+
+  it('replaces an existing cron with a new one', () => {
+    const result = patchScheduleInYaml(scheduledYaml, '0 8 * * *')
+    expect(result).toContain("cron: '0 8 * * *'")
+    expect(result).not.toContain("cron: '0 9 * * 1'")
+  })
+})
+
+describe('updateWorkflowSchedule', () => {
+  beforeEach(() => vi.restoreAllMocks())
+
+  const task: GithatchTask = {
+    slug: 'test-task',
+    displayName: 'Test Task',
+    schedule: '',
+    workflowId: 10,
+    path: '.github/workflows/githatch-test-task.yml',
+  }
+
+  const currentYaml = `# Githatch Test Task\nname: githatch-test-task\n\non:\n  workflow_dispatch:\n\npermissions:\n  contents: write\n`
+  const encodedYaml = btoa(currentYaml)
+
+  it('fetches the file, patches the schedule, and PUTs the result', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ content: encodedYaml, sha: 'abc123' }),
+      })
+      .mockResolvedValueOnce({ ok: true })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await updateWorkflowSchedule({
+      token: 'gho_test',
+      owner: 'u',
+      repo: 'r',
+      task,
+      schedule: '0 9 * * 1',
+    })
+
+    const body = JSON.parse(
+      (fetchMock.mock.calls[1] as [string, RequestInit])[1].body as string,
+    ) as { content: string; sha: string }
+    expect(body.sha).toBe('abc123')
+    expect(atob(body.content)).toContain("cron: '0 9 * * 1'")
+  })
+
+  it('throws on failed GET', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 404 }))
+    await expect(
+      updateWorkflowSchedule({
+        token: 'gho_test',
+        owner: 'u',
+        repo: 'r',
+        task,
+        schedule: '0 9 * * 1',
       }),
     ).rejects.toThrow()
   })
