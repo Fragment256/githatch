@@ -12,7 +12,7 @@ export interface TaskFormValues {
   customCron: string
   provider: 'claude_oauth'
   prompt: string
-  outputType: 'issue_comment' | 'new_issue' | 'file'
+  outputType: 'issue_comment' | 'new_issue' | 'file' | 'pull_request' | 'agent_managed'
   issueNumber: string
   filePath: string
 }
@@ -40,6 +40,8 @@ function buildOutputDestination(values: TaskFormValues): OutputDestination {
     if (!values.filePath.trim()) throw new Error('File path is required')
     return { type: 'file', filePath: values.filePath.trim() }
   }
+  if (values.outputType === 'pull_request') return { type: 'pull_request' }
+  if (values.outputType === 'agent_managed') return { type: 'agent_managed' }
   return { type: 'new_issue' }
 }
 
@@ -182,6 +184,8 @@ export function TaskForm({ onSubmit, loading = false }: Props) {
           <option value="issue_comment">Comment on existing issue</option>
           <option value="new_issue">Create new issue</option>
           <option value="file">Commit to file</option>
+          <option value="pull_request">Open pull request</option>
+          <option value="agent_managed">Agent-managed</option>
         </select>
 
         {values.outputType === 'issue_comment' && (

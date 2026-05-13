@@ -84,6 +84,26 @@ describe('generateWorkflowYaml — output destinations', () => {
     const yaml = generateWorkflowYaml(baseTask({ type: 'file', filePath: 'reports/weekly.md' }))
     expect(yaml).toContain('reports/weekly.md')
   })
+
+  it('generates pull_request output type with gh pr create instruction', () => {
+    const yaml = generateWorkflowYaml(baseTask({ type: 'pull_request' }))
+    expect(yaml).toContain('pull_request')
+    expect(yaml).toContain('gh pr create')
+    expect(yaml).toContain('pull-requests: write')
+  })
+
+  it('generates agent_managed output type with no appended instruction', () => {
+    const yaml = generateWorkflowYaml(baseTask({ type: 'agent_managed' }))
+    expect(yaml).toContain('agent_managed')
+    expect(yaml).toContain('pull-requests: write')
+    expect(yaml).not.toContain('gh pr create')
+    expect(yaml).not.toContain('gh issue')
+  })
+
+  it('does not include pull-requests permission for non-PR types', () => {
+    const yaml = generateWorkflowYaml(baseTask({ type: 'new_issue' }))
+    expect(yaml).not.toContain('pull-requests')
+  })
 })
 
 describe('generateWorkflowYaml — schedule presets', () => {

@@ -4,6 +4,8 @@ export type OutputDestination =
   | { type: 'issue_comment'; issueNumber: number }
   | { type: 'new_issue' }
   | { type: 'file'; filePath: string }
+  | { type: 'pull_request' }
+  | { type: 'agent_managed' }
 
 export interface TaskConfig {
   name: string
@@ -39,7 +41,12 @@ function buildPromptWithOutput(config: TaskConfig): string {
     lines.push(
       `\nWhen done, write your response to the file \`${outputDestination.filePath}\` and commit it: git add ${outputDestination.filePath} && git commit -m "chore: update ${outputDestination.filePath}" && git push`,
     )
+  } else if (outputDestination.type === 'pull_request') {
+    lines.push(
+      `\nWhen done, open a pull request with your changes using: gh pr create --title "<descriptive title>" --body "<summary>". Reference any issue you addressed with "Closes #N" in the body. Comment on that issue to confirm the PR is raised.`,
+    )
   }
+  // agent_managed: no appended instruction — prompt is self-contained
 
   return lines.join('\n')
 }
@@ -59,10 +66,16 @@ export function generateWorkflowYaml(config: TaskConfig): string {
   const outputType = config.outputDestination.type
   const outputComment =
     outputType === 'issue_comment'
-      ? `# githatch:output_type=issue_comment issue=#${config.outputDestination.issueNumber}`
+      ? `# githatch:output_type=issue_comment issue=#${(config.outputDestination as { issueNumber: number }).issueNumber}`
       : outputType === 'new_issue'
         ? '# githatch:output_type=new_issue'
-        : `# githatch:output_type=file path=${(config.outputDestination as { filePath: string }).filePath}`
+        : outputType === 'file'
+          ? `# githatch:output_type=file path=${(config.outputDestination as { filePath: string }).filePath}`
+          : outputType === 'pull_request'
+            ? '# githatch:output_type=pull_request'
+            : '# githatch:output_type=agent_managed'
+
+  const needsPrPermission = outputType === 'pull_request' || outputType === 'agent_managed'
 
   const promptYaml = fullPrompt.includes('\n')
     ? `|\n${indentBlock(fullPrompt, 10)}`
@@ -80,7 +93,7 @@ ${onBlock}
 
 permissions:
   contents: write
-  issues: write
+  issues: write${needsPrPermission ? '\n  pull-requests: write' : ''}
 
 jobs:
   run:
