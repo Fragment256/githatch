@@ -58,6 +58,7 @@ export async function listGithatchTasks(params: TaskParams): Promise<GithatchTas
   const contentsRes = await fetch(`${API}/repos/${owner}/${repo}/contents/.github/workflows`, {
     headers,
   })
+  if (contentsRes.status === 404) return []
   if (!contentsRes.ok) {
     throw new Error(`Failed to list workflow files: ${contentsRes.status}`)
   }

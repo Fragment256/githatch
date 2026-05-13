@@ -102,8 +102,20 @@ describe('listGithatchTasks', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
-  it('throws when the contents API call fails', async () => {
+  it('returns empty array when workflows directory does not exist (404)', async () => {
     const fetchMock = vi.fn().mockResolvedValueOnce({ ok: false, status: 404 })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const result = await listGithatchTasks({
+      token: 'gho_test',
+      owner: 'testuser',
+      repo: 'my-repo',
+    })
+    expect(result).toEqual([])
+  })
+
+  it('throws when the contents API call fails with non-404 error', async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce({ ok: false, status: 500 })
     vi.stubGlobal('fetch', fetchMock)
 
     await expect(
