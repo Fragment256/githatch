@@ -54,13 +54,13 @@ export function Landing({ onLogin, loading, onAbout }: Props) {
       <div className="flex flex-col gap-6">
         <p className="font-mono text-xs tracking-widest text-black/40 uppercase">How it works</p>
         <div className="flex flex-wrap items-start gap-2 sm:flex-nowrap">
-          <FlowStep label="Write a spec" sub="your prompt" />
+          <FlowStep label="Define an agent" sub="what it should do" />
           <Arrow />
-          <FlowStep label="GitHatch" sub="commits workflow YAML" />
+          <FlowStep label="Schedule it" sub="GitHatch commits the workflow" />
           <Arrow />
-          <FlowStep label="Actions runs" sub="on your schedule" />
+          <FlowStep label="Actions runs" sub="daily, weekly, on demand" />
           <Arrow />
-          <FlowStep label="Claude writes" sub="file · issue · PR" />
+          <FlowStep label="Claude delivers" sub="file · issue · PR" />
         </div>
       </div>
 

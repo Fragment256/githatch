@@ -124,7 +124,13 @@ export default function App() {
               About
             </button>
             {user ? (
-              <UserMenu user={user} onLogout={logout} />
+              <UserMenu
+                user={user}
+                onLogout={() => {
+                  logout()
+                  setActiveRepo(null)
+                }}
+              />
             ) : (
               <LoginButton onLogin={login} loading={loading} />
             )}
