@@ -9,10 +9,12 @@ export function UserMenu({ user, onLogout }: Props) {
   return (
     <div className="flex items-center gap-3">
       <img src={user.avatar_url} alt={user.login} className="h-7 w-7" />
-      <span className="font-mono text-xs tracking-widest uppercase">{user.login}</span>
+      <span className="hidden font-mono text-xs tracking-widest uppercase sm:inline">
+        {user.login}
+      </span>
       <button
         onClick={onLogout}
-        className="font-mono text-xs tracking-widest text-gray-500 uppercase hover:text-black"
+        className="font-mono text-xs tracking-widest text-black/40 uppercase hover:text-black"
       >
         Logout
       </button>

@@ -177,9 +177,9 @@ function TaskRow({
 
   return (
     <li className="border-2 border-black bg-white p-4">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-semibold text-black">{task.displayName}</p>
+      <div className="flex flex-col gap-3">
+        <div>
+          <p className="font-semibold text-black">{task.displayName}</p>
           {task.schedule && (
             <p className="mt-0.5 font-mono text-xs text-black/50">{task.schedule}</p>
           )}
@@ -215,7 +215,7 @@ function TaskRow({
         </div>
       </div>
 
-      <div className="mt-2 flex items-center justify-end gap-2">
+      <div className="flex items-center justify-end gap-2">
         {confirmDelete ? (
           <>
             <span className="font-mono text-xs tracking-widest text-black uppercase">
