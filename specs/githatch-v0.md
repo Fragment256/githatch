@@ -1,5 +1,15 @@
 # SPEC: Githatch — v0
 
+## Status (2026-05-13)
+
+**Parked.** Core scaffold, task creation, task list, manual trigger, run history, output viewer, and OAuth token setup helper are all built and on main. The app deploys to `https://fragment256.github.io/githatch/`.
+
+**Open blocker — auth rewrite.** The PKCE OAuth flow requires a server-side token proxy to exchange the code for a GitHub token. A Cloudflare Worker was built (`/githatch-token-proxy`) but never deployed. Decision: **drop PKCE OAuth; replace with PAT-based auth.** The target user is a developer — pasting a fine-grained PAT scoped to `repo` + `workflow` is acceptable friction and eliminates all infra. The worker repo can be archived.
+
+**Next action when resumed:** replace `src/lib/auth.ts` OAuth flow + `LoginButton` with a PAT input screen; update acceptance criteria accordingly.
+
+---
+
 ## Goal
 
 A static web app that lets a single user schedule recurring agentic GitHub Actions on their own repos, without writing YAML. The thinness is the point: GitHub holds the data, runs the work, and stores the secrets; Githatch is the UI for configuring it.
@@ -26,22 +36,22 @@ A static web app that lets a single user schedule recurring agentic GitHub Actio
 
 ## Requirements (must)
 
-- [ ] GitHub OAuth login via PKCE (no server-side secret).
-- [ ] Repo picker — list user's repos (filter `permissions.push = true`), select one as the active repo; selection persists in `sessionStorage`.
-- [ ] Scheduled task creation form:
+- [x] ~~GitHub OAuth login via PKCE (no server-side secret).~~ **Replaced — see auth decision above.** New requirement: PAT input screen. User pastes a fine-grained GitHub PAT (`repo` + `workflow` scopes); token stored in `sessionStorage`.
+- [x] Repo picker — list user's repos (filter `permissions.push = true`), select one as the active repo; selection persists in `sessionStorage`.
+- [x] Scheduled task creation form:
   - Task name (becomes workflow filename slug)
   - Schedule (preset picker: "every Monday 9am", "daily 8am", "every 6 hours" + custom cron string)
   - Provider dropdown (v0 ships only "Claude (OAuth)"; designed to take `claude_api`, `github_models`, etc. later)
   - Prompt / instructions textarea
   - Output destination (issue comment on existing issue / new issue / commit to file)
-- [ ] Workflow YAML generator — translates form input into a valid `.github/workflows/githatch-{slug}.yml`. Provider-aware: in v0, emits a `claude_oauth` template using `anthropics/claude-code-action@v1`.
-- [ ] Create workflow file via GitHub Contents API (`PUT /repos/.../contents/...`).
-- [ ] Tasks list view — read `.github/workflows/githatch-*.yml` files, parse name/schedule/provider, display with last-run status.
-- [ ] Manual run trigger via `workflow_dispatch`.
-- [ ] Run history — last 20 runs per task with status, started, duration.
-- [ ] Run output viewer — for completed runs, fetch and display the issue comment / new issue / file the workflow produced. For failures, deep-link to GitHub's run page.
-- [ ] OAuth token setup helper — one-time per repo. Prompts user to run `claude setup-token` locally, paste the returned token; Githatch encrypts client-side (`libsodium-wrappers`) and PUTs to repo Actions secrets as `CLAUDE_CODE_OAUTH_TOKEN`.
-- [ ] Static deploy on GitHub Pages at `Fragment256.github.io/githatch`.
+- [x] Workflow YAML generator — translates form input into a valid `.github/workflows/githatch-{slug}.yml`. Provider-aware: in v0, emits a `claude_oauth` template using `anthropics/claude-code-action@v1`.
+- [x] Create workflow file via GitHub Contents API (`PUT /repos/.../contents/...`).
+- [x] Tasks list view — read `.github/workflows/githatch-*.yml` files, parse name/schedule/provider, display with last-run status.
+- [x] Manual run trigger via `workflow_dispatch`.
+- [x] Run history — last 20 runs per task with status, started, duration.
+- [x] Run output viewer — for completed runs, fetch and display the issue comment / new issue / file the workflow produced. For failures, deep-link to GitHub's run page.
+- [x] OAuth token setup helper — one-time per repo. Prompts user to run `claude setup-token` locally, paste the returned token; Githatch encrypts client-side (`libsodium-wrappers`) and PUTs to repo Actions secrets as `CLAUDE_CODE_OAUTH_TOKEN`.
+- [x] Static deploy on GitHub Pages at `Fragment256.github.io/githatch`.
 
 ## Nice-to-haves (v0, only if cheap)
 
@@ -51,14 +61,14 @@ A static web app that lets a single user schedule recurring agentic GitHub Actio
 
 ## Acceptance criteria (definition of done)
 
-- [ ] Public URL loads and shows "Login with GitHub".
-- [ ] After login, user sees their repos and can pick one.
-- [ ] User can fill the task creation form and submit; a workflow file appears at `.github/workflows/githatch-{slug}.yml` in the active repo with the configured schedule and prompt.
-- [ ] User can manually trigger the workflow from Githatch; it runs in GitHub Actions.
-- [ ] The workflow completes successfully and produces the configured output (issue comment / new issue / file).
-- [ ] Run history view shows the run with correct status; clicking a successful run shows the produced output inside Githatch.
-- [ ] OAuth token setup flow works end-to-end: `CLAUDE_CODE_OAUTH_TOKEN` lands in the repo's Actions secrets, workflows can use it, secret never leaves the browser unencrypted.
-- [ ] Lint, format, type-check, and tests pass in CI.
+- [ ] Public URL loads and shows PAT input screen with link to GitHub's fine-grained PAT creation page.
+- [x] After token entry, user sees their repos and can pick one.
+- [x] User can fill the task creation form and submit; a workflow file appears at `.github/workflows/githatch-{slug}.yml` in the active repo with the configured schedule and prompt.
+- [x] User can manually trigger the workflow from Githatch; it runs in GitHub Actions.
+- [ ] The workflow completes successfully and produces the configured output (issue comment / new issue / file). *(not yet end-to-end tested with a real run)*
+- [x] Run history view shows the run with correct status; clicking a successful run shows the produced output inside Githatch.
+- [x] OAuth token setup flow works end-to-end: `CLAUDE_CODE_OAUTH_TOKEN` lands in the repo's Actions secrets, workflows can use it, secret never leaves the browser unencrypted.
+- [x] Lint, format, type-check, and tests pass in CI.
 
 ## Risks / constraints
 
@@ -70,47 +80,22 @@ A static web app that lets a single user schedule recurring agentic GitHub Actio
 - **Stack.** Vite + React + TypeScript + Tailwind + shadcn/ui. Octokit (browser-compatible) for GitHub API. TanStack Query for caching. `libsodium-wrappers` for secret encryption. No backend.
 - **Hosting.** GitHub Pages for v0. Cloudflare Pages migration considered later if preview environments per PR become valuable.
 
-## Issue breakdown (to create in GitHub)
+## Issue breakdown
 
-1. **chore: project scaffold + GitHub Pages deploy**
-   - Description: Vite + React + TypeScript + Tailwind + shadcn/ui. ESLint, Prettier, Vitest, tsc. GitHub Action to build and deploy to GitHub Pages on push to main. README, MIT LICENSE, .gitignore.
-   - Acceptance: pushing to main publishes a "Hello Githatch" page at `Fragment256.github.io/githatch`. CI green.
-   - Test plan: visit URL after merge; confirm page loads. Run lint/format/test/type-check locally and in CI.
+1. **chore: project scaffold + GitHub Pages deploy** ✅ done
+2. **feat: GitHub OAuth login (PKCE)** ✅ done — *to be replaced by PAT auth (see status)*
+3. **feat: repo picker** ✅ done
 
-2. **feat: GitHub OAuth login (PKCE)**
-   - Description: PKCE OAuth flow against a GitHub OAuth App. Token stored in `sessionStorage`. Login + logout. Display logged-in user (avatar + handle).
-   - Acceptance: clicking Login redirects to GitHub, returns with token, shows user.
-   - Test plan: log in/out; verify token never leaves browser; unit-test PKCE code verifier/challenge generation.
+4. **feat: scheduled task creation form + provider abstraction** ✅ done
+5. **feat: workflow YAML generator (provider-aware)** ✅ done
+6. **feat: persist workflow file via Contents API** ✅ done
+7. **feat: Claude Code OAuth token setup helper** ✅ done
+8. **feat: tasks list + manual trigger + run history + output viewer** ✅ done
 
-3. **feat: repo picker**
-   - Description: After login, fetch and list repos where `permissions.push = true`. Persist selection in `sessionStorage`. Display active repo in header.
-   - Acceptance: can pick a repo; rest of app operates on it; refresh preserves selection.
-   - Test plan: log in, pick a repo, refresh — selection persists.
-
-4. **feat: scheduled task creation form + provider abstraction**
-   - Description: Form with name, schedule picker (presets + custom cron), provider dropdown (v0 shows only "Claude (OAuth)"), prompt textarea, output destination. On submit, hands form data to the YAML generator (#5).
-   - Acceptance: form validates inputs; on submit, calls the generator and persists the resulting workflow file (via #6).
-   - Test plan: submit valid + invalid forms; assert validation messages; assert correct payload sent to generator.
-
-5. **feat: workflow YAML generator (provider-aware)**
-   - Description: Pure function `(taskConfig, provider) → yamlString`. Provider switch: in v0, emits `anthropics/claude-code-action@v1` template using `claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}`. Unit-tested against fixtures.
-   - Acceptance: generator produces YAML that GitHub Actions accepts and that runs to completion.
-   - Test plan: snapshot tests over a matrix of (schedule × prompt × output destination); manual run against a real repo to confirm GitHub accepts the YAML.
-
-6. **feat: persist workflow file via Contents API**
-   - Description: Given a generated YAML string and a slug, PUT to `.github/workflows/githatch-{slug}.yml` in the active repo. Handle file-already-exists (use the SHA returned by GET to update).
-   - Acceptance: a task created via #4+#5 produces a real file in the repo.
-   - Test plan: integration test against a sandbox repo (or mocked Octokit); manual end-to-end against Practice Thinkers.
-
-7. **feat: Claude Code OAuth token setup helper**
-   - Description: First-time-per-repo UI. Explains `claude setup-token`. User pastes token; Githatch fetches the repo's public key via Actions secrets API, encrypts the token with `libsodium-wrappers` client-side, PUTs as `CLAUDE_CODE_OAUTH_TOKEN`. Detect existing secret and skip if present.
-   - Acceptance: secret lands in repo Actions secrets; workflows can use it; raw token never leaves the browser unencrypted.
-   - Test plan: set the secret; trigger a task that uses it; verify task succeeds. Unit-test the encryption step.
-
-8. **feat: tasks list + manual trigger + run history + output viewer**
-   - Description: Combined view per active repo. List existing `githatch-*.yml` workflows. Per-task: schedule, last run status, "Run now" button (`workflow_dispatch`), recent runs (last 20: status, started, duration), and run-detail view showing the workflow's produced output (issue comment / new issue / file).
-   - Acceptance: a created task appears in the list; "Run now" produces a real run; success shows output, failure links to GitHub's run page.
-   - Test plan: create, list, trigger, verify run + output; cover failure path by setting an invalid prompt.
+9. **feat: PAT-based auth** *(next)*
+   - Description: Replace PKCE OAuth flow with a PAT input screen. User pastes a fine-grained GitHub PAT scoped to `repo` + `workflow`. Token stored in `sessionStorage`. Show a direct link to GitHub's fine-grained PAT creation page with the correct scope pre-explanation. Remove all OAuth App machinery (`buildAuthUrl`, `exchangeCodeForToken`, PKCE verifier/challenge), `LoginButton` component, and `VITE_GITHUB_CLIENT_ID` env var.
+   - Acceptance: blank URL loads PAT input; after pasting a valid token the app fetches the user and proceeds to repo picker. Invalid token shows a clear error.
+   - Test plan: unit-test the token validation call; manually verify end-to-end login → repo pick → task create.
 
 ## PR discipline
 
