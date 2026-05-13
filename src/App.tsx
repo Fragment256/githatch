@@ -111,7 +111,7 @@ export default function App() {
             >
               Githatch
             </button>
-            {activeRepo && (
+            {user && activeRepo && (
               <span className="min-w-0 truncate border border-black bg-white px-2 py-1 font-mono text-xs tracking-widest text-black uppercase">
                 {activeRepo.name}
               </span>
