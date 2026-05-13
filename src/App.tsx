@@ -8,16 +8,17 @@ import { UserMenu } from '@/components/UserMenu'
 import { RepoPicker } from '@/components/RepoPicker'
 import { TaskForm } from '@/components/TaskForm'
 import { TaskList } from '@/components/TaskList'
+import { ToolsPanel } from '@/components/ToolsPanel'
 import { TokenSetup } from '@/components/TokenSetup'
 import { upsertWorkflowFile } from '@/lib/github'
-import { slugify } from '@/lib/yamlGenerator'
+import { slugify, type TaskConfig } from '@/lib/yamlGenerator'
 
-type View = 'home' | 'token-setup' | 'new-task'
+type View = 'tasks' | 'tools' | 'token-setup' | 'new-task'
 
 export default function App() {
   const { user, loading, error, login, logout, token } = useAuth()
   const { repos, reposLoading, reposError, activeRepo, setActiveRepo } = useRepo(token)
-  const [view, setView] = useState<View>('home')
+  const [view, setView] = useState<View>('tasks')
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
 
@@ -37,11 +38,7 @@ export default function App() {
     }
   }, [activeRepo, token, loadTasks])
 
-  async function handleTaskFormSubmit(
-    yaml: string,
-    _slug: string,
-    config: import('@/lib/yamlGenerator').TaskConfig,
-  ) {
+  async function handleTaskFormSubmit(yaml: string, _slug: string, config: TaskConfig) {
     if (!token || !activeRepo) return
     setSaving(true)
     setSaveError(null)
@@ -55,7 +52,7 @@ export default function App() {
         workflowId: undefined,
         path: `.github/workflows/githatch-${slug}.yml`,
       })
-      setView('home')
+      setView('tasks')
       loadTasks()
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Failed to save workflow')
@@ -64,13 +61,15 @@ export default function App() {
     }
   }
 
+  const isMainView = view === 'tasks' || view === 'tools'
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b border-gray-200 bg-white px-6 py-3">
         <div className="mx-auto flex max-w-4xl items-center justify-between">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => setView('home')}
+              onClick={() => setView('tasks')}
               className="text-lg font-semibold tracking-tight"
             >
               Githatch
@@ -126,12 +125,28 @@ export default function App() {
           </div>
         )}
 
-        {user && activeRepo && view === 'home' && (
+        {user && activeRepo && isMainView && (
           <div className="flex w-full max-w-2xl flex-col gap-6">
+            {/* Toolbar */}
             <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-600">
-                <strong>{activeRepo.full_name}</strong>
-              </p>
+              <div className="flex gap-1 rounded-lg border border-gray-200 bg-white p-1">
+                <button
+                  onClick={() => setView('tasks')}
+                  className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
+                    view === 'tasks' ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  Tasks
+                </button>
+                <button
+                  onClick={() => setView('tools')}
+                  className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
+                    view === 'tools' ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  Tools
+                </button>
+              </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => setView('token-setup')}
@@ -139,12 +154,14 @@ export default function App() {
                 >
                   Claude token
                 </button>
-                <button
-                  onClick={() => setView('new-task')}
-                  className="rounded-md bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700"
-                >
-                  + New task
-                </button>
+                {view === 'tasks' && (
+                  <button
+                    onClick={() => setView('new-task')}
+                    className="rounded-md bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700"
+                  >
+                    + New task
+                  </button>
+                )}
                 <button
                   onClick={() => setActiveRepo(null)}
                   className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
@@ -153,23 +170,28 @@ export default function App() {
                 </button>
               </div>
             </div>
-            <TaskList
-              tasks={tasks}
-              token={token!}
-              owner={owner}
-              repo={repo}
-              defaultBranch={defaultBranch}
-              loading={tasksLoading}
-              error={tasksError}
-              onRefresh={loadTasks}
-            />
+
+            {view === 'tasks' && (
+              <TaskList
+                tasks={tasks}
+                token={token!}
+                owner={owner}
+                repo={repo}
+                defaultBranch={defaultBranch}
+                loading={tasksLoading}
+                error={tasksError}
+                onRefresh={loadTasks}
+              />
+            )}
+
+            {view === 'tools' && token && <ToolsPanel token={token} owner={owner} repo={repo} />}
           </div>
         )}
 
         {user && activeRepo && token && view === 'token-setup' && (
           <div className="w-full max-w-lg">
             <button
-              onClick={() => setView('home')}
+              onClick={() => setView('tasks')}
               className="mb-4 text-xs text-gray-500 hover:text-gray-700"
             >
               ← Back
@@ -178,7 +200,7 @@ export default function App() {
               token={token}
               owner={activeRepo.full_name.split('/')[0]}
               repo={activeRepo.full_name.split('/')[1]}
-              onDone={() => setView('home')}
+              onDone={() => setView('tasks')}
             />
           </div>
         )}
@@ -186,7 +208,7 @@ export default function App() {
         {user && activeRepo && view === 'new-task' && (
           <div className="w-full max-w-lg">
             <button
-              onClick={() => setView('home')}
+              onClick={() => setView('tasks')}
               className="mb-4 text-xs text-gray-500 hover:text-gray-700"
             >
               ← Back
