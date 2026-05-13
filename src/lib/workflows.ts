@@ -12,7 +12,7 @@ export interface GithatchTask {
   slug: string
   displayName: string
   schedule: string
-  workflowId?: number
+  workflowId: number | undefined
   path: string
 }
 
@@ -35,7 +35,11 @@ export interface WorkflowParams extends TaskParams {
   defaultBranch: string
 }
 
-export function parseGithatchYaml(yaml: string, slug: string, workflowId: number): GithatchTask {
+export function parseGithatchYaml(
+  yaml: string,
+  slug: string,
+  workflowId: number | undefined,
+): GithatchTask {
   const nameMatch = yaml.match(/^# Githatch — (.+)$/m)
   const displayName = nameMatch ? nameMatch[1].trim() : slug
 
@@ -95,8 +99,7 @@ export async function listGithatchTasks(params: TaskParams): Promise<GithatchTas
       for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
       const yaml = new TextDecoder('utf-8').decode(bytes)
 
-      const task = parseGithatchYaml(yaml, slug, workflowId ?? 0)
-      return { ...task, workflowId }
+      return parseGithatchYaml(yaml, slug, workflowId)
     }),
   )
 
