@@ -21,6 +21,7 @@ const BASE_PROPS = {
   loading: false,
   error: null,
   onRefresh: vi.fn(),
+  onEdit: vi.fn(),
 }
 
 describe('TaskList', () => {
