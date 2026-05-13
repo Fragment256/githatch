@@ -38,9 +38,16 @@ function buildPromptWithOutput(config: TaskConfig): string {
       `\nWhen done, create a new GitHub issue with your findings using: gh issue create --title "<descriptive title>" --body "<your response>"`,
     )
   } else if (outputDestination.type === 'file') {
-    lines.push(
-      `\nWhen done, write your response to the file \`${outputDestination.filePath}\` and commit it: git add ${outputDestination.filePath} && git commit -m "chore: update ${outputDestination.filePath}" && git push`,
-    )
+    const fp = outputDestination.filePath
+    if (fp.endsWith('/')) {
+      lines.push(
+        `\nWhen done, create a new file in \`${fp}\` named with today's date in YYYY-MM-DD format followed by \`-report.md\` (e.g. \`${fp}2026-01-01-report.md\`) and write your response there, then commit: git add ${fp} && git commit -m "chore: add report to ${fp}" && git push`,
+      )
+    } else {
+      lines.push(
+        `\nWhen done, write your response to the file \`${fp}\` and commit it: git add ${fp} && git commit -m "chore: update ${fp}" && git push`,
+      )
+    }
   } else if (outputDestination.type === 'pull_request') {
     lines.push(
       `\nWhen done, open a pull request with your changes using: gh pr create --title "<descriptive title>" --body "<summary>". Reference any issue you addressed with "Closes #N" in the body. Comment on that issue to confirm the PR is raised.`,
@@ -79,9 +86,12 @@ export function parseOutputDestination(yaml: string): OutputDestination {
 export function parsePromptFromYaml(yaml: string): string {
   const blockMatch = yaml.match(/ {10}prompt: \|\n([\s\S]+)$/)
   if (blockMatch) {
-    const full = blockMatch[1]
-      .split('\n')
-      .map((line) => (line.startsWith(' '.repeat(10)) ? line.slice(10) : line))
+    const lines = blockMatch[1].split('\n')
+    // Detect actual indentation from first non-empty line to handle both old (10) and new (12) format
+    const firstContentLine = lines.find((l) => l.trim().length > 0) ?? ''
+    const indent = firstContentLine.match(/^( *)/)?.[1].length ?? 10
+    const full = lines
+      .map((line) => (line.startsWith(' '.repeat(indent)) ? line.slice(indent) : line))
       .join('\n')
       .trimEnd()
     return full.split('\n\nWhen done,')[0].trimEnd()
@@ -123,8 +133,13 @@ export function generateWorkflowYaml(config: TaskConfig): string {
 
   const needsPrPermission = outputType === 'pull_request' || outputType === 'agent_managed'
 
+  const allowedTools =
+    outputType === 'issue_comment' || outputType === 'new_issue'
+      ? 'Bash,Read'
+      : 'Bash,Write,Edit,Read'
+
   const promptYaml = fullPrompt.includes('\n')
-    ? `|\n${indentBlock(fullPrompt, 10)}`
+    ? `|\n${indentBlock(fullPrompt, 12)}`
     : `'${fullPrompt.replace(/'/g, "''")}'`
 
   const onBlock = config.schedule
@@ -139,7 +154,8 @@ ${onBlock}
 
 permissions:
   contents: write
-  issues: write${needsPrPermission ? '\n  pull-requests: write' : ''}
+  issues: write
+  id-token: write${needsPrPermission ? '\n  pull-requests: write' : ''}
 
 jobs:
   run:
@@ -151,6 +167,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: \${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: --allowedTools "${allowedTools}"
           prompt: ${promptYaml}
 `
 }

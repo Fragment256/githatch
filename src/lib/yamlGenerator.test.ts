@@ -73,6 +73,42 @@ describe('generateWorkflowYaml — Claude OAuth provider', () => {
   })
 })
 
+describe('generateWorkflowYaml — allowedTools', () => {
+  const task = (output: TaskConfig['outputDestination']): TaskConfig => ({
+    name: 'Test',
+    provider: 'claude_oauth',
+    prompt: 'Do something.',
+    outputDestination: output,
+  })
+
+  it('uses Bash,Read only for issue_comment', () => {
+    const yaml = generateWorkflowYaml(task({ type: 'issue_comment', issueNumber: 1 }))
+    expect(yaml).toContain('--allowedTools "Bash,Read"')
+    expect(yaml).not.toContain('Write')
+  })
+
+  it('uses Bash,Read only for new_issue', () => {
+    const yaml = generateWorkflowYaml(task({ type: 'new_issue' }))
+    expect(yaml).toContain('--allowedTools "Bash,Read"')
+    expect(yaml).not.toContain('Write')
+  })
+
+  it('uses full set for file output', () => {
+    const yaml = generateWorkflowYaml(task({ type: 'file', filePath: 'out.md' }))
+    expect(yaml).toContain('--allowedTools "Bash,Write,Edit,Read"')
+  })
+
+  it('uses full set for pull_request', () => {
+    const yaml = generateWorkflowYaml(task({ type: 'pull_request' }))
+    expect(yaml).toContain('--allowedTools "Bash,Write,Edit,Read"')
+  })
+
+  it('uses full set for agent_managed', () => {
+    const yaml = generateWorkflowYaml(task({ type: 'agent_managed' }))
+    expect(yaml).toContain('--allowedTools "Bash,Write,Edit,Read"')
+  })
+})
+
 describe('generateWorkflowYaml — output destinations', () => {
   const baseTask = (output: TaskConfig['outputDestination']): TaskConfig => ({
     name: 'Test Task',
@@ -227,6 +263,22 @@ describe('parsePromptFromYaml', () => {
 
   it('returns empty string when prompt is missing', () => {
     expect(parsePromptFromYaml('name: test')).toBe('')
+  })
+
+  it('generates block scalar with content indented deeper than the prompt key', () => {
+    // GitHub rejects workflow_dispatch if YAML is malformed — content must be
+    // indented more than the `prompt:` key (which sits at 10 spaces).
+    const prompt = 'Line one.\nLine two.'
+    const yaml = generateWorkflowYaml(makeConfig({ prompt }))
+    const promptKeyLine = yaml.split('\n').find((l) => l.match(/^ +prompt: \|/))!
+    const keyIndent = promptKeyLine.match(/^( +)/)?.[1].length ?? 0
+    const contentLines =
+      yaml
+        .split(`prompt: |\n`)[1]
+        ?.split('\n')
+        .filter((l) => l.trim().length > 0) ?? []
+    const contentIndent = contentLines[0]?.match(/^( +)/)?.[1].length ?? 0
+    expect(contentIndent).toBeGreaterThan(keyIndent)
   })
 })
 

@@ -247,13 +247,21 @@ export function TaskForm({ onSubmit, loading = false, initialConfig }: Props) {
         )}
 
         {values.outputType === 'file' && (
-          <input
-            type="text"
-            value={values.filePath}
-            onChange={(e) => set('filePath', e.target.value)}
-            placeholder="e.g. reports/weekly.md"
-            className="mt-2 block w-full border-2 border-black bg-white px-3 py-2 font-mono text-sm focus:outline-none"
-          />
+          <>
+            <input
+              type="text"
+              value={values.filePath}
+              onChange={(e) => set('filePath', e.target.value)}
+              placeholder="e.g. reports/weekly.md"
+              className="mt-2 block w-full border-2 border-black bg-white px-3 py-2 font-mono text-sm focus:outline-none"
+            />
+            {values.filePath.trim().endsWith('/') && (
+              <p className="mt-1 font-mono text-xs text-black/50">
+                Directory path — each run creates a new dated file (e.g. {values.filePath.trim()}
+                YYYY-MM-DD-report.md)
+              </p>
+            )}
+          </>
         )}
       </div>
 
