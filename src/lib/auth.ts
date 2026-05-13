@@ -58,10 +58,6 @@ export async function buildAuthUrl(clientId: string, redirectUri: string): Promi
   return `https://github.com/login/oauth/authorize?${params.toString()}`
 }
 
-const TOKEN_PROXY_URL =
-  import.meta.env.VITE_TOKEN_PROXY_URL ??
-  'https://githatch-token-proxy.fragment256.workers.dev/token'
-
 export async function exchangeCodeForToken(
   code: string,
   clientId: string,
@@ -72,9 +68,11 @@ export async function exchangeCodeForToken(
     throw new Error('No PKCE code verifier found in session. Restart the login flow.')
   }
 
-  const response = await fetch(TOKEN_PROXY_URL, {
+  // GitHub Apps as public clients support PKCE without client_secret.
+  // The code_verifier is the proof of possession; no server-side secret required.
+  const response = await fetch('https://github.com/login/oauth/access_token', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
     body: JSON.stringify({
       code,
       client_id: clientId,
