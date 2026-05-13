@@ -12,7 +12,7 @@ export interface GithatchTask {
   slug: string
   displayName: string
   schedule: string
-  workflowId: number
+  workflowId?: number
   path: string
 }
 
@@ -84,7 +84,6 @@ export async function listGithatchTasks(params: TaskParams): Promise<GithatchTas
     githatchFiles.map(async (file) => {
       const slug = file.name.replace(/^githatch-/, '').replace(/\.yml$/, '')
       const workflowId = workflowIdByPath.get(file.path)
-      if (!workflowId) return null
 
       const fileRes = await fetch(`${API}/repos/${owner}/${repo}/contents/${file.path}`, {
         headers,
@@ -96,7 +95,8 @@ export async function listGithatchTasks(params: TaskParams): Promise<GithatchTas
       for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
       const yaml = new TextDecoder('utf-8').decode(bytes)
 
-      return parseGithatchYaml(yaml, slug, workflowId)
+      const task = parseGithatchYaml(yaml, slug, workflowId ?? 0)
+      return { ...task, workflowId }
     }),
   )
 

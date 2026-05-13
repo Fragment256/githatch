@@ -10,6 +10,7 @@ import { TaskForm } from '@/components/TaskForm'
 import { TaskList } from '@/components/TaskList'
 import { TokenSetup } from '@/components/TokenSetup'
 import { upsertWorkflowFile } from '@/lib/github'
+import { slugify } from '@/lib/yamlGenerator'
 
 type View = 'home' | 'token-setup' | 'new-task'
 
@@ -27,6 +28,7 @@ export default function App() {
     loading: tasksLoading,
     error: tasksError,
     load: loadTasks,
+    addTask,
   } = useTasks(token, owner, repo)
 
   useEffect(() => {
@@ -35,14 +37,26 @@ export default function App() {
     }
   }, [activeRepo, token, loadTasks])
 
-  async function handleTaskFormSubmit(yaml: string, slug: string) {
+  async function handleTaskFormSubmit(
+    yaml: string,
+    _slug: string,
+    config: import('@/lib/yamlGenerator').TaskConfig,
+  ) {
     if (!token || !activeRepo) return
     setSaving(true)
     setSaveError(null)
+    const slug = slugify(config.name)
     try {
       await upsertWorkflowFile({ token, owner, repo, slug, yaml })
-      loadTasks()
+      addTask({
+        slug,
+        displayName: config.name,
+        schedule: config.schedule ?? '',
+        workflowId: undefined,
+        path: `.github/workflows/githatch-${slug}.yml`,
+      })
       setView('home')
+      loadTasks()
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Failed to save workflow')
     } finally {

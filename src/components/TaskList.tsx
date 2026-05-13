@@ -58,6 +58,7 @@ function RunHistoryPanel({
   const [runsError, setRunsError] = useState<string | null>(null)
 
   const fetchRuns = () => {
+    if (!task.workflowId) return
     setLoadingRuns(true)
     setRunsError(null)
     getWorkflowRuns({ token, owner, repo, workflowId: task.workflowId, defaultBranch })
@@ -139,6 +140,7 @@ function TaskRow({
   const [showHistory, setShowHistory] = useState(false)
 
   const handleTrigger = async () => {
+    if (!task.workflowId) return
     setTriggering(true)
     setTriggerError(null)
     try {
@@ -160,19 +162,25 @@ function TaskRow({
           <p className="mt-0.5 font-mono text-xs text-gray-500">{task.schedule || 'No schedule'}</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <button
-            onClick={() => setShowHistory((v) => !v)}
-            className="rounded border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"
-          >
-            {showHistory ? 'Hide history' : 'Run history'}
-          </button>
-          <button
-            onClick={handleTrigger}
-            disabled={triggering}
-            className="rounded-md bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700 disabled:opacity-50"
-          >
-            {triggering ? 'Triggering…' : triggered ? 'Triggered!' : 'Run now'}
-          </button>
+          {task.workflowId === undefined ? (
+            <span className="text-xs text-gray-400 italic">Registering…</span>
+          ) : (
+            <>
+              <button
+                onClick={() => setShowHistory((v) => !v)}
+                className="rounded border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"
+              >
+                {showHistory ? 'Hide history' : 'Run history'}
+              </button>
+              <button
+                onClick={handleTrigger}
+                disabled={triggering}
+                className="rounded-md bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700 disabled:opacity-50"
+              >
+                {triggering ? 'Triggering…' : triggered ? 'Triggered!' : 'Run now'}
+              </button>
+            </>
+          )}
         </div>
       </div>
       {triggerError && <p className="mt-1 text-xs text-red-600">{triggerError}</p>}
@@ -227,7 +235,7 @@ export function TaskList({
   return (
     <div className="w-full">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-gray-700">Scheduled tasks ({tasks.length})</h2>
+        <h2 className="text-sm font-semibold text-gray-700">Tasks ({tasks.length})</h2>
         <button onClick={onRefresh} className="text-xs text-gray-400 hover:text-gray-600">
           Refresh
         </button>

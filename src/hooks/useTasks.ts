@@ -19,5 +19,12 @@ export function useTasks(token: string | null, owner: string, repo: string) {
       .finally(() => setLoading(false))
   }, [token, owner, repo])
 
-  return { tasks, loading, error, load }
+  const addTask = useCallback((task: GithatchTask) => {
+    setTasks((prev) => {
+      const exists = prev.some((t) => t.slug === task.slug)
+      return exists ? prev.map((t) => (t.slug === task.slug ? task : t)) : [task, ...prev]
+    })
+  }, [])
+
+  return { tasks, loading, error, load, addTask }
 }
