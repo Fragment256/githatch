@@ -23,12 +23,14 @@ describe('AgentConfig', () => {
       hasClaude: true,
       hasSettings: false,
       skills: ['research', 'summarise'],
+      agents: ['analyst'],
     })
     render(<AgentConfig {...BASE_PROPS} />)
     fireEvent.click(screen.getByRole('button', { name: /agent config/i }))
     await waitFor(() => expect(screen.getByText('Found')).toBeInTheDocument())
     expect(screen.getByText('research')).toBeInTheDocument()
     expect(screen.getByText('summarise')).toBeInTheDocument()
+    expect(screen.getByText('analyst')).toBeInTheDocument()
   })
 
   it('shows Not found when CLAUDE.md and settings are absent', async () => {
@@ -36,11 +38,12 @@ describe('AgentConfig', () => {
       hasClaude: false,
       hasSettings: false,
       skills: [],
+      agents: [],
     })
     render(<AgentConfig {...BASE_PROPS} />)
     fireEvent.click(screen.getByRole('button', { name: /agent config/i }))
     await waitFor(() => expect(screen.getAllByText(/not found/i).length).toBe(2))
-    expect(screen.getByText(/none/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/none/i).length).toBe(2)
   })
 
   it('shows error message when fetch fails', async () => {
@@ -53,7 +56,7 @@ describe('AgentConfig', () => {
   it('does not fetch again when toggled closed and reopened', async () => {
     const spy = vi
       .spyOn(github, 'fetchRepoAgentConfig')
-      .mockResolvedValue({ hasClaude: true, hasSettings: true, skills: [] })
+      .mockResolvedValue({ hasClaude: true, hasSettings: true, skills: [], agents: [] })
     render(<AgentConfig {...BASE_PROPS} />)
     const btn = screen.getByRole('button', { name: /agent config/i })
     fireEvent.click(btn)
@@ -66,7 +69,7 @@ describe('AgentConfig', () => {
   it('resets and re-fetches when repo changes', async () => {
     const spy = vi
       .spyOn(github, 'fetchRepoAgentConfig')
-      .mockResolvedValue({ hasClaude: false, hasSettings: false, skills: [] })
+      .mockResolvedValue({ hasClaude: false, hasSettings: false, skills: [], agents: [] })
     const { rerender } = render(<AgentConfig {...BASE_PROPS} />)
     fireEvent.click(screen.getByRole('button', { name: /agent config/i }))
     await waitFor(() => expect(spy).toHaveBeenCalledOnce())

@@ -115,6 +115,13 @@ export interface RepoAgentConfig {
   hasClaude: boolean
   hasSettings: boolean
   skills: string[]
+  agents: string[]
+}
+
+function parseNames(items: Array<{ name: string; type: string }>): string[] {
+  return items
+    .filter((item) => item.type === 'dir' || item.name.endsWith('.md'))
+    .map((item) => (item.type === 'dir' ? item.name : item.name.replace(/\.md$/, '')))
 }
 
 export async function fetchRepoAgentConfig(params: {
@@ -126,24 +133,27 @@ export async function fetchRepoAgentConfig(params: {
   const headers = authHeaders(token)
   const base = `${API}/repos/${owner}/${repo}/contents`
 
-  const [claudeRes, settingsRes, skillsRes] = await Promise.allSettled([
+  const [claudeRes, settingsRes, skillsRes, agentsRes] = await Promise.allSettled([
     fetch(`${base}/CLAUDE.md`, { headers }),
     fetch(`${base}/.claude/settings.json`, { headers }),
     fetch(`${base}/.claude/skills`, { headers }),
+    fetch(`${base}/.claude/agents`, { headers }),
   ])
 
   const hasClaude = claudeRes.status === 'fulfilled' && claudeRes.value.ok
   const hasSettings = settingsRes.status === 'fulfilled' && settingsRes.value.ok
 
-  let skills: string[] = []
-  if (skillsRes.status === 'fulfilled' && skillsRes.value.ok) {
-    const items = (await skillsRes.value.json()) as Array<{ name: string; type: string }>
-    skills = items
-      .filter((item) => item.type === 'dir' || item.name.endsWith('.md'))
-      .map((item) => (item.type === 'dir' ? item.name : item.name.replace(/\.md$/, '')))
-  }
+  const skills =
+    skillsRes.status === 'fulfilled' && skillsRes.value.ok
+      ? parseNames((await skillsRes.value.json()) as Array<{ name: string; type: string }>)
+      : []
 
-  return { hasClaude, hasSettings, skills }
+  const agents =
+    agentsRes.status === 'fulfilled' && agentsRes.value.ok
+      ? parseNames((await agentsRes.value.json()) as Array<{ name: string; type: string }>)
+      : []
+
+  return { hasClaude, hasSettings, skills, agents }
 }
 
 export async function listPushableRepos(token: string): Promise<GitHubRepo[]> {

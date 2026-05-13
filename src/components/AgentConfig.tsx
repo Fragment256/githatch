@@ -48,6 +48,13 @@ function ConfigBody({ config }: { config: RepoAgentConfig }) {
           config.skills.map((s) => <Pill key={s} label={s} />)
         )}
       </Row>
+      <Row label="Agents">
+        {config.agents.length === 0 ? (
+          <span className="font-mono text-xs text-black/25">None</span>
+        ) : (
+          config.agents.map((a) => <Pill key={a} label={a} />)
+        )}
+      </Row>
     </div>
   )
 }
