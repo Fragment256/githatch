@@ -20,6 +20,7 @@ interface Props {
   loading: boolean
   error: string | null
   onRefresh: () => void
+  onEdit: (task: GithatchTask) => void
 }
 
 function RunStatus({ run }: { run: WorkflowRun }) {
@@ -222,6 +223,7 @@ function TaskRow({
   repo,
   defaultBranch,
   onRefresh,
+  onEdit,
 }: {
   task: GithatchTask
   token: string
@@ -229,6 +231,7 @@ function TaskRow({
   repo: string
   defaultBranch: string
   onRefresh: () => void
+  onEdit: (task: GithatchTask) => void
 }) {
   const [triggering, setTriggering] = useState(false)
   const [triggerError, setTriggerError] = useState<string | null>(null)
@@ -281,6 +284,12 @@ function TaskRow({
             <span className="text-xs text-gray-400 italic">Registering…</span>
           ) : (
             <>
+              <button
+                onClick={() => onEdit(task)}
+                className="rounded border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"
+              >
+                Edit
+              </button>
               <button
                 onClick={() => {
                   setShowScheduleEdit((v) => !v)
@@ -378,6 +387,7 @@ function TaskSection({
   repo,
   defaultBranch,
   onRefresh,
+  onEdit,
 }: {
   title: string
   tasks: GithatchTask[]
@@ -386,6 +396,7 @@ function TaskSection({
   repo: string
   defaultBranch: string
   onRefresh: () => void
+  onEdit: (task: GithatchTask) => void
 }) {
   return (
     <div>
@@ -400,6 +411,7 @@ function TaskSection({
             repo={repo}
             defaultBranch={defaultBranch}
             onRefresh={onRefresh}
+            onEdit={onEdit}
           />
         ))}
       </ul>
@@ -416,6 +428,7 @@ export function TaskList({
   loading,
   error,
   onRefresh,
+  onEdit,
 }: Props) {
   if (loading) {
     return <p className="text-sm text-gray-500">Loading tasks…</p>
@@ -462,6 +475,7 @@ export function TaskList({
             repo={repo}
             defaultBranch={defaultBranch}
             onRefresh={onRefresh}
+            onEdit={onEdit}
           />
         )}
         {manual.length > 0 && (
@@ -473,6 +487,7 @@ export function TaskList({
             repo={repo}
             defaultBranch={defaultBranch}
             onRefresh={onRefresh}
+            onEdit={onEdit}
           />
         )}
       </div>

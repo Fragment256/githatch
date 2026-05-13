@@ -20,6 +20,7 @@ export interface TaskFormValues {
 interface Props {
   onSubmit: (yaml: string, slug: string, config: TaskConfig) => void
   loading?: boolean
+  initialConfig?: TaskConfig
 }
 
 const SCHEDULE_PRESETS = [
@@ -29,6 +30,41 @@ const SCHEDULE_PRESETS = [
   { label: 'Every 6 hours', value: '0 */6 * * *' },
   { label: 'Custom cron…', value: 'custom' },
 ] as const
+
+const DEFAULT_VALUES: TaskFormValues = {
+  name: '',
+  schedule: '',
+  customCron: '',
+  provider: 'claude_oauth',
+  prompt: '',
+  outputType: 'issue_comment',
+  issueNumber: '',
+  filePath: '',
+}
+
+function configToFormValues(config: TaskConfig): TaskFormValues {
+  const matchedPreset = SCHEDULE_PRESETS.find(
+    (p) => p.value !== 'custom' && p.value === (config.schedule ?? ''),
+  )
+  const schedule = config.schedule ? (matchedPreset ? config.schedule : 'custom') : ''
+  const customCron = !matchedPreset && config.schedule ? config.schedule : ''
+
+  const dest = config.outputDestination
+  const outputType = dest.type
+  const issueNumber = dest.type === 'issue_comment' ? String(dest.issueNumber) : ''
+  const filePath = dest.type === 'file' ? dest.filePath : ''
+
+  return {
+    name: config.name,
+    schedule,
+    customCron,
+    provider: config.provider,
+    prompt: config.prompt,
+    outputType,
+    issueNumber,
+    filePath,
+  }
+}
 
 function buildOutputDestination(values: TaskFormValues): OutputDestination {
   if (values.outputType === 'issue_comment') {
@@ -45,17 +81,11 @@ function buildOutputDestination(values: TaskFormValues): OutputDestination {
   return { type: 'new_issue' }
 }
 
-export function TaskForm({ onSubmit, loading = false }: Props) {
-  const [values, setValues] = useState<TaskFormValues>({
-    name: '',
-    schedule: '',
-    customCron: '',
-    provider: 'claude_oauth',
-    prompt: '',
-    outputType: 'issue_comment',
-    issueNumber: '',
-    filePath: '',
-  })
+export function TaskForm({ onSubmit, loading = false, initialConfig }: Props) {
+  const isEditing = !!initialConfig
+  const [values, setValues] = useState<TaskFormValues>(() =>
+    initialConfig ? configToFormValues(initialConfig) : DEFAULT_VALUES,
+  )
   const [error, setError] = useState<string | null>(null)
 
   const set = <K extends keyof TaskFormValues>(key: K, value: TaskFormValues[K]) =>
@@ -93,7 +123,9 @@ export function TaskForm({ onSubmit, loading = false }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="flex w-full max-w-lg flex-col gap-5">
-      <h2 className="text-lg font-semibold text-gray-900">New task</h2>
+      <h2 className="text-lg font-semibold text-gray-900">
+        {isEditing ? 'Edit task' : 'New task'}
+      </h2>
 
       {error && <div className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
 
@@ -215,7 +247,13 @@ export function TaskForm({ onSubmit, loading = false }: Props) {
         disabled={loading}
         className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
       >
-        {loading ? 'Creating…' : 'Create task'}
+        {loading
+          ? isEditing
+            ? 'Saving…'
+            : 'Creating…'
+          : isEditing
+            ? 'Save changes'
+            : 'Create task'}
       </button>
     </form>
   )

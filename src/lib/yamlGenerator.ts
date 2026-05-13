@@ -59,6 +59,52 @@ function indentBlock(text: string, spaces: number): string {
     .join('\n')
 }
 
+export function parseOutputDestination(yaml: string): OutputDestination {
+  const match = yaml.match(/^# githatch:output_type=(\S+)(?:\s+(.+))?$/m)
+  if (!match) return { type: 'new_issue' }
+  const [, type, params] = match
+  if (type === 'issue_comment') {
+    const n = parseInt(params?.match(/issue=#(\d+)/)?.[1] ?? '0', 10)
+    return { type: 'issue_comment', issueNumber: n || 1 }
+  }
+  if (type === 'file') {
+    const filePath = params?.match(/path=(\S+)/)?.[1] ?? ''
+    return { type: 'file', filePath }
+  }
+  if (type === 'pull_request') return { type: 'pull_request' }
+  if (type === 'agent_managed') return { type: 'agent_managed' }
+  return { type: 'new_issue' }
+}
+
+export function parsePromptFromYaml(yaml: string): string {
+  const blockMatch = yaml.match(/          prompt: \|\n([\s\S]+)$/)
+  if (blockMatch) {
+    const full = blockMatch[1]
+      .split('\n')
+      .map((line) => (line.startsWith('          ') ? line.slice(10) : line))
+      .join('\n')
+      .trimEnd()
+    return full.split('\n\nWhen done,')[0].trimEnd()
+  }
+  const singleMatch = yaml.match(/          prompt: '([\s\S]+)'$/)
+  if (singleMatch) return singleMatch[1].replace(/''/g, "'")
+  return ''
+}
+
+export function taskConfigFromYaml(
+  name: string,
+  schedule: string | undefined,
+  yaml: string,
+): TaskConfig {
+  return {
+    name,
+    schedule: schedule || undefined,
+    provider: 'claude_oauth',
+    prompt: parsePromptFromYaml(yaml),
+    outputDestination: parseOutputDestination(yaml),
+  }
+}
+
 export function generateWorkflowYaml(config: TaskConfig): string {
   const slug = slugify(config.name)
   const fullPrompt = buildPromptWithOutput(config)

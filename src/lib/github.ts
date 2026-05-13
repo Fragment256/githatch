@@ -94,6 +94,23 @@ export async function deleteWorkflowFile(params: {
   if (!deleteRes.ok) throw new Error(`Failed to delete workflow file: ${deleteRes.status}`)
 }
 
+export async function fetchFileContent(params: {
+  token: string
+  owner: string
+  repo: string
+  path: string
+}): Promise<string> {
+  const { token, owner, repo, path } = params
+  const url = `${API}/repos/${owner}/${repo}/contents/${path}`
+  const res = await fetch(url, { headers: authHeaders(token) })
+  if (!res.ok) throw new Error(`Failed to fetch file: ${res.status}`)
+  const { content } = (await res.json()) as { content: string }
+  const binary = atob(content.replace(/\s/g, ''))
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+  return new TextDecoder('utf-8').decode(bytes)
+}
+
 export async function listPushableRepos(token: string): Promise<GitHubRepo[]> {
   const all: GitHubRepo[] = []
   let url: string | null = `${API}/user/repos?per_page=100&sort=pushed`

@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { generateWorkflowYaml, slugify, type TaskConfig } from './yamlGenerator'
+import {
+  generateWorkflowYaml,
+  slugify,
+  parseOutputDestination,
+  parsePromptFromYaml,
+  taskConfigFromYaml,
+  type TaskConfig,
+} from './yamlGenerator'
 
 describe('slugify', () => {
   it('lowercases and replaces spaces with hyphens', () => {
@@ -143,5 +150,128 @@ describe('generateWorkflowYaml — manual only (no schedule)', () => {
   it('still includes workflow_dispatch trigger', () => {
     const yaml = generateWorkflowYaml(manualTask)
     expect(yaml).toContain('workflow_dispatch')
+  })
+})
+
+describe('parseOutputDestination', () => {
+  it('parses issue_comment with issue number', () => {
+    const yaml = '# githatch:output_type=issue_comment issue=#42\nname: test'
+    const dest = parseOutputDestination(yaml)
+    expect(dest.type).toBe('issue_comment')
+    if (dest.type === 'issue_comment') expect(dest.issueNumber).toBe(42)
+  })
+
+  it('parses new_issue', () => {
+    const yaml = '# githatch:output_type=new_issue\nname: test'
+    expect(parseOutputDestination(yaml)).toEqual({ type: 'new_issue' })
+  })
+
+  it('parses file with path', () => {
+    const yaml = '# githatch:output_type=file path=reports/weekly.md\nname: test'
+    const dest = parseOutputDestination(yaml)
+    expect(dest.type).toBe('file')
+    if (dest.type === 'file') expect(dest.filePath).toBe('reports/weekly.md')
+  })
+
+  it('parses pull_request', () => {
+    const yaml = '# githatch:output_type=pull_request\nname: test'
+    expect(parseOutputDestination(yaml)).toEqual({ type: 'pull_request' })
+  })
+
+  it('parses agent_managed', () => {
+    const yaml = '# githatch:output_type=agent_managed\nname: test'
+    expect(parseOutputDestination(yaml)).toEqual({ type: 'agent_managed' })
+  })
+
+  it('defaults to new_issue when comment is absent', () => {
+    expect(parseOutputDestination('name: test')).toEqual({ type: 'new_issue' })
+  })
+})
+
+describe('parsePromptFromYaml', () => {
+  const makeConfig = (overrides: Partial<TaskConfig> = {}): TaskConfig => ({
+    name: 'Test Task',
+    provider: 'claude_oauth',
+    prompt: 'Summarise the repo activity.',
+    outputDestination: { type: 'new_issue' },
+    ...overrides,
+  })
+
+  it('round-trips a multiline prompt', () => {
+    const prompt = 'Line one.\nLine two.\nLine three.'
+    const yaml = generateWorkflowYaml(makeConfig({ prompt }))
+    expect(parsePromptFromYaml(yaml)).toBe(prompt)
+  })
+
+  it('round-trips a single-line prompt', () => {
+    const prompt = 'Do the thing.'
+    const yaml = generateWorkflowYaml(makeConfig({ prompt }))
+    expect(parsePromptFromYaml(yaml)).toBe(prompt)
+  })
+
+  it('strips the When done instruction from issue_comment output', () => {
+    const prompt = 'Check open PRs.'
+    const yaml = generateWorkflowYaml(
+      makeConfig({ prompt, outputDestination: { type: 'issue_comment', issueNumber: 7 } }),
+    )
+    expect(parsePromptFromYaml(yaml)).toBe(prompt)
+  })
+
+  it('strips the When done instruction from file output', () => {
+    const prompt = 'Generate the weekly report.'
+    const yaml = generateWorkflowYaml(
+      makeConfig({ prompt, outputDestination: { type: 'file', filePath: 'out.md' } }),
+    )
+    expect(parsePromptFromYaml(yaml)).toBe(prompt)
+  })
+
+  it('returns empty string when prompt is missing', () => {
+    expect(parsePromptFromYaml('name: test')).toBe('')
+  })
+})
+
+describe('taskConfigFromYaml', () => {
+  it('reconstructs a full config from generated YAML', () => {
+    const original: TaskConfig = {
+      name: 'Weekly Report',
+      schedule: '0 8 * * 1',
+      provider: 'claude_oauth',
+      prompt: 'Write the weekly report.',
+      outputDestination: { type: 'file', filePath: 'reports/week.md' },
+    }
+    const yaml = generateWorkflowYaml(original)
+    const parsed = taskConfigFromYaml(original.name, original.schedule, yaml)
+
+    expect(parsed.name).toBe(original.name)
+    expect(parsed.schedule).toBe(original.schedule)
+    expect(parsed.prompt).toBe(original.prompt)
+    expect(parsed.outputDestination).toEqual(original.outputDestination)
+  })
+
+  it('handles agent_managed output type with no schedule', () => {
+    const original: TaskConfig = {
+      name: 'Senior Engineer',
+      provider: 'claude_oauth',
+      prompt: 'Pick up open tickets and raise PRs.',
+      outputDestination: { type: 'agent_managed' },
+    }
+    const yaml = generateWorkflowYaml(original)
+    const parsed = taskConfigFromYaml(original.name, undefined, yaml)
+
+    expect(parsed.outputDestination.type).toBe('agent_managed')
+    expect(parsed.schedule).toBeUndefined()
+  })
+
+  it('handles issue_comment output type', () => {
+    const original: TaskConfig = {
+      name: 'Daily Standup',
+      provider: 'claude_oauth',
+      prompt: 'Post the standup update.',
+      outputDestination: { type: 'issue_comment', issueNumber: 99 },
+    }
+    const yaml = generateWorkflowYaml(original)
+    const parsed = taskConfigFromYaml(original.name, undefined, yaml)
+
+    expect(parsed.outputDestination).toEqual({ type: 'issue_comment', issueNumber: 99 })
   })
 })

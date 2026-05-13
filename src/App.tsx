@@ -10,10 +10,11 @@ import { TaskForm } from '@/components/TaskForm'
 import { TaskList } from '@/components/TaskList'
 import { ToolsPanel } from '@/components/ToolsPanel'
 import { TokenSetup } from '@/components/TokenSetup'
-import { upsertWorkflowFile } from '@/lib/github'
-import { slugify, type TaskConfig } from '@/lib/yamlGenerator'
+import { upsertWorkflowFile, fetchFileContent } from '@/lib/github'
+import { slugify, taskConfigFromYaml, type TaskConfig } from '@/lib/yamlGenerator'
+import type { GithatchTask } from '@/lib/workflows'
 
-type View = 'tasks' | 'tools' | 'token-setup' | 'new-task'
+type View = 'tasks' | 'tools' | 'token-setup' | 'new-task' | 'edit-task'
 
 export default function App() {
   const { user, loading, error, login, logout, token } = useAuth()
@@ -21,6 +22,8 @@ export default function App() {
   const [view, setView] = useState<View>('tasks')
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [editingTask, setEditingTask] = useState<GithatchTask | null>(null)
+  const [editingConfig, setEditingConfig] = useState<TaskConfig | null>(null)
 
   const [owner, repo] = activeRepo ? activeRepo.full_name.split('/') : ['', '']
   const defaultBranch = activeRepo?.default_branch ?? 'main'
@@ -37,6 +40,37 @@ export default function App() {
       loadTasks()
     }
   }, [activeRepo, token, loadTasks])
+
+  async function handleEditTask(task: GithatchTask) {
+    if (!token) return
+    try {
+      const yaml = await fetchFileContent({ token, owner, repo, path: task.path })
+      const config = taskConfigFromYaml(task.displayName, task.schedule || undefined, yaml)
+      setEditingTask(task)
+      setEditingConfig(config)
+      setSaveError(null)
+      setView('edit-task')
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Failed to load task')
+    }
+  }
+
+  async function handleEditFormSubmit(yaml: string, _slug: string, config: TaskConfig) {
+    if (!token || !activeRepo || !editingTask) return
+    setSaving(true)
+    setSaveError(null)
+    try {
+      await upsertWorkflowFile({ token, owner, repo, slug: editingTask.slug, yaml })
+      setEditingTask(null)
+      setEditingConfig(null)
+      setView('tasks')
+      loadTasks()
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Failed to save workflow')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   async function handleTaskFormSubmit(yaml: string, _slug: string, config: TaskConfig) {
     if (!token || !activeRepo) return
@@ -181,6 +215,7 @@ export default function App() {
                 loading={tasksLoading}
                 error={tasksError}
                 onRefresh={loadTasks}
+                onEdit={handleEditTask}
               />
             )}
 
@@ -219,6 +254,31 @@ export default function App() {
               </div>
             )}
             <TaskForm onSubmit={handleTaskFormSubmit} loading={saving} />
+          </div>
+        )}
+
+        {user && activeRepo && view === 'edit-task' && editingConfig && (
+          <div className="w-full max-w-lg">
+            <button
+              onClick={() => {
+                setView('tasks')
+                setEditingTask(null)
+                setEditingConfig(null)
+              }}
+              className="mb-4 text-xs text-gray-500 hover:text-gray-700"
+            >
+              ← Back
+            </button>
+            {saveError && (
+              <div className="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">
+                {saveError}
+              </div>
+            )}
+            <TaskForm
+              onSubmit={handleEditFormSubmit}
+              loading={saving}
+              initialConfig={editingConfig}
+            />
           </div>
         )}
       </main>
