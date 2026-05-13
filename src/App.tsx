@@ -263,9 +263,7 @@ export default function App() {
           </div>
         )}
 
-        {view === 'about' && (
-          <AboutPage onBack={() => setView(user && activeRepo ? 'tasks' : 'tasks')} />
-        )}
+        {view === 'about' && <AboutPage onBack={() => setView('tasks')} />}
 
         {user && activeRepo && view === 'edit-task' && editingConfig && (
           <div className="w-full max-w-lg">
