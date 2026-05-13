@@ -111,6 +111,41 @@ export async function fetchFileContent(params: {
   return new TextDecoder('utf-8').decode(bytes)
 }
 
+export interface RepoAgentConfig {
+  hasClaude: boolean
+  hasSettings: boolean
+  skills: string[]
+}
+
+export async function fetchRepoAgentConfig(params: {
+  token: string
+  owner: string
+  repo: string
+}): Promise<RepoAgentConfig> {
+  const { token, owner, repo } = params
+  const headers = authHeaders(token)
+  const base = `${API}/repos/${owner}/${repo}/contents`
+
+  const [claudeRes, settingsRes, skillsRes] = await Promise.allSettled([
+    fetch(`${base}/CLAUDE.md`, { headers }),
+    fetch(`${base}/.claude/settings.json`, { headers }),
+    fetch(`${base}/.claude/skills`, { headers }),
+  ])
+
+  const hasClaude = claudeRes.status === 'fulfilled' && claudeRes.value.ok
+  const hasSettings = settingsRes.status === 'fulfilled' && settingsRes.value.ok
+
+  let skills: string[] = []
+  if (skillsRes.status === 'fulfilled' && skillsRes.value.ok) {
+    const items = (await skillsRes.value.json()) as Array<{ name: string; type: string }>
+    skills = items
+      .filter((item) => item.type === 'dir' || item.name.endsWith('.md'))
+      .map((item) => (item.type === 'dir' ? item.name : item.name.replace(/\.md$/, '')))
+  }
+
+  return { hasClaude, hasSettings, skills }
+}
+
 export async function listPushableRepos(token: string): Promise<GitHubRepo[]> {
   const all: GitHubRepo[] = []
   let url: string | null = `${API}/user/repos?per_page=100&sort=pushed`

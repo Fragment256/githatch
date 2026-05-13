@@ -10,6 +10,7 @@ import { AboutPage } from '@/components/AboutPage'
 import { RepoPicker } from '@/components/RepoPicker'
 import { TaskForm } from '@/components/TaskForm'
 import { TaskList } from '@/components/TaskList'
+import { AgentConfig } from '@/components/AgentConfig'
 import { ToolsPanel } from '@/components/ToolsPanel'
 import { TokenSetup } from '@/components/TokenSetup'
 import { upsertWorkflowFile, fetchFileContent } from '@/lib/github'
@@ -216,6 +217,8 @@ export default function App() {
                 </button>
               </div>
             </div>
+
+            {view === 'tasks' && <AgentConfig token={token!} owner={owner} repo={repo} />}
 
             {view === 'tasks' && (
               <TaskList
