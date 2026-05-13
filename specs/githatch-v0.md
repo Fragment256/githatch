@@ -7,6 +7,7 @@
 **Auth — migrated to GitHub App.** Dropped the Cloudflare Worker proxy. GitHub Apps as public clients support PKCE without `client_secret`; `exchangeCodeForToken` now calls `https://github.com/login/oauth/access_token` directly from the browser. One runtime uncertainty: whether GitHub's token endpoint sends CORS headers for GitHub App requests — will be confirmed on first login attempt after the app is registered.
 
 **Next action when resumed:**
+
 1. Create a GitHub App on GitHub (instructions below).
 2. Update `VITE_GITHUB_CLIENT_ID` repo variable with the new App's client ID.
 3. Test login end-to-end — if CORS blocks the token exchange, fallback is device flow (no infra, different UX).
@@ -68,7 +69,7 @@ A static web app that lets a single user schedule recurring agentic GitHub Actio
 - [x] After token entry, user sees their repos and can pick one.
 - [x] User can fill the task creation form and submit; a workflow file appears at `.github/workflows/githatch-{slug}.yml` in the active repo with the configured schedule and prompt.
 - [x] User can manually trigger the workflow from Githatch; it runs in GitHub Actions.
-- [ ] The workflow completes successfully and produces the configured output (issue comment / new issue / file). *(not yet end-to-end tested with a real run)*
+- [ ] The workflow completes successfully and produces the configured output (issue comment / new issue / file). _(not yet end-to-end tested with a real run)_
 - [x] Run history view shows the run with correct status; clicking a successful run shows the produced output inside Githatch.
 - [x] OAuth token setup flow works end-to-end: `CLAUDE_CODE_OAUTH_TOKEN` lands in the repo's Actions secrets, workflows can use it, secret never leaves the browser unencrypted.
 - [x] Lint, format, type-check, and tests pass in CI.
@@ -86,7 +87,7 @@ A static web app that lets a single user schedule recurring agentic GitHub Actio
 ## Issue breakdown
 
 1. **chore: project scaffold + GitHub Pages deploy** ✅ done
-2. **feat: GitHub OAuth login (PKCE)** ✅ done — *to be replaced by PAT auth (see status)*
+2. **feat: GitHub OAuth login (PKCE)** ✅ done — _to be replaced by PAT auth (see status)_
 3. **feat: repo picker** ✅ done
 
 4. **feat: scheduled task creation form + provider abstraction** ✅ done
@@ -95,7 +96,7 @@ A static web app that lets a single user schedule recurring agentic GitHub Actio
 7. **feat: Claude Code OAuth token setup helper** ✅ done
 8. **feat: tasks list + manual trigger + run history + output viewer** ✅ done
 
-9. **feat: GitHub App registration + CORS verification** *(next)*
+9. **feat: GitHub App registration + CORS verification** _(next)_
    - Description: Register a GitHub App (see setup instructions below). Update `VITE_GITHUB_CLIENT_ID` repo variable. Test the login flow end-to-end to confirm GitHub's token endpoint returns CORS headers for the App. If CORS fails, implement device flow fallback.
    - GitHub App settings to configure:
      - Homepage URL: `https://fragment256.github.io/githatch/`
