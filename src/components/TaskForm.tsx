@@ -23,6 +23,7 @@ interface Props {
 }
 
 const SCHEDULE_PRESETS = [
+  { label: 'Manual only (no schedule)', value: '' },
   { label: 'Every Monday 9am', value: '0 9 * * 1' },
   { label: 'Daily 8am', value: '0 8 * * *' },
   { label: 'Every 6 hours', value: '0 */6 * * *' },
@@ -45,7 +46,7 @@ function buildOutputDestination(values: TaskFormValues): OutputDestination {
 export function TaskForm({ onSubmit, loading = false }: Props) {
   const [values, setValues] = useState<TaskFormValues>({
     name: '',
-    schedule: '0 9 * * 1',
+    schedule: '',
     customCron: '',
     provider: 'claude_oauth',
     prompt: '',
@@ -65,7 +66,6 @@ export function TaskForm({ onSubmit, loading = false }: Props) {
     setError(null)
 
     if (!values.name.trim()) return setError('Task name is required')
-    if (!resolvedSchedule) return setError('Schedule is required')
     if (!values.prompt.trim()) return setError('Prompt is required')
 
     let outputDestination: OutputDestination
@@ -78,7 +78,7 @@ export function TaskForm({ onSubmit, loading = false }: Props) {
 
     const config: TaskConfig = {
       name: values.name.trim(),
-      schedule: resolvedSchedule,
+      schedule: resolvedSchedule || undefined,
       provider: values.provider,
       prompt: values.prompt.trim(),
       outputDestination,
@@ -91,7 +91,7 @@ export function TaskForm({ onSubmit, loading = false }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="flex w-full max-w-lg flex-col gap-5">
-      <h2 className="text-lg font-semibold text-gray-900">New scheduled task</h2>
+      <h2 className="text-lg font-semibold text-gray-900">New task</h2>
 
       {error && <div className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
 

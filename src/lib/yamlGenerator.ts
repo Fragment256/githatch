@@ -7,7 +7,7 @@ export type OutputDestination =
 
 export interface TaskConfig {
   name: string
-  schedule: string
+  schedule?: string
   provider: Provider
   prompt: string
   outputDestination: OutputDestination
@@ -68,14 +68,15 @@ export function generateWorkflowYaml(config: TaskConfig): string {
     ? `|\n${indentBlock(fullPrompt, 10)}`
     : `'${fullPrompt.replace(/'/g, "''")}'`
 
+  const onBlock = config.schedule
+    ? `on:\n  schedule:\n    - cron: '${config.schedule}'\n  workflow_dispatch:`
+    : `on:\n  workflow_dispatch:`
+
   return `# Githatch — ${config.name}
 ${outputComment}
 name: githatch-${slug}
 
-on:
-  schedule:
-    - cron: '${config.schedule}'
-  workflow_dispatch:
+${onBlock}
 
 permissions:
   contents: write

@@ -105,3 +105,23 @@ describe('generateWorkflowYaml — schedule presets', () => {
     expect(yaml).toContain("'0 */6 * * *'")
   })
 })
+
+describe('generateWorkflowYaml — manual only (no schedule)', () => {
+  const manualTask: TaskConfig = {
+    name: 'Ad Hoc Report',
+    provider: 'claude_oauth',
+    prompt: 'Do something.',
+    outputDestination: { type: 'new_issue' },
+  }
+
+  it('omits the schedule block when schedule is undefined', () => {
+    const yaml = generateWorkflowYaml(manualTask)
+    expect(yaml).not.toContain('schedule:')
+    expect(yaml).not.toContain('cron:')
+  })
+
+  it('still includes workflow_dispatch trigger', () => {
+    const yaml = generateWorkflowYaml(manualTask)
+    expect(yaml).toContain('workflow_dispatch')
+  })
+})
