@@ -162,32 +162,30 @@ export default function App() {
         {user && activeRepo && isMainView && (
           <div className="flex w-full max-w-2xl flex-col gap-6">
             {/* Toolbar */}
-            <div className="flex items-center justify-between">
-              <div className="flex gap-1 rounded-lg border border-gray-200 bg-white p-1">
-                <button
-                  onClick={() => setView('tasks')}
-                  className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
-                    view === 'tasks' ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-                >
-                  Tasks
-                </button>
-                <button
-                  onClick={() => setView('tools')}
-                  className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
-                    view === 'tools' ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-                >
-                  Tools
-                </button>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setView('token-setup')}
-                  className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  Claude token
-                </button>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <div className="flex gap-1 rounded-lg border border-gray-200 bg-white p-1">
+                  <button
+                    onClick={() => setView('tasks')}
+                    className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
+                      view === 'tasks'
+                        ? 'bg-gray-900 text-white'
+                        : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    Tasks
+                  </button>
+                  <button
+                    onClick={() => setView('tools')}
+                    className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
+                      view === 'tools'
+                        ? 'bg-gray-900 text-white'
+                        : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    Tools
+                  </button>
+                </div>
                 {view === 'tasks' && (
                   <button
                     onClick={() => setView('new-task')}
@@ -196,9 +194,17 @@ export default function App() {
                     + New task
                   </button>
                 )}
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setView('token-setup')}
+                  className="text-xs text-gray-400 hover:text-gray-600"
+                >
+                  Claude token
+                </button>
                 <button
                   onClick={() => setActiveRepo(null)}
-                  className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                  className="text-xs text-gray-400 hover:text-gray-600"
                 >
                   Change repo
                 </button>
