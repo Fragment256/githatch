@@ -44,9 +44,9 @@ describe('App — unauthenticated', () => {
     mockUseRepo.mockReturnValue(defaultRepoState)
   })
 
-  it('shows the app heading', () => {
+  it('shows the landing hero heading', () => {
     render(<App />, { wrapper })
-    expect(screen.getByRole('heading', { name: /githatch/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /agent runtime/i })).toBeInTheDocument()
   })
 
   it('shows the login buttons', () => {

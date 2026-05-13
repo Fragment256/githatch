@@ -5,6 +5,8 @@ import { useRepo } from '@/hooks/useRepo'
 import { useTasks } from '@/hooks/useTasks'
 import { LoginButton } from '@/components/LoginButton'
 import { UserMenu } from '@/components/UserMenu'
+import { Landing } from '@/components/Landing'
+import { AboutPage } from '@/components/AboutPage'
 import { RepoPicker } from '@/components/RepoPicker'
 import { TaskForm } from '@/components/TaskForm'
 import { TaskList } from '@/components/TaskList'
@@ -14,7 +16,7 @@ import { upsertWorkflowFile, fetchFileContent } from '@/lib/github'
 import { slugify, taskConfigFromYaml, type TaskConfig } from '@/lib/yamlGenerator'
 import type { GithatchTask } from '@/lib/workflows'
 
-type View = 'tasks' | 'tools' | 'token-setup' | 'new-task' | 'edit-task'
+type View = 'tasks' | 'tools' | 'token-setup' | 'new-task' | 'edit-task' | 'about'
 
 export default function App() {
   const { user, loading, error, login, logout, token } = useAuth()
@@ -114,11 +116,19 @@ export default function App() {
               </span>
             )}
           </div>
-          {user ? (
-            <UserMenu user={user} onLogout={logout} />
-          ) : (
-            <LoginButton onLogin={login} loading={loading} />
-          )}
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setView('about')}
+              className="font-mono text-xs tracking-widest text-black/40 uppercase hover:text-black"
+            >
+              About
+            </button>
+            {user ? (
+              <UserMenu user={user} onLogout={logout} />
+            ) : (
+              <LoginButton onLogin={login} loading={loading} />
+            )}
+          </div>
         </div>
       </header>
 
@@ -136,16 +146,8 @@ export default function App() {
           </div>
         )}
 
-        {!user && !loading && GITHUB_CLIENT_ID && (
-          <div className="text-center">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">Githatch</h1>
-            <p className="mt-2 text-gray-500">
-              Schedule recurring agentic GitHub Actions — without writing YAML.
-            </p>
-            <div className="mt-6">
-              <LoginButton onLogin={login} loading={loading} />
-            </div>
-          </div>
+        {!user && !loading && GITHUB_CLIENT_ID && view !== 'about' && (
+          <Landing onLogin={login} loading={loading} onAbout={() => setView('about')} />
         )}
 
         {user && !activeRepo && (
@@ -259,6 +261,10 @@ export default function App() {
             )}
             <TaskForm onSubmit={handleTaskFormSubmit} loading={saving} />
           </div>
+        )}
+
+        {view === 'about' && (
+          <AboutPage onBack={() => setView(user && activeRepo ? 'tasks' : 'tasks')} />
         )}
 
         {user && activeRepo && view === 'edit-task' && editingConfig && (
