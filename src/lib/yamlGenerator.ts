@@ -77,16 +77,16 @@ export function parseOutputDestination(yaml: string): OutputDestination {
 }
 
 export function parsePromptFromYaml(yaml: string): string {
-  const blockMatch = yaml.match(/          prompt: \|\n([\s\S]+)$/)
+  const blockMatch = yaml.match(/ {10}prompt: \|\n([\s\S]+)$/)
   if (blockMatch) {
     const full = blockMatch[1]
       .split('\n')
-      .map((line) => (line.startsWith('          ') ? line.slice(10) : line))
+      .map((line) => (line.startsWith(' '.repeat(10)) ? line.slice(10) : line))
       .join('\n')
       .trimEnd()
     return full.split('\n\nWhen done,')[0].trimEnd()
   }
-  const singleMatch = yaml.match(/          prompt: '([\s\S]+)'$/)
+  const singleMatch = yaml.match(/ {10}prompt: '([\s\S]+)'$/)
   if (singleMatch) return singleMatch[1].replace(/''/g, "'")
   return ''
 }

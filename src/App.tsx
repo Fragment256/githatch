@@ -55,7 +55,7 @@ export default function App() {
     }
   }
 
-  async function handleEditFormSubmit(yaml: string, _slug: string, config: TaskConfig) {
+  async function handleEditFormSubmit(yaml: string) {
     if (!token || !activeRepo || !editingTask) return
     setSaving(true)
     setSaveError(null)
