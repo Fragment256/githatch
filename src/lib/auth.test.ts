@@ -107,7 +107,7 @@ describe('exchangeCodeForToken', () => {
     ).rejects.toThrow(/verifier/)
   })
 
-  it('calls the token proxy endpoint and returns the token', async () => {
+  it('calls the GitHub token endpoint and returns the token', async () => {
     sessionStorage.setItem('pkce_verifier', 'test-verifier')
     vi.stubGlobal(
       'fetch',
