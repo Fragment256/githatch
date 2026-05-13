@@ -114,14 +114,14 @@ describe('App — authenticated, repo selected', () => {
     })
   })
 
-  it('shows the active repo in the header', () => {
+  it('shows the active repo name in the header', () => {
     render(<App />, { wrapper })
-    expect(screen.getAllByText('testuser/my-repo').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('my-repo').length).toBeGreaterThan(0)
   })
 
-  it('shows a change repository button', () => {
+  it('shows a switch repository button', () => {
     render(<App />, { wrapper })
-    expect(screen.getByRole('button', { name: /change rep/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /switch repo/i })).toBeInTheDocument()
   })
 })
 

@@ -101,25 +101,25 @@ export default function App() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="border-t-[8px] border-b-[4px] border-black bg-white px-6 py-3">
-        <div className="mx-auto flex max-w-4xl items-center justify-between">
-          <div className="flex items-center gap-4">
+      <header className="border-t-[8px] border-b-[4px] border-black bg-white px-4 py-3">
+        <div className="mx-auto flex max-w-4xl items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
             <button
               onClick={() => setView('tasks')}
-              className="font-display text-xl font-black tracking-tighter"
+              className="font-display shrink-0 text-xl font-black tracking-tighter"
             >
               Githatch
             </button>
             {activeRepo && (
-              <span className="border border-black bg-white px-2 py-1 font-mono text-xs tracking-widest text-black uppercase">
-                {activeRepo.full_name}
+              <span className="min-w-0 truncate border border-black bg-white px-2 py-1 font-mono text-xs tracking-widest text-black uppercase">
+                {activeRepo.name}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex shrink-0 items-center gap-3">
             <button
               onClick={() => setView('about')}
-              className="font-mono text-xs tracking-widest text-black/40 uppercase hover:text-black"
+              className="px-2 font-mono text-xs tracking-widest text-black/40 uppercase hover:text-black"
             >
               About
             </button>
@@ -195,18 +195,18 @@ export default function App() {
                   </button>
                 )}
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-4">
                 <button
                   onClick={() => setView('token-setup')}
-                  className="font-mono text-xs tracking-widest text-gray-400 uppercase hover:text-black"
+                  className="font-mono text-xs tracking-widest text-black/40 uppercase hover:text-black"
                 >
-                  Claude token
+                  API token
                 </button>
                 <button
                   onClick={() => setActiveRepo(null)}
-                  className="font-mono text-xs tracking-widest text-gray-400 uppercase hover:text-black"
+                  className="font-mono text-xs tracking-widest text-black/40 uppercase hover:text-black"
                 >
-                  Change repo
+                  Switch repo
                 </button>
               </div>
             </div>
