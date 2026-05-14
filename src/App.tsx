@@ -202,16 +202,16 @@ export default function App() {
                   </button>
                 )}
               </div>
-              <div className="flex gap-4">
+              <div className="flex gap-2">
                 <button
                   onClick={() => setView('token-setup')}
-                  className="font-mono text-xs tracking-widest text-black/40 uppercase hover:text-black"
+                  className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white"
                 >
                   API token
                 </button>
                 <button
                   onClick={() => setActiveRepo(null)}
-                  className="font-mono text-xs tracking-widest text-black/40 uppercase hover:text-black"
+                  className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white"
                 >
                   Switch repo
                 </button>
