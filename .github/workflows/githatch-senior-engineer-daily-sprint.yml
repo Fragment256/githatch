@@ -58,7 +58,20 @@ jobs:
 
             DECISION TREE — follow strictly in order. Stop after completing one branch.
 
-            ## 0. OPEN PRs
+            ## 0. CI HEALTH
+            Run: gh run list --branch main --limit 10 --json status,conclusion,name,databaseId,headSha
+
+            If the most recent run of any workflow on main has conclusion: failure:
+            - gh run view <databaseId> --log-failed to read the error
+            - Identify the root cause (formatting, type error, test failure, etc.)
+            - Fix it directly on main for trivial issues (formatting, minor type errors)
+            - For non-trivial fixes: push to branch claude/fix-ci-YYYY-MM-DD, raise PR
+            - Run: pnpm install --frozen-lockfile && pnpm format && pnpm lint && pnpm type-check && pnpm test — all must pass locally before pushing
+            - Go to REPORT
+
+            If CI is green on main, continue.
+
+            ## 1. OPEN PRs
             Run: gh pr list --state open --json number,title,headRefName,author,reviewDecision,mergeable --limit 10
 
             Work through each open PR in this order of priority:
@@ -87,9 +100,9 @@ jobs:
             - If changes needed: gh pr review <number> --request-changes --body "<structured feedback>"
             - Go to REPORT
 
-            Once all stale PRs are closed, if any action above triggered a REPORT, go there now.
+            Once all stale PRs are closed, if any action above triggered a REPORT, go there now. Otherwise continue to step 2.
 
-            ## 1. ISSUES
+            ## 2. ISSUES
             Run: gh issue list --state open --json number,title,labels,body --limit 20
 
             If open issues exist that are NOT already covered by an open PR:
@@ -101,7 +114,7 @@ jobs:
             - Raise PR: gh pr create --title "..." --body "Closes #N\n\n<summary>"
             - Go to REPORT
 
-            ## 2. ROADMAP
+            ## 3. ROADMAP
             If no actionable issues:
             - Read ROADMAP.md, pick the top Backlog item
             - Move it to In Progress (add branch name and today's date)
@@ -110,7 +123,7 @@ jobs:
             - Push branch, raise PR, update ROADMAP.md In Progress in the PR commit
             - Go to REPORT
 
-            ## 3. DISCOVERY
+            ## 4. DISCOVERY
             If roadmap Backlog is empty:
             - Check docs/specs/ for any spec with owner: claude[bot] not yet in a PR
             - If found: implement it (step 2 logic)
@@ -135,4 +148,4 @@ jobs:
             - PR: #N or n/a
             - ROADMAP updated: yes/no
 
-            git add docs/sprint-log.md ROADMAP.md && git commit -m "chore: sprint log YYYY-MM-DD" && git push
+            pnpm install --frozen-lockfile && pnpm format && git add docs/sprint-log.md ROADMAP.md && git commit -m "chore: sprint log YYYY-MM-DD" && git push
