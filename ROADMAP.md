@@ -21,7 +21,6 @@ Priority order. Top item is highest priority.
 - [ ] **Bundle size audit** — Run `vite-bundle-visualizer`. `libsodium-wrappers` is large; consider lazy-loading it (only needed in `TokenSetup`). Target: initial JS bundle under 200kB gzipped.
 - [ ] **Accessibility audit** — Keyboard navigation, focus management, ARIA roles, contrast ratios. `TaskList` action buttons and `ConfirmDialog` need review. Run `axe-core` in tests.
 - [ ] **CSP headers** — Add `Content-Security-Policy` headers via `_headers` file (GitHub Pages / Cloudflare). Restrict `script-src`, `connect-src` to `api.github.com` and `*.anthropic.com`.
-- [ ] **Dark mode** — System `prefers-color-scheme` toggle. Tailwind `dark:` variants. Persisted in `localStorage`.
 
 ---
 
