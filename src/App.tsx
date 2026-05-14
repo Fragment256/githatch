@@ -12,6 +12,7 @@ import { TaskForm } from '@/components/TaskForm'
 import { TaskList } from '@/components/TaskList'
 import { AgentConfig } from '@/components/AgentConfig'
 import { ToolsPanel } from '@/components/ToolsPanel'
+import { ActivityPanel } from '@/components/ActivityPanel'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 const TokenSetup = lazy(() =>
@@ -21,7 +22,7 @@ import { upsertWorkflowFile, fetchFileContent } from '@/lib/github'
 import { slugify, taskConfigFromYaml, type TaskConfig } from '@/lib/yamlGenerator'
 import type { GithatchTask } from '@/lib/workflows'
 
-type View = 'tasks' | 'tools' | 'token-setup' | 'new-task' | 'edit-task' | 'about'
+type View = 'tasks' | 'tools' | 'activity' | 'token-setup' | 'new-task' | 'edit-task' | 'about'
 
 export default function App() {
   const { user, loading, error, login, logout, token } = useAuth()
@@ -104,7 +105,7 @@ export default function App() {
     }
   }
 
-  const isMainView = view === 'tasks' || view === 'tools'
+  const isMainView = view === 'tasks' || view === 'tools' || view === 'activity'
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -198,6 +199,14 @@ export default function App() {
                   >
                     Tools
                   </button>
+                  <button
+                    onClick={() => setView('activity')}
+                    className={`px-3 py-1 font-mono text-xs tracking-widest uppercase transition-colors duration-100 ${
+                      view === 'activity' ? 'bg-black text-white' : 'text-black hover:bg-gray-100'
+                    }`}
+                  >
+                    Activity
+                  </button>
                 </div>
                 {view === 'tasks' && (
                   <button
@@ -249,6 +258,18 @@ export default function App() {
             {view === 'tools' && token && (
               <ErrorBoundary>
                 <ToolsPanel token={token} owner={owner} repo={repo} />
+              </ErrorBoundary>
+            )}
+
+            {view === 'activity' && token && (
+              <ErrorBoundary>
+                <ActivityPanel
+                  tasks={tasks}
+                  token={token}
+                  owner={owner}
+                  repo={repo}
+                  defaultBranch={defaultBranch}
+                />
               </ErrorBoundary>
             )}
           </div>

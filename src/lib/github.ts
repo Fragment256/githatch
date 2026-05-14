@@ -176,3 +176,77 @@ export async function listPushableRepos(token: string): Promise<GitHubRepo[]> {
 
   return all
 }
+
+export interface CommitSummary {
+  sha: string
+  message: string
+  date: string
+  author: string
+}
+
+export async function getRecentCommits(params: {
+  token: string
+  owner: string
+  repo: string
+  days?: number
+}): Promise<CommitSummary[]> {
+  const { token, owner, repo, days = 30 } = params
+  const since = new Date(Date.now() - days * 86400_000).toISOString()
+  const res = await fetch(
+    `${API}/repos/${owner}/${repo}/commits?since=${encodeURIComponent(since)}&per_page=100`,
+    { headers: authHeaders(token) },
+  )
+  if (!res.ok) throw new Error(`Failed to fetch commits: ${res.status}`)
+  const data = (await res.json()) as Array<{
+    sha: string
+    commit: { message: string; author: { date: string; name: string } | null }
+  }>
+  return data.map((c) => ({
+    sha: c.sha.slice(0, 7),
+    message: c.commit.message.split('\n')[0],
+    date: c.commit.author?.date ?? '',
+    author: c.commit.author?.name ?? '',
+  }))
+}
+
+export interface PRSummary {
+  number: number
+  title: string
+  state: 'open' | 'closed'
+  merged: boolean
+  createdAt: string
+  updatedAt: string
+  htmlUrl: string
+}
+
+export async function getRecentPRs(params: {
+  token: string
+  owner: string
+  repo: string
+  perPage?: number
+}): Promise<PRSummary[]> {
+  const { token, owner, repo, perPage = 20 } = params
+  const res = await fetch(
+    `${API}/repos/${owner}/${repo}/pulls?state=all&per_page=${perPage}&sort=updated&direction=desc`,
+    { headers: authHeaders(token) },
+  )
+  if (!res.ok) throw new Error(`Failed to fetch PRs: ${res.status}`)
+  const data = (await res.json()) as Array<{
+    number: number
+    title: string
+    state: string
+    merged_at: string | null
+    created_at: string
+    updated_at: string
+    html_url: string
+  }>
+  return data.map((pr) => ({
+    number: pr.number,
+    title: pr.title,
+    state: pr.state as 'open' | 'closed',
+    merged: pr.merged_at !== null,
+    createdAt: pr.created_at,
+    updatedAt: pr.updated_at,
+    htmlUrl: pr.html_url,
+  }))
+}
