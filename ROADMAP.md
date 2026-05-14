@@ -6,15 +6,13 @@ Agent instructions: work top-to-bottom in Backlog. Move item to In Progress when
 
 ## In Progress
 
-_nothing currently in progress_
+- [ ] **E2E tests** — branch: `claude/sprint-2026-05-14`, started: 2026-05-14
 
 ---
 
 ## Backlog
 
 Priority order. Top item is highest priority.
-
-- [ ] **E2E tests** — Playwright smoke tests for the critical paths: login → repo picker → create task → trigger task. Currently no E2E coverage; unit tests only. (`tests/e2e/`)
 - [ ] **GitHub App registration** — Register a GitHub App (see `specs/githatch-v0.md` issue #9). Update `VITE_GITHUB_CLIENT_ID`. Verify CORS on the token endpoint. If CORS fails, implement device flow fallback. This unblocks external users.
 - [ ] **Accessibility audit** — Keyboard navigation, focus management, ARIA roles, contrast ratios. `TaskList` action buttons and `ConfirmDialog` need review. Run `axe-core` in tests.
 - [ ] **Fix ToolsPanel act() warning in tests** — `ToolsPanel.test.tsx` emits a React `act()` warning on the `ToolCard` state update. Wrap the async state update properly.
