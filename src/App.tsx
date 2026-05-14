@@ -88,6 +88,7 @@ export default function App() {
         schedule: config.schedule ?? '',
         workflowId: undefined,
         path: `.github/workflows/githatch-${slug}.yml`,
+        enabled: true,
       })
       setView('tasks')
       loadTasks()
