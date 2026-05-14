@@ -3,10 +3,8 @@ import { configureAxe } from 'vitest-axe'
 import 'vitest-axe/extend-expect'
 
 configureAxe({
-  rules: [
-    // colour-contrast checks are unreliable in jsdom (no computed styles)
-    { id: 'color-contrast', enabled: false },
-  ],
+  // colour-contrast checks are unreliable in jsdom (no computed styles)
+  rules: { 'color-contrast': { enabled: false } },
 })
 
 // jsdom doesn't implement HTMLDialogElement methods
