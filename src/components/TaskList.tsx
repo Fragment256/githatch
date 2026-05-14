@@ -296,18 +296,20 @@ function ScheduledRow({
   }
 
   return (
-    <li className="flex flex-col gap-1 border border-black bg-white px-4 py-3">
-      <div className="flex items-center justify-between gap-4">
+    <li className="flex flex-col gap-2 border border-black bg-white px-4 py-3">
+      <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <span className="truncate text-sm font-semibold text-black">{task.displayName}</span>
-          <span className="ml-2 font-mono text-xs text-black/50">{task.schedule}</span>
+          <p className="truncate font-semibold text-black">{task.displayName}</p>
+          {task.schedule && (
+            <p className="mt-0.5 font-mono text-xs text-black/50">{task.schedule}</p>
+          )}
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
           <button
             onClick={() => setShowHistory((v) => !v)}
-            className="rounded border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"
+            className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white"
           >
-            {showHistory ? 'Hide history' : 'History'}
+            {showHistory ? 'Hide' : 'History'}
           </button>
           <button
             onClick={handleCancel}
