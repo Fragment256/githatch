@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { GITHUB_CLIENT_ID } from '@/lib/config'
 import { useAuth } from '@/hooks/useAuth'
 import { useRepo } from '@/hooks/useRepo'
@@ -12,8 +12,11 @@ import { TaskForm } from '@/components/TaskForm'
 import { TaskList } from '@/components/TaskList'
 import { AgentConfig } from '@/components/AgentConfig'
 import { ToolsPanel } from '@/components/ToolsPanel'
-import { TokenSetup } from '@/components/TokenSetup'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+
+const TokenSetup = lazy(() =>
+  import('@/components/TokenSetup').then((m) => ({ default: m.TokenSetup })),
+)
 import { upsertWorkflowFile, fetchFileContent } from '@/lib/github'
 import { slugify, taskConfigFromYaml, type TaskConfig } from '@/lib/yamlGenerator'
 import type { GithatchTask } from '@/lib/workflows'
@@ -260,12 +263,20 @@ export default function App() {
               ← Back
             </button>
             <ErrorBoundary>
-              <TokenSetup
-                token={token}
-                owner={activeRepo.full_name.split('/')[0]}
-                repo={activeRepo.full_name.split('/')[1]}
-                onDone={() => setView('tasks')}
-              />
+              <Suspense
+                fallback={
+                  <p className="font-mono text-xs tracking-widest text-gray-400 uppercase">
+                    Loading…
+                  </p>
+                }
+              >
+                <TokenSetup
+                  token={token}
+                  owner={activeRepo.full_name.split('/')[0]}
+                  repo={activeRepo.full_name.split('/')[1]}
+                  onDone={() => setView('tasks')}
+                />
+              </Suspense>
             </ErrorBoundary>
           </div>
         )}
