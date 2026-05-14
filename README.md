@@ -182,6 +182,13 @@ claude --print "$(cat .github/workflows/githatch-senior-engineer-daily-sprint.ym
 
 The prompt is extracted directly from the workflow YAML — no duplication. The `gh` and `git` commands in the prompt use your local CLI auth and checkout, so behaviour is identical to the GitHub Actions run.
 
+`--print` is non-interactive (no TUI) but runs in the foreground — it will block for several minutes. To run in the background and log output:
+
+```bash
+cd /path/to/githatch
+nohup claude --print "$(cat .github/workflows/githatch-senior-engineer-daily-sprint.yml | grep -A1000 'prompt:' | tail -n+2 | sed 's/^            //')" >> ~/sprint.log 2>&1 &
+```
+
 **Schedule with system cron:**
 
 ```bash
