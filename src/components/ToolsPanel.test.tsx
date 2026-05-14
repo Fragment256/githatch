@@ -11,6 +11,7 @@ describe('ToolsPanel', () => {
   it('renders the send-gmail tool card', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 404 }))
     render(<ToolsPanel {...defaultProps} />)
+    await waitFor(() => screen.getByRole('button', { name: 'Install' }))
     expect(screen.getByText('Send Gmail')).toBeDefined()
   })
 
