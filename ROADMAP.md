@@ -6,7 +6,7 @@ Agent instructions: work top-to-bottom in Backlog. Move item to In Progress when
 
 ## In Progress
 
-- [ ] **E2E tests** — branch: `claude/sprint-2026-05-14`, started: 2026-05-14
+- [ ] **E2E tests** — branch: `claude/sprint-2026-05-14`, PR: #17, started: 2026-05-14
 
 ---
 
