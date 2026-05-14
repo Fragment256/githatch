@@ -296,29 +296,25 @@ function ScheduledRow({
   }
 
   return (
-    <li className="flex flex-col gap-2 border border-black bg-white px-4 py-3">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-semibold text-black">{task.displayName}</p>
-          {task.schedule && (
-            <p className="mt-0.5 font-mono text-xs text-black/50">{task.schedule}</p>
-          )}
-        </div>
-        <div className="flex shrink-0 flex-wrap items-center gap-2">
-          <button
-            onClick={() => setShowHistory((v) => !v)}
-            className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white"
-          >
-            {showHistory ? 'Hide' : 'History'}
-          </button>
-          <button
-            onClick={handleCancel}
-            disabled={cancelling}
-            className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white disabled:opacity-50"
-          >
-            {cancelling ? 'Cancelling…' : 'Cancel'}
-          </button>
-        </div>
+    <li className="flex flex-col gap-3 border border-black bg-white p-4">
+      <div>
+        <p className="font-semibold text-black">{task.displayName}</p>
+        {task.schedule && <p className="mt-0.5 font-mono text-xs text-black/50">{task.schedule}</p>}
+      </div>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => setShowHistory((v) => !v)}
+          className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white"
+        >
+          {showHistory ? 'Hide history' : 'History'}
+        </button>
+        <button
+          onClick={handleCancel}
+          disabled={cancelling}
+          className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white disabled:opacity-50"
+        >
+          {cancelling ? 'Cancelling…' : 'Cancel'}
+        </button>
       </div>
       {cancelError && <p className="text-xs text-red-600">{cancelError}</p>}
       {showHistory && (
