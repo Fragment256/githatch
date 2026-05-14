@@ -34,40 +34,59 @@ jobs:
             
             DECISION TREE — follow strictly in order. Stop after completing one branch.
             
+            ## 0. OPEN PRs
+            Run: gh pr list --state open --json number,title,headRefName,author,reviewDecision --limit 10
+            
+            For each open PR, work through in this order:
+            
+            **Outstanding review comments (CHANGES_REQUESTED or unresolved threads):**
+            - gh pr checkout <number>
+            - gh pr view <number> --comments
+            - Address every unresolved comment
+            - Run: pnpm lint && pnpm format --check && pnpm type-check && pnpm test — all must pass
+            - git push
+            - Reply to each resolved thread confirming what was changed
+            - Go to REPORT
+            
+            **PR with no review yet:**
+            - gh pr diff <number>
+            - Review for: correctness, test coverage, security, adherence to README.md conventions
+            - If approved: gh pr review <number> --approve --body "<summary>"
+            - If changes needed: gh pr review <number> --request-changes --body "<structured feedback>"
+            - Go to REPORT
+            
+            Skip PRs that are already approved with no outstanding comments.
+            
             ## 1. ISSUES
             Run: gh issue list --state open --json number,title,labels,body --limit 20
-            Also run: gh pr list --state open --json number,title,headRefName --limit 20
             
             If open issues exist that are NOT already covered by an open PR:
             - Group by theme/area
             - Select the highest-priority group
             - Implement using TDD: write tests first (RED), implement (GREEN), refactor
             - Push to branch claude/sprint-YYYY-MM-DD
-            - Run: pnpm lint && pnpm format --check && pnpm type-check && pnpm test
-            - All must pass before raising the PR
+            - Run: pnpm lint && pnpm format --check && pnpm type-check && pnpm test — all must pass
             - Raise PR: gh pr create --title "..." --body "Closes #N\n\n<summary>"
             - Go to REPORT
             
             ## 2. ROADMAP
             If no actionable issues:
-            - Read ROADMAP.md
-            - Pick the top Backlog item
+            - Read ROADMAP.md, pick the top Backlog item
             - Move it to In Progress (add branch name and today's date)
-            - Implement using TDD (same discipline as above)
-            - Push branch, raise PR
-            - Update ROADMAP.md In Progress section in the PR commit
+            - Implement using TDD
+            - Push branch, raise PR, update ROADMAP.md In Progress in the PR commit
             - Go to REPORT
             
             ## 3. DISCOVERY
-            If the roadmap Backlog is empty:
-            - Check docs/specs/ for any spec not yet in a PR (look for "owner: claude[bot]" in the file)
-            - If found: implement it using step 2 logic
-            - If none found: review README.md, ROADMAP.md, docs/, and key source files
+            If roadmap Backlog is empty:
+            - Check docs/specs/ for any spec with owner: claude[bot] not yet in a PR
+            - If found: implement it (step 2 logic)
+            - If none: review README.md, ROADMAP.md, docs/, and key source files
               - Identify ONE improvement (security, performance, DX, test coverage, docs, devops, build times)
-              - Write a spec to docs/specs/YYYY-MM-DD-<slug>.md with: problem, proposed solution, acceptance criteria, owner: claude[bot]
-              - Add it to ROADMAP.md Backlog
-              - Commit: git add docs/specs/ ROADMAP.md && git commit -m "docs: add spec for <title>" && git push
-              - Do NOT implement in this run
+              - Write spec to docs/specs/YYYY-MM-DD-<slug>.md with: problem, proposed solution, acceptance criteria, owner: claude[bot]
+              - Add to ROADMAP.md Backlog
+              - git add docs/specs/ ROADMAP.md && git commit -m "docs: add spec for <title>" && git push
+              - Do NOT implement this run
             - Go to REPORT
             
             ---
@@ -77,9 +96,9 @@ jobs:
             Append to docs/sprint-log.md:
             
             ## YYYY-MM-DD
-            - Action: [issues | roadmap | spec-written | discovery]
+            - Action: [pr-review | pr-addressed | issues | roadmap | spec-written | discovery]
             - Summary: <one sentence>
             - PR: #N or n/a
             - ROADMAP updated: yes/no
             
-            Commit: git add docs/sprint-log.md ROADMAP.md && git commit -m "chore: sprint log YYYY-MM-DD" && git push
+            git add docs/sprint-log.md ROADMAP.md && git commit -m "chore: sprint log YYYY-MM-DD" && git push
