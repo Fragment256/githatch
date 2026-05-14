@@ -160,6 +160,55 @@ VITE_GITHUB_CLIENT_ID=<GitHub OAuth App / App client ID>
 
 ---
 
+## Running and scheduling agents locally
+
+Any agent task created in Githatch can be run or scheduled locally — useful if you want to avoid GitHub Actions minutes or iterate faster on a prompt.
+
+**Prerequisites:** `claude` CLI installed and authenticated, `gh` CLI authenticated, repo cloned locally.
+
+**Run a task once:**
+
+```bash
+cd /path/to/repo
+claude --print "$(cat .github/workflows/githatch-<task-slug>.yml | grep -A1000 'prompt:' | tail -n+2 | sed 's/^            //')"
+```
+
+For example, the senior engineer sprint:
+
+```bash
+cd /path/to/githatch
+claude --print "$(cat .github/workflows/githatch-senior-engineer-daily-sprint.yml | grep -A1000 'prompt:' | tail -n+2 | sed 's/^            //')"
+```
+
+The prompt is extracted directly from the workflow YAML — no duplication. The `gh` and `git` commands in the prompt use your local CLI auth and checkout, so behaviour is identical to the GitHub Actions run.
+
+**Schedule with system cron:**
+
+```bash
+crontab -e
+```
+
+Add a line:
+
+```
+0 8 * * 1-5 cd /path/to/githatch && claude --print "$(cat .github/workflows/githatch-senior-engineer-daily-sprint.yml | grep -A1000 'prompt:' | tail -n+2 | sed 's/^            //')" >> ~/sprint.log 2>&1
+```
+
+**Add a cron trigger to the GitHub Actions workflow** (alternative — no local machine required):
+
+Edit the workflow's `on:` block to include a schedule:
+
+```yaml
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 8 * * 1-5' # 8am weekdays UTC
+```
+
+This can be done via Githatch's edit task view.
+
+---
+
 ## Architecture decisions
 
 **No backend.** The user's GitHub token never leaves their browser. Githatch calls the GitHub API directly. Secret encryption happens client-side with `libsodium-wrappers` before uploading to GitHub Actions Secrets.
