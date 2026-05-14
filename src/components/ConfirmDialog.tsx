@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useId } from 'react'
 
 interface Props {
   open: boolean
@@ -20,12 +20,19 @@ export function ConfirmDialog({
   onCancel,
 }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null)
+  const cancelRef = useRef<HTMLButtonElement>(null)
+  const titleId = useId()
+  const descId = useId()
 
   useEffect(() => {
     const el = dialogRef.current
     if (!el) return
-    if (open) el.showModal()
-    else el.close()
+    if (open) {
+      el.showModal()
+      cancelRef.current?.focus()
+    } else {
+      el.close()
+    }
   }, [open])
 
   useEffect(() => {
@@ -42,15 +49,22 @@ export function ConfirmDialog({
   return (
     <dialog
       ref={dialogRef}
+      aria-labelledby={titleId}
+      aria-describedby={descId}
       className="m-auto w-full max-w-sm border-2 border-black bg-white p-6 backdrop:bg-black/40"
       onClick={(e) => {
         if (e.target === dialogRef.current) onCancel()
       }}
     >
-      <h2 className="font-mono text-xs font-bold tracking-widest text-black uppercase">{title}</h2>
-      <p className="mt-3 text-sm text-black/70">{message}</p>
+      <h2 id={titleId} className="font-mono text-xs font-bold tracking-widest text-black uppercase">
+        {title}
+      </h2>
+      <p id={descId} className="mt-3 text-sm text-black/70">
+        {message}
+      </p>
       <div className="mt-6 flex justify-end gap-3">
         <button
+          ref={cancelRef}
           onClick={onCancel}
           disabled={loading}
           className="font-mono text-xs tracking-widest text-black/40 uppercase hover:text-black disabled:opacity-50"

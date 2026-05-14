@@ -1,4 +1,13 @@
 import '@testing-library/jest-dom'
+import { configureAxe } from 'vitest-axe'
+import 'vitest-axe/extend-expect'
+
+configureAxe({
+  rules: [
+    // colour-contrast checks are unreliable in jsdom (no computed styles)
+    { id: 'color-contrast', enabled: false },
+  ],
+})
 
 // jsdom doesn't implement HTMLDialogElement methods
 if (typeof HTMLDialogElement !== 'undefined') {
