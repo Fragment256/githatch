@@ -8,7 +8,9 @@ import {
   updateWorkflowSchedule,
   enableWorkflow,
   disableWorkflow,
+  fetchRunOutput,
 } from './workflows'
+import type { WorkflowRun } from './workflows'
 import type { GithatchTask } from './workflows'
 
 describe('parseGithatchYaml', () => {
@@ -51,6 +53,11 @@ jobs:
   it('defaults enabled to true when not provided', () => {
     const result = parseGithatchYaml(sampleYaml, 'daily-standup', 1)
     expect(result.enabled).toBe(true)
+  })
+
+  it('parses outputDestination from the YAML header comment', () => {
+    const result = parseGithatchYaml(sampleYaml, 'daily-standup', 1)
+    expect(result.outputDestination.type).toBe('new_issue')
   })
 
   it('reflects the enabled parameter when explicitly provided', () => {
@@ -243,6 +250,7 @@ describe('updateWorkflowSchedule', () => {
     workflowId: 10,
     path: '.github/workflows/githatch-test-task.yml',
     enabled: true,
+    outputDestination: { type: 'new_issue' },
   }
 
   const currentYaml = `# Githatch Test Task\nname: githatch-test-task\n\non:\n  workflow_dispatch:\n\npermissions:\n  contents: write\n`
@@ -354,6 +362,108 @@ describe('disableWorkflow', () => {
         defaultBranch: 'main',
       }),
     ).rejects.toThrow()
+  })
+})
+
+describe('fetchRunOutput', () => {
+  beforeEach(() => vi.restoreAllMocks())
+
+  const baseRun: WorkflowRun = {
+    id: 1,
+    status: 'completed',
+    conclusion: 'success',
+    createdAt: '2024-01-01T09:00:00Z',
+    htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/1',
+  }
+
+  it('returns the first issue created after the run for new_issue output type', async () => {
+    const issues = [
+      {
+        number: 42,
+        title: 'Daily report 2024-01-01',
+        body: 'Report body',
+        html_url: 'https://github.com/testuser/my-repo/issues/42',
+        created_at: '2024-01-01T09:10:00Z',
+      },
+    ]
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(issues) }),
+    )
+
+    const result = await fetchRunOutput({
+      token: 'gho_test',
+      owner: 'testuser',
+      repo: 'my-repo',
+      run: baseRun,
+      outputDestination: { type: 'new_issue' },
+    })
+
+    expect(result).not.toBeNull()
+    expect(result!.type).toBe('issue')
+    expect(result!.title).toBe('Daily report 2024-01-01')
+    expect(result!.body).toBe('Report body')
+  })
+
+  it('returns null when no issues are found for new_issue type', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve([]) }))
+
+    const result = await fetchRunOutput({
+      token: 'gho_test',
+      owner: 'testuser',
+      repo: 'my-repo',
+      run: baseRun,
+      outputDestination: { type: 'new_issue' },
+    })
+
+    expect(result).toBeNull()
+  })
+
+  it('returns the bot comment for issue_comment output type', async () => {
+    const comments = [
+      {
+        id: 10,
+        body: 'Bot comment body',
+        html_url: 'https://github.com/testuser/my-repo/issues/5#issuecomment-10',
+        created_at: '2024-01-01T09:05:00Z',
+        user: { login: 'github-actions[bot]' },
+      },
+      {
+        id: 11,
+        body: 'Human comment',
+        html_url: 'https://github.com/testuser/my-repo/issues/5#issuecomment-11',
+        created_at: '2024-01-01T09:06:00Z',
+        user: { login: 'human-user' },
+      },
+    ]
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(comments) }),
+    )
+
+    const result = await fetchRunOutput({
+      token: 'gho_test',
+      owner: 'testuser',
+      repo: 'my-repo',
+      run: baseRun,
+      outputDestination: { type: 'issue_comment', issueNumber: 5 },
+    })
+
+    expect(result).not.toBeNull()
+    expect(result!.type).toBe('comment')
+    expect(result!.body).toBe('Bot comment body')
+  })
+
+  it('returns null for unsupported output types', async () => {
+    const result = await fetchRunOutput({
+      token: 'gho_test',
+      owner: 'testuser',
+      repo: 'my-repo',
+      run: baseRun,
+      outputDestination: { type: 'file', filePath: 'reports/' },
+    })
+
+    expect(result).toBeNull()
   })
 })
 

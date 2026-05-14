@@ -1,3 +1,6 @@
+import { parseOutputDestination } from './yamlGenerator'
+import type { OutputDestination } from './yamlGenerator'
+
 const API = 'https://api.github.com'
 
 function authHeaders(token: string): HeadersInit {
@@ -15,6 +18,15 @@ export interface GithatchTask {
   workflowId: number | undefined
   path: string
   enabled: boolean
+  outputDestination: OutputDestination
+}
+
+export interface RunOutput {
+  type: 'issue' | 'comment'
+  title?: string
+  body: string
+  htmlUrl: string
+  createdAt: string
 }
 
 export interface WorkflowRun {
@@ -55,6 +67,7 @@ export function parseGithatchYaml(
     workflowId,
     path: `.github/workflows/githatch-${slug}.yml`,
     enabled,
+    outputDestination: parseOutputDestination(yaml),
   }
 }
 
@@ -191,6 +204,67 @@ export async function disableWorkflow(params: WorkflowParams): Promise<void> {
   if (!res.ok) {
     throw new Error(`Failed to disable workflow: ${res.status}`)
   }
+}
+
+export async function fetchRunOutput(params: {
+  token: string
+  owner: string
+  repo: string
+  run: WorkflowRun
+  outputDestination: OutputDestination
+}): Promise<RunOutput | null> {
+  const { token, owner, repo, run, outputDestination } = params
+  const headers = authHeaders(token)
+
+  if (outputDestination.type === 'new_issue') {
+    const res = await fetch(
+      `${API}/repos/${owner}/${repo}/issues?creator=github-actions%5Bbot%5D&since=${encodeURIComponent(run.createdAt)}&per_page=5&sort=created&direction=asc&state=all`,
+      { headers },
+    )
+    if (!res.ok) return null
+    const issues = (await res.json()) as Array<{
+      number: number
+      title: string
+      body: string | null
+      html_url: string
+      created_at: string
+    }>
+    if (issues.length === 0) return null
+    const issue = issues[0]
+    return {
+      type: 'issue',
+      title: issue.title,
+      body: issue.body ?? '',
+      htmlUrl: issue.html_url,
+      createdAt: issue.created_at,
+    }
+  }
+
+  if (outputDestination.type === 'issue_comment') {
+    const { issueNumber } = outputDestination
+    const res = await fetch(
+      `${API}/repos/${owner}/${repo}/issues/${issueNumber}/comments?since=${encodeURIComponent(run.createdAt)}&per_page=10`,
+      { headers },
+    )
+    if (!res.ok) return null
+    const comments = (await res.json()) as Array<{
+      id: number
+      body: string
+      html_url: string
+      created_at: string
+      user: { login: string }
+    }>
+    const botComment = comments.find((c) => c.user.login === 'github-actions[bot]')
+    if (!botComment) return null
+    return {
+      type: 'comment',
+      body: botComment.body,
+      htmlUrl: botComment.html_url,
+      createdAt: botComment.created_at,
+    }
+  }
+
+  return null
 }
 
 export async function getWorkflowRuns(

@@ -6,7 +6,9 @@ import {
   updateWorkflowSchedule,
   enableWorkflow,
   disableWorkflow,
+  fetchRunOutput,
 } from '@/lib/workflows'
+import type { RunOutput } from '@/lib/workflows'
 import { deleteWorkflowFile } from '@/lib/github'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 
@@ -44,6 +46,38 @@ function RunStatus({ run }: { run: WorkflowRun }) {
   )
 }
 
+function RunOutputViewer({ output, onClose }: { output: RunOutput; onClose: () => void }) {
+  return (
+    <div className="mt-2 border border-black bg-white p-4">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="font-mono text-xs tracking-widest uppercase">
+          {output.type === 'issue' ? 'Created issue' : 'Posted comment'}
+        </span>
+        <div className="flex gap-2">
+          <a
+            href={output.htmlUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-mono text-xs tracking-widest text-gray-400 uppercase hover:text-black"
+          >
+            Open in GitHub
+          </a>
+          <button
+            onClick={onClose}
+            className="font-mono text-xs tracking-widest text-gray-400 uppercase hover:text-black"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+      {output.title && <p className="mb-2 text-sm font-semibold text-black">{output.title}</p>}
+      <pre className="max-h-64 overflow-y-auto text-xs leading-relaxed whitespace-pre-wrap text-black/70">
+        {output.body || '(no content)'}
+      </pre>
+    </div>
+  )
+}
+
 function RunHistoryPanel({
   task,
   token,
@@ -62,6 +96,11 @@ function RunHistoryPanel({
   const [runs, setRuns] = useState<WorkflowRun[] | null>(null)
   const [loadingRuns, setLoadingRuns] = useState(false)
   const [runsError, setRunsError] = useState<string | null>(null)
+  const [viewingOutput, setViewingOutput] = useState<{ runId: number; output: RunOutput } | null>(
+    null,
+  )
+  const [loadingOutput, setLoadingOutput] = useState<number | null>(null)
+  const [outputErrors, setOutputErrors] = useState<Record<number, string>>({})
 
   const fetchRuns = () => {
     if (!task.workflowId) return
@@ -79,6 +118,39 @@ function RunHistoryPanel({
     fetchRuns()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  const canViewOutput =
+    task.outputDestination.type === 'new_issue' || task.outputDestination.type === 'issue_comment'
+
+  const handleViewOutput = async (run: WorkflowRun) => {
+    if (viewingOutput?.runId === run.id) {
+      setViewingOutput(null)
+      return
+    }
+    setLoadingOutput(run.id)
+    setOutputErrors((prev) => ({ ...prev, [run.id]: '' }))
+    try {
+      const output = await fetchRunOutput({
+        token,
+        owner,
+        repo,
+        run,
+        outputDestination: task.outputDestination,
+      })
+      if (!output) {
+        setOutputErrors((prev) => ({ ...prev, [run.id]: 'No output found for this run.' }))
+      } else {
+        setViewingOutput({ runId: run.id, output })
+      }
+    } catch (err) {
+      setOutputErrors((prev) => ({
+        ...prev,
+        [run.id]: err instanceof Error ? err.message : 'Failed to load output',
+      }))
+    } finally {
+      setLoadingOutput(null)
+    }
+  }
 
   return (
     <div className="mt-2 border border-black bg-white p-4">
@@ -106,21 +178,45 @@ function RunHistoryPanel({
         <p className="text-xs text-gray-500">No runs yet for this workflow.</p>
       )}
       {runs && runs.length > 0 && (
-        <ul className="space-y-1.5">
+        <ul className="space-y-2">
           {runs.map((run) => (
-            <li key={run.id} className="flex items-center justify-between">
-              <RunStatus run={run} />
-              <span className="text-xs text-gray-400">
-                {new Date(run.createdAt).toLocaleString()}
-              </span>
-              <a
-                href={run.htmlUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-gray-500 underline hover:text-gray-700"
-              >
-                View logs
-              </a>
+            <li key={run.id}>
+              <div className="flex items-center justify-between gap-2">
+                <RunStatus run={run} />
+                <span className="flex-1 text-xs text-gray-400">
+                  {new Date(run.createdAt).toLocaleString()}
+                </span>
+                {canViewOutput && run.status === 'completed' && run.conclusion === 'success' && (
+                  <button
+                    onClick={() => void handleViewOutput(run)}
+                    disabled={loadingOutput === run.id}
+                    className="text-xs text-gray-500 underline hover:text-gray-700 disabled:opacity-50"
+                  >
+                    {loadingOutput === run.id
+                      ? 'Loading…'
+                      : viewingOutput?.runId === run.id
+                        ? 'Hide output'
+                        : 'View output'}
+                  </button>
+                )}
+                <a
+                  href={run.htmlUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-gray-500 underline hover:text-gray-700"
+                >
+                  View logs
+                </a>
+              </div>
+              {outputErrors[run.id] && (
+                <p className="mt-1 text-xs text-red-600">{outputErrors[run.id]}</p>
+              )}
+              {viewingOutput?.runId === run.id && (
+                <RunOutputViewer
+                  output={viewingOutput.output}
+                  onClose={() => setViewingOutput(null)}
+                />
+              )}
             </li>
           ))}
         </ul>

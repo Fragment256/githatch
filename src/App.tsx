@@ -89,6 +89,7 @@ export default function App() {
         workflowId: undefined,
         path: `.github/workflows/githatch-${slug}.yml`,
         enabled: true,
+        outputDestination: config.outputDestination,
       })
       setView('tasks')
       loadTasks()

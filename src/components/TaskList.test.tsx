@@ -12,6 +12,7 @@ const TASK: GithatchTask = {
   workflowId: 42,
   path: '.github/workflows/githatch-daily-standup.yml',
   enabled: true,
+  outputDestination: { type: 'new_issue' },
 }
 
 const BASE_PROPS = {
