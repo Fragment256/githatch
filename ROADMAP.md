@@ -14,15 +14,22 @@ _nothing currently in progress_
 
 Priority order. Top item is highest priority.
 
-- [ ] **GitHub App registration** — Register a GitHub App (see `specs/githatch-v0.md` issue #9). Update `VITE_GITHUB_CLIENT_ID`. Verify CORS on the token endpoint. If CORS fails, implement device flow fallback. This unblocks external users.
-- [ ] **Accessibility audit** — Keyboard navigation, focus management, ARIA roles, contrast ratios. `TaskList` action buttons and `ConfirmDialog` need review. Run `axe-core` in tests.
-- [ ] **Fix ToolsPanel act() warning in tests** — `ToolsPanel.test.tsx` emits a React `act()` warning on the `ToolCard` state update. Wrap the async state update properly.
 - [ ] **Enable/disable task without deleting** — GitHub Actions has a workflow enable/disable API. Add toggle on `TaskRow` so users can pause a task without losing the config.
-- [ ] **Bundle size audit** — Run `vite-bundle-visualizer`. `libsodium-wrappers` is large; consider lazy-loading it (only needed in `TokenSetup`). Target: initial JS bundle under 200kB gzipped.
-- [ ] **CSP headers** — Add `Content-Security-Policy` headers via `_headers` file (GitHub Pages / Cloudflare). Restrict `script-src`, `connect-src` to `api.github.com` and `*.anthropic.com`.
-- [ ] **Error boundaries** — Wrap major view sections in React error boundaries so a component crash doesn't blank the whole app.
 - [ ] **Run output viewer** — For completed runs with `issue_comment` or `new_issue` output type, fetch and display the produced content inside Githatch (currently deep-links to GitHub only).
+- [ ] **Fix ToolsPanel act() warning in tests** — `ToolsPanel.test.tsx` emits a React `act()` warning on the `ToolCard` state update. Wrap the async state update properly.
+- [ ] **Error boundaries** — Wrap major view sections in React error boundaries so a component crash doesn't blank the whole app.
+- [ ] **Bundle size audit** — Run `vite-bundle-visualizer`. `libsodium-wrappers` is large; consider lazy-loading it (only needed in `TokenSetup`). Target: initial JS bundle under 200kB gzipped.
+- [ ] **Accessibility audit** — Keyboard navigation, focus management, ARIA roles, contrast ratios. `TaskList` action buttons and `ConfirmDialog` need review. Run `axe-core` in tests.
+- [ ] **CSP headers** — Add `Content-Security-Policy` headers via `_headers` file (GitHub Pages / Cloudflare). Restrict `script-src`, `connect-src` to `api.github.com` and `*.anthropic.com`.
 - [ ] **Dark mode** — System `prefers-color-scheme` toggle. Tailwind `dark:` variants. Persisted in `localStorage`.
+
+---
+
+## Paused
+
+Items deliberately on hold — not prioritised but not abandoned.
+
+- [ ] **GitHub App registration** — Register a GitHub App (see `specs/githatch-v0.md` issue #9). Update `VITE_GITHUB_CLIENT_ID`. Verify CORS on the token endpoint. If CORS fails, implement device flow fallback. This unblocks external users. _Paused: currently a personal tool; revisit when opening to external users._
 
 ---
 
