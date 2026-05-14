@@ -32,6 +32,28 @@ jobs:
 
             ---
 
+            ## PRIORITIES
+
+            These are solo side-projects in varying states of maturity, some with end users. Calibrate accordingly:
+
+            **Feature development is the default priority.** Users benefit from new capabilities more than from a perfect test suite. Ship value.
+
+            **Tests and security are hygiene, not goals.** Write tests as part of feature work (TDD). Do not pick a standalone "improve test coverage" or "security audit" task unless one of these is true:
+            - Coverage is critically low (under 50%) and there is no feature work to do
+            - There is a concrete, identified vulnerability affecting real users
+            - A test gap caused or nearly caused a production bug
+
+            **When choosing discovery work, use this order:**
+            1. User-facing feature or UX improvement
+            2. Developer experience / build / automation
+            3. Documentation
+            4. Test coverage (only if critically low)
+            5. Security hardening (only if a concrete risk exists)
+
+            Before picking any task, write one sentence of rationale in the REPORT explaining why you chose it over alternatives. This keeps the work defensible and auditable.
+
+            ---
+
             DECISION TREE — follow strictly in order. Stop after completing one branch.
 
             ## 0. OPEN PRs
@@ -107,6 +129,7 @@ jobs:
             ## YYYY-MM-DD
             - Action: [pr-closed | pr-merged | pr-review | pr-addressed | issues | roadmap | spec-written | discovery]
             - Summary: <one sentence>
+            - Rationale: <why this over alternatives>
             - PR: #N or n/a
             - ROADMAP updated: yes/no
 
