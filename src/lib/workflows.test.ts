@@ -6,6 +6,8 @@ import {
   getWorkflowRuns,
   patchScheduleInYaml,
   updateWorkflowSchedule,
+  enableWorkflow,
+  disableWorkflow,
 } from './workflows'
 import type { GithatchTask } from './workflows'
 
@@ -46,6 +48,18 @@ jobs:
     expect(result.workflowId).toBe(42)
   })
 
+  it('defaults enabled to true when not provided', () => {
+    const result = parseGithatchYaml(sampleYaml, 'daily-standup', 1)
+    expect(result.enabled).toBe(true)
+  })
+
+  it('reflects the enabled parameter when explicitly provided', () => {
+    const disabled = parseGithatchYaml(sampleYaml, 'daily-standup', 1, false)
+    expect(disabled.enabled).toBe(false)
+    const enabled = parseGithatchYaml(sampleYaml, 'daily-standup', 1, true)
+    expect(enabled.enabled).toBe(true)
+  })
+
   it('falls back to slug as displayName when header comment is absent', () => {
     const yamlNoHeader = sampleYaml.replace(/^# Githatch — .+\n/, '')
     const result = parseGithatchYaml(yamlNoHeader, 'daily-standup', 1)
@@ -70,9 +84,13 @@ describe('listGithatchTasks', () => {
     ]
     const actionsWorkflows = {
       workflows: [
-        { id: 10, path: '.github/workflows/githatch-daily-standup.yml' },
-        { id: 11, path: '.github/workflows/ci.yml' },
-        { id: 12, path: '.github/workflows/githatch-weekly-report.yml' },
+        { id: 10, path: '.github/workflows/githatch-daily-standup.yml', state: 'active' },
+        { id: 11, path: '.github/workflows/ci.yml', state: 'active' },
+        {
+          id: 12,
+          path: '.github/workflows/githatch-weekly-report.yml',
+          state: 'disabled_manually',
+        },
       ],
     }
     const dailyYaml = Buffer.from(
@@ -97,8 +115,10 @@ describe('listGithatchTasks', () => {
     expect(tasks[0].displayName).toBe('Daily Standup')
     expect(tasks[0].schedule).toBe('0 9 * * 1-5')
     expect(tasks[0].workflowId).toBe(10)
+    expect(tasks[0].enabled).toBe(true)
     expect(tasks[1].slug).toBe('weekly-report')
     expect(tasks[1].displayName).toBe('Weekly Report')
+    expect(tasks[1].enabled).toBe(false)
   })
 
   it('returns empty array when no githatch workflows exist', async () => {
@@ -222,6 +242,7 @@ describe('updateWorkflowSchedule', () => {
     schedule: '',
     workflowId: 10,
     path: '.github/workflows/githatch-test-task.yml',
+    enabled: true,
   }
 
   const currentYaml = `# Githatch Test Task\nname: githatch-test-task\n\non:\n  workflow_dispatch:\n\npermissions:\n  contents: write\n`
@@ -261,6 +282,76 @@ describe('updateWorkflowSchedule', () => {
         repo: 'r',
         task,
         schedule: '0 9 * * 1',
+      }),
+    ).rejects.toThrow()
+  })
+})
+
+describe('enableWorkflow', () => {
+  beforeEach(() => vi.restoreAllMocks())
+
+  it('PUTs to the workflow enable endpoint', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 204 })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await enableWorkflow({
+      token: 'gho_test',
+      owner: 'testuser',
+      repo: 'my-repo',
+      workflowId: 42,
+      defaultBranch: 'main',
+    })
+
+    expect(fetchMock).toHaveBeenCalledOnce()
+    const [url, opts] = fetchMock.mock.calls[0] as [string, RequestInit]
+    expect(url).toContain('/actions/workflows/42/enable')
+    expect(opts.method).toBe('PUT')
+  })
+
+  it('throws on non-2xx response', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 403 }))
+    await expect(
+      enableWorkflow({
+        token: 'gho_test',
+        owner: 'testuser',
+        repo: 'my-repo',
+        workflowId: 42,
+        defaultBranch: 'main',
+      }),
+    ).rejects.toThrow()
+  })
+})
+
+describe('disableWorkflow', () => {
+  beforeEach(() => vi.restoreAllMocks())
+
+  it('PUTs to the workflow disable endpoint', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 204 })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await disableWorkflow({
+      token: 'gho_test',
+      owner: 'testuser',
+      repo: 'my-repo',
+      workflowId: 42,
+      defaultBranch: 'main',
+    })
+
+    expect(fetchMock).toHaveBeenCalledOnce()
+    const [url, opts] = fetchMock.mock.calls[0] as [string, RequestInit]
+    expect(url).toContain('/actions/workflows/42/disable')
+    expect(opts.method).toBe('PUT')
+  })
+
+  it('throws on non-2xx response', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 403 }))
+    await expect(
+      disableWorkflow({
+        token: 'gho_test',
+        owner: 'testuser',
+        repo: 'my-repo',
+        workflowId: 42,
+        defaultBranch: 'main',
       }),
     ).rejects.toThrow()
   })

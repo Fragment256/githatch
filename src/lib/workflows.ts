@@ -14,6 +14,7 @@ export interface GithatchTask {
   schedule: string
   workflowId: number | undefined
   path: string
+  enabled: boolean
 }
 
 export interface WorkflowRun {
@@ -39,6 +40,7 @@ export function parseGithatchYaml(
   yaml: string,
   slug: string,
   workflowId: number | undefined,
+  enabled = true,
 ): GithatchTask {
   const nameMatch = yaml.match(/^# Githatch — (.+)$/m)
   const displayName = nameMatch ? nameMatch[1].trim() : slug
@@ -52,6 +54,7 @@ export function parseGithatchYaml(
     schedule,
     workflowId,
     path: `.github/workflows/githatch-${slug}.yml`,
+    enabled,
   }
 }
 
@@ -80,14 +83,17 @@ export async function listGithatchTasks(params: TaskParams): Promise<GithatchTas
     throw new Error(`Failed to list actions workflows: ${actionsRes.status}`)
   }
   const { workflows } = (await actionsRes.json()) as {
-    workflows: Array<{ id: number; path: string }>
+    workflows: Array<{ id: number; path: string; state: string }>
   }
   const workflowIdByPath = new Map(workflows.map((w) => [w.path, w.id]))
+  const workflowStateByPath = new Map(workflows.map((w) => [w.path, w.state]))
 
   const results = await Promise.all(
     githatchFiles.map(async (file) => {
       const slug = file.name.replace(/^githatch-/, '').replace(/\.yml$/, '')
       const workflowId = workflowIdByPath.get(file.path)
+      const state = workflowStateByPath.get(file.path) ?? 'active'
+      const enabled = state === 'active'
 
       const fileRes = await fetch(`${API}/repos/${owner}/${repo}/contents/${file.path}`, {
         headers,
@@ -99,7 +105,7 @@ export async function listGithatchTasks(params: TaskParams): Promise<GithatchTas
       for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
       const yaml = new TextDecoder('utf-8').decode(bytes)
 
-      return parseGithatchYaml(yaml, slug, workflowId)
+      return parseGithatchYaml(yaml, slug, workflowId, enabled)
     }),
   )
 
@@ -162,6 +168,28 @@ export async function triggerWorkflow(params: WorkflowParams): Promise<void> {
   )
   if (!res.ok) {
     throw new Error(`Failed to trigger workflow: ${res.status}`)
+  }
+}
+
+export async function enableWorkflow(params: WorkflowParams): Promise<void> {
+  const { token, owner, repo, workflowId } = params
+  const res = await fetch(`${API}/repos/${owner}/${repo}/actions/workflows/${workflowId}/enable`, {
+    method: 'PUT',
+    headers: authHeaders(token),
+  })
+  if (!res.ok) {
+    throw new Error(`Failed to enable workflow: ${res.status}`)
+  }
+}
+
+export async function disableWorkflow(params: WorkflowParams): Promise<void> {
+  const { token, owner, repo, workflowId } = params
+  const res = await fetch(`${API}/repos/${owner}/${repo}/actions/workflows/${workflowId}/disable`, {
+    method: 'PUT',
+    headers: authHeaders(token),
+  })
+  if (!res.ok) {
+    throw new Error(`Failed to disable workflow: ${res.status}`)
   }
 }
 

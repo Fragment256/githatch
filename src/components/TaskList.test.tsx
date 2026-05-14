@@ -11,6 +11,7 @@ const TASK: GithatchTask = {
   schedule: '0 9 * * 1-5',
   workflowId: 42,
   path: '.github/workflows/githatch-daily-standup.yml',
+  enabled: true,
 }
 
 const BASE_PROPS = {
@@ -118,6 +119,28 @@ describe('TaskList', () => {
     fireEvent.click(screen.getByRole('button', { name: /^delete$/i }))
     await waitFor(() => expect(github.deleteWorkflowFile).toHaveBeenCalledOnce())
     expect(onRefresh).toHaveBeenCalled()
+  })
+
+  it('shows Pause button for an enabled task and calls disableWorkflow on click', async () => {
+    vi.spyOn(workflows, 'disableWorkflow').mockResolvedValue(undefined)
+    render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+    const pauseBtn = screen.getByRole('button', { name: /pause task/i })
+    expect(pauseBtn).toBeInTheDocument()
+    fireEvent.click(pauseBtn)
+    await waitFor(() => expect(workflows.disableWorkflow).toHaveBeenCalledOnce())
+    expect(screen.getByRole('button', { name: /resume task/i })).toBeInTheDocument()
+  })
+
+  it('shows Resume button for a disabled task and calls enableWorkflow on click', async () => {
+    vi.spyOn(workflows, 'enableWorkflow').mockResolvedValue(undefined)
+    const disabledTask: GithatchTask = { ...TASK, enabled: false }
+    render(<TaskList {...BASE_PROPS} tasks={[disabledTask]} />)
+    const resumeBtn = screen.getByRole('button', { name: /resume task/i })
+    expect(resumeBtn).toBeInTheDocument()
+    expect(screen.getByText(/paused/i)).toBeInTheDocument()
+    fireEvent.click(resumeBtn)
+    await waitFor(() => expect(workflows.enableWorkflow).toHaveBeenCalledOnce())
+    expect(screen.getByRole('button', { name: /pause task/i })).toBeInTheDocument()
   })
 
   it('shows Scheduled section only for tasks that have a schedule', () => {

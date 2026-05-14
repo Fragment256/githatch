@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react'
 import type { GithatchTask, WorkflowRun } from '@/lib/workflows'
-import { triggerWorkflow, getWorkflowRuns, updateWorkflowSchedule } from '@/lib/workflows'
+import {
+  triggerWorkflow,
+  getWorkflowRuns,
+  updateWorkflowSchedule,
+  enableWorkflow,
+  disableWorkflow,
+} from '@/lib/workflows'
 import { deleteWorkflowFile } from '@/lib/github'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 
@@ -147,6 +153,9 @@ function TaskRow({
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [toggling, setToggling] = useState(false)
+  const [toggleError, setToggleError] = useState<string | null>(null)
+  const [enabled, setEnabled] = useState(task.enabled)
 
   const handleTrigger = async () => {
     if (!task.workflowId) return
@@ -160,6 +169,25 @@ function TaskRow({
       setTriggerError(err instanceof Error ? err.message : 'Failed to trigger')
     } finally {
       setTriggering(false)
+    }
+  }
+
+  const handleToggle = async () => {
+    if (!task.workflowId) return
+    setToggling(true)
+    setToggleError(null)
+    try {
+      if (enabled) {
+        await disableWorkflow({ token, owner, repo, workflowId: task.workflowId, defaultBranch })
+        setEnabled(false)
+      } else {
+        await enableWorkflow({ token, owner, repo, workflowId: task.workflowId, defaultBranch })
+        setEnabled(true)
+      }
+    } catch (err) {
+      setToggleError(err instanceof Error ? err.message : 'Failed to update workflow state')
+    } finally {
+      setToggling(false)
     }
   }
 
@@ -177,10 +205,19 @@ function TaskRow({
   }
 
   return (
-    <li className="border-2 border-black bg-white p-4">
+    <li
+      className={`border-2 p-4 ${enabled ? 'border-black bg-white' : 'border-black/30 bg-white'}`}
+    >
       <div className="flex flex-col gap-3">
         <div>
-          <p className="font-semibold text-black">{task.displayName}</p>
+          <p className={`font-semibold ${enabled ? 'text-black' : 'text-black/40'}`}>
+            {task.displayName}
+            {!enabled && (
+              <span className="ml-2 font-mono text-xs tracking-widest text-black/30 uppercase">
+                Paused
+              </span>
+            )}
+          </p>
           {task.schedule && (
             <p className="mt-0.5 font-mono text-xs text-black/50">{task.schedule}</p>
           )}
@@ -205,8 +242,16 @@ function TaskRow({
                 {showHistory ? 'Hide history' : 'History'}
               </button>
               <button
+                onClick={handleToggle}
+                disabled={toggling}
+                aria-label={enabled ? 'Pause task' : 'Resume task'}
+                className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white disabled:opacity-50"
+              >
+                {toggling ? '…' : enabled ? 'Pause' : 'Resume'}
+              </button>
+              <button
                 onClick={handleTrigger}
-                disabled={triggering}
+                disabled={triggering || !enabled}
                 className="border-2 border-black bg-black px-3 py-1.5 font-mono text-xs tracking-widest text-white uppercase transition-colors duration-100 hover:bg-white hover:text-black disabled:opacity-50"
               >
                 {triggering ? 'Triggering…' : triggered ? 'Triggered!' : 'Run now'}
@@ -239,6 +284,7 @@ function TaskRow({
       </div>
 
       {triggerError && <p className="mt-1 text-xs text-red-600">{triggerError}</p>}
+      {toggleError && <p className="mt-1 text-xs text-red-600">{toggleError}</p>}
       {deleteError && <p className="mt-1 text-xs text-red-600">{deleteError}</p>}
 
       <ConfirmDialog
