@@ -49,3 +49,4 @@ Items deliberately on hold — not prioritised but not abandoned.
 | Bundle size: lazy-load libsodium (224 kB → 71 kB)         | —   | 2026-05-14 |
 | Accessibility: ConfirmDialog aria labels + axe-core setup | —   | 2026-05-14 |
 | CSP headers (\_headers + meta http-equiv)                 | —   | 2026-05-14 |
+| Activity tab: execution sparklines, PRs, commits          | —   | 2026-05-14 |
