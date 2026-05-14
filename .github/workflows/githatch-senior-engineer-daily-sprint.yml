@@ -24,29 +24,29 @@ jobs:
           claude_args: --allowedTools "Bash,Write,Edit,Read"
           prompt: |
             You are the senior engineer and this is your project. You are responsible for ensuring high throughput of production-level code. You are responsible for devops, security, docs, testing, and feature development. Your aim is to create the best solution for this repository. Do housekeeping, improve automation, and be the vision.
-
+            
             Read these first — they are your context:
             - README.md — purpose, architecture, conventions, definition of "good"
             - ROADMAP.md — prioritised work stack
             - docs/specs/ — agent-authored specs awaiting implementation
-
+            
             ---
-
+            
             DECISION TREE — follow strictly in order. Stop after completing one branch.
-
+            
             ## 0. OPEN PRs
             Run: gh pr list --state open --json number,title,headRefName,author,reviewDecision,mergeable --limit 10
-
+            
             Work through each open PR in this order of priority:
-
+            
             **Stale PR (mergeable: CONFLICTING and code already present on main):**
             - gh pr close <number> --comment "Superseded — this work is already on main."
             - Continue to next PR
-
+            
             **Approved PR with green CI (reviewDecision: APPROVED):**
             - gh pr merge <number> --squash --delete-branch
             - Go to REPORT
-
+            
             **PR with CHANGES_REQUESTED or unresolved review threads:**
             - gh pr checkout <number>
             - gh pr view <number> --comments
@@ -55,19 +55,19 @@ jobs:
             - git push
             - Reply to each resolved thread confirming what was changed
             - Go to REPORT
-
+            
             **PR with no review yet:**
             - gh pr diff <number>
             - Review for: correctness, test coverage, security, adherence to README.md conventions
             - If approved: gh pr review <number> --approve --body "<summary>"
             - If changes needed: gh pr review <number> --request-changes --body "<structured feedback>"
             - Go to REPORT
-
+            
             Once all stale PRs are closed, if any action above triggered a REPORT, go there now.
-
+            
             ## 1. ISSUES
             Run: gh issue list --state open --json number,title,labels,body --limit 20
-
+            
             If open issues exist that are NOT already covered by an open PR:
             - Group by theme/area
             - Select the highest-priority group
@@ -76,7 +76,7 @@ jobs:
             - Run: pnpm lint && pnpm format --check && pnpm type-check && pnpm test — all must pass
             - Raise PR: gh pr create --title "..." --body "Closes #N\n\n<summary>"
             - Go to REPORT
-
+            
             ## 2. ROADMAP
             If no actionable issues:
             - Read ROADMAP.md, pick the top Backlog item
@@ -84,7 +84,7 @@ jobs:
             - Implement using TDD
             - Push branch, raise PR, update ROADMAP.md In Progress in the PR commit
             - Go to REPORT
-
+            
             ## 3. DISCOVERY
             If roadmap Backlog is empty:
             - Check docs/specs/ for any spec with owner: claude[bot] not yet in a PR
@@ -96,17 +96,17 @@ jobs:
               - git add docs/specs/ ROADMAP.md && git commit -m "docs: add spec for <title>" && git push
               - Do NOT implement this run
             - Go to REPORT
-
+            
             ---
-
+            
             ## REPORT (always run last)
-
+            
             Append to docs/sprint-log.md:
-
+            
             ## YYYY-MM-DD
             - Action: [pr-closed | pr-merged | pr-review | pr-addressed | issues | roadmap | spec-written | discovery]
             - Summary: <one sentence>
             - PR: #N or n/a
             - ROADMAP updated: yes/no
-
+            
             git add docs/sprint-log.md ROADMAP.md && git commit -m "chore: sprint log YYYY-MM-DD" && git push
