@@ -17,3 +17,10 @@ Agent-maintained. One entry per daily sprint run.
 - Summary: Closed 5 stale conflicting PRs (#9–#13, all superseded by main); then implemented top ROADMAP item — 12 Playwright E2E smoke tests covering landing, repo picker, task list, create task, and trigger task.
 - PR: #17
 - ROADMAP updated: yes
+
+## 2026-05-14 (sprint 3)
+
+- Action: pr-review | pr-addressed | pr-merged
+- Summary: Reviewed and approved PR #17 (Playwright E2E smoke tests); fixed CI formatting failure on ROADMAP.md and sprint workflow YAML; waited for green CI then squash-merged and deleted branch.
+- PR: #17
+- ROADMAP updated: yes

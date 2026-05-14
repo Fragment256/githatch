@@ -6,7 +6,7 @@ Agent instructions: work top-to-bottom in Backlog. Move item to In Progress when
 
 ## In Progress
 
-- [ ] **E2E tests** — branch: `claude/sprint-2026-05-14`, PR: #17, started: 2026-05-14
+_nothing currently in progress_
 
 ---
 
@@ -43,3 +43,4 @@ Priority order. Top item is highest priority.
 | Agent config panel (CLAUDE.md, settings, skills, agents) | —   | 2026-05-13 |
 | Fix nav repo badge showing when logged out               | —   | 2026-05-14 |
 | How it works diagram copy improvements                   | —   | 2026-05-14 |
+| E2E smoke tests (Playwright, 12 tests, 5 critical paths) | #17 | 2026-05-14 |
