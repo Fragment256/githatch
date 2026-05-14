@@ -13,6 +13,7 @@ import { TaskList } from '@/components/TaskList'
 import { AgentConfig } from '@/components/AgentConfig'
 import { ToolsPanel } from '@/components/ToolsPanel'
 import { TokenSetup } from '@/components/TokenSetup'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { upsertWorkflowFile, fetchFileContent } from '@/lib/github'
 import { slugify, taskConfigFromYaml, type TaskConfig } from '@/lib/yamlGenerator'
 import type { GithatchTask } from '@/lib/workflows'
@@ -220,23 +221,33 @@ export default function App() {
               </div>
             </div>
 
-            {view === 'tasks' && <AgentConfig token={token!} owner={owner} repo={repo} />}
-
             {view === 'tasks' && (
-              <TaskList
-                tasks={tasks}
-                token={token!}
-                owner={owner}
-                repo={repo}
-                defaultBranch={defaultBranch}
-                loading={tasksLoading}
-                error={tasksError}
-                onRefresh={loadTasks}
-                onEdit={handleEditTask}
-              />
+              <ErrorBoundary>
+                <AgentConfig token={token!} owner={owner} repo={repo} />
+              </ErrorBoundary>
             )}
 
-            {view === 'tools' && token && <ToolsPanel token={token} owner={owner} repo={repo} />}
+            {view === 'tasks' && (
+              <ErrorBoundary>
+                <TaskList
+                  tasks={tasks}
+                  token={token!}
+                  owner={owner}
+                  repo={repo}
+                  defaultBranch={defaultBranch}
+                  loading={tasksLoading}
+                  error={tasksError}
+                  onRefresh={loadTasks}
+                  onEdit={handleEditTask}
+                />
+              </ErrorBoundary>
+            )}
+
+            {view === 'tools' && token && (
+              <ErrorBoundary>
+                <ToolsPanel token={token} owner={owner} repo={repo} />
+              </ErrorBoundary>
+            )}
           </div>
         )}
 
@@ -248,12 +259,14 @@ export default function App() {
             >
               ← Back
             </button>
-            <TokenSetup
-              token={token}
-              owner={activeRepo.full_name.split('/')[0]}
-              repo={activeRepo.full_name.split('/')[1]}
-              onDone={() => setView('tasks')}
-            />
+            <ErrorBoundary>
+              <TokenSetup
+                token={token}
+                owner={activeRepo.full_name.split('/')[0]}
+                repo={activeRepo.full_name.split('/')[1]}
+                onDone={() => setView('tasks')}
+              />
+            </ErrorBoundary>
           </div>
         )}
 
@@ -270,7 +283,9 @@ export default function App() {
                 {saveError}
               </div>
             )}
-            <TaskForm onSubmit={handleTaskFormSubmit} loading={saving} />
+            <ErrorBoundary>
+              <TaskForm onSubmit={handleTaskFormSubmit} loading={saving} />
+            </ErrorBoundary>
           </div>
         )}
 
@@ -293,11 +308,13 @@ export default function App() {
                 {saveError}
               </div>
             )}
-            <TaskForm
-              onSubmit={handleEditFormSubmit}
-              loading={saving}
-              initialConfig={editingConfig}
-            />
+            <ErrorBoundary>
+              <TaskForm
+                onSubmit={handleEditFormSubmit}
+                loading={saving}
+                initialConfig={editingConfig}
+              />
+            </ErrorBoundary>
           </div>
         )}
       </main>
