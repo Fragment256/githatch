@@ -13,6 +13,7 @@ Agent instructions: work top-to-bottom in Backlog. Move item to In Progress when
 ## Backlog
 
 Priority order. Top item is highest priority.
+
 - [ ] **GitHub App registration** — Register a GitHub App (see `specs/githatch-v0.md` issue #9). Update `VITE_GITHUB_CLIENT_ID`. Verify CORS on the token endpoint. If CORS fails, implement device flow fallback. This unblocks external users.
 - [ ] **Accessibility audit** — Keyboard navigation, focus management, ARIA roles, contrast ratios. `TaskList` action buttons and `ConfirmDialog` need review. Run `axe-core` in tests.
 - [ ] **Fix ToolsPanel act() warning in tests** — `ToolsPanel.test.tsx` emits a React `act()` warning on the `ToolCard` state update. Wrap the async state update properly.
