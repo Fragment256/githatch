@@ -14,7 +14,6 @@ _nothing currently in progress_
 
 Priority order. Top item is highest priority.
 
-- [ ] **Run output viewer** — For completed runs with `issue_comment` or `new_issue` output type, fetch and display the produced content inside Githatch (currently deep-links to GitHub only).
 - [ ] **Fix ToolsPanel act() warning in tests** — `ToolsPanel.test.tsx` emits a React `act()` warning on the `ToolCard` state update. Wrap the async state update properly.
 - [ ] **Error boundaries** — Wrap major view sections in React error boundaries so a component crash doesn't blank the whole app.
 - [ ] **Bundle size audit** — Run `vite-bundle-visualizer`. `libsodium-wrappers` is large; consider lazy-loading it (only needed in `TokenSetup`). Target: initial JS bundle under 200kB gzipped.
@@ -50,3 +49,4 @@ Items deliberately on hold — not prioritised but not abandoned.
 | How it works diagram copy improvements                   | —   | 2026-05-14 |
 | E2E smoke tests (Playwright, 12 tests, 5 critical paths) | #17 | 2026-05-14 |
 | Enable/disable task toggle (pause without deleting)      | —   | 2026-05-14 |
+| Run output viewer (new_issue / issue_comment inline)     | —   | 2026-05-14 |
