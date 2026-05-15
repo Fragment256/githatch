@@ -184,31 +184,45 @@ export default function App() {
           <div className="flex w-full max-w-2xl flex-col gap-6">
             {/* Toolbar */}
             <div className="flex flex-col gap-2">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex gap-1 border-2 border-black bg-white p-0.5">
+              <div className="flex gap-1 border-2 border-black bg-white p-0.5">
+                <button
+                  onClick={() => setView('tasks')}
+                  className={`px-3 py-1 font-mono text-xs tracking-widest uppercase transition-colors duration-100 ${
+                    view === 'tasks' ? 'bg-black text-white' : 'text-black hover:bg-gray-100'
+                  }`}
+                >
+                  Tasks
+                </button>
+                <button
+                  onClick={() => setView('tools')}
+                  className={`px-3 py-1 font-mono text-xs tracking-widest uppercase transition-colors duration-100 ${
+                    view === 'tools' ? 'bg-black text-white' : 'text-black hover:bg-gray-100'
+                  }`}
+                >
+                  Tools
+                </button>
+                <button
+                  onClick={() => setView('activity')}
+                  className={`px-3 py-1 font-mono text-xs tracking-widest uppercase transition-colors duration-100 ${
+                    view === 'activity' ? 'bg-black text-white' : 'text-black hover:bg-gray-100'
+                  }`}
+                >
+                  Activity
+                </button>
+              </div>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex gap-2">
                   <button
-                    onClick={() => setView('tasks')}
-                    className={`px-3 py-1 font-mono text-xs tracking-widest uppercase transition-colors duration-100 ${
-                      view === 'tasks' ? 'bg-black text-white' : 'text-black hover:bg-gray-100'
-                    }`}
+                    onClick={() => setView('token-setup')}
+                    className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white"
                   >
-                    Tasks
+                    Secrets
                   </button>
                   <button
-                    onClick={() => setView('tools')}
-                    className={`px-3 py-1 font-mono text-xs tracking-widest uppercase transition-colors duration-100 ${
-                      view === 'tools' ? 'bg-black text-white' : 'text-black hover:bg-gray-100'
-                    }`}
+                    onClick={() => setActiveRepo(null)}
+                    className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white"
                   >
-                    Tools
-                  </button>
-                  <button
-                    onClick={() => setView('activity')}
-                    className={`px-3 py-1 font-mono text-xs tracking-widest uppercase transition-colors duration-100 ${
-                      view === 'activity' ? 'bg-black text-white' : 'text-black hover:bg-gray-100'
-                    }`}
-                  >
-                    Activity
+                    Switch repo
                   </button>
                 </div>
                 {view === 'tasks' && (
@@ -219,20 +233,6 @@ export default function App() {
                     + New task
                   </button>
                 )}
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setView('token-setup')}
-                  className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white"
-                >
-                  Secrets
-                </button>
-                <button
-                  onClick={() => setActiveRepo(null)}
-                  className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white"
-                >
-                  Switch repo
-                </button>
               </div>
             </div>
 
