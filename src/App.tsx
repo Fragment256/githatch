@@ -20,6 +20,8 @@ const SecretsView = lazy(() =>
 )
 import { upsertWorkflowFile, fetchFileContent } from '@/lib/github'
 import { slugify, taskConfigFromYaml, type TaskConfig } from '@/lib/yamlGenerator'
+import { TemplatePicker } from '@/components/TemplatePicker'
+import { templateToConfig, type Template } from '@/lib/templates'
 import type { GithatchTask } from '@/lib/workflows'
 
 type View = 'tasks' | 'tools' | 'activity' | 'token-setup' | 'new-task' | 'edit-task' | 'about'
@@ -32,6 +34,7 @@ export default function App() {
   const [saveError, setSaveError] = useState<string | null>(null)
   const [editingTask, setEditingTask] = useState<GithatchTask | null>(null)
   const [editingConfig, setEditingConfig] = useState<TaskConfig | null>(null)
+  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null)
 
   const [owner, repo] = activeRepo ? activeRepo.full_name.split('/') : ['', '']
   const defaultBranch = activeRepo?.default_branch ?? 'main'
@@ -305,7 +308,10 @@ export default function App() {
         {user && activeRepo && view === 'new-task' && (
           <div className="w-full max-w-lg">
             <button
-              onClick={() => setView('tasks')}
+              onClick={() => {
+                setView('tasks')
+                setSelectedTemplate(null)
+              }}
               className="mb-4 font-mono text-xs tracking-widest text-gray-500 uppercase hover:text-black"
             >
               ← Back
@@ -315,8 +321,17 @@ export default function App() {
                 {saveError}
               </div>
             )}
+            <TemplatePicker
+              selected={selectedTemplate?.id ?? null}
+              onSelect={(t) => setSelectedTemplate(t)}
+            />
             <ErrorBoundary>
-              <TaskForm onSubmit={handleTaskFormSubmit} loading={saving} />
+              <TaskForm
+                key={selectedTemplate?.id ?? 'scratch'}
+                onSubmit={handleTaskFormSubmit}
+                loading={saving}
+                initialConfig={selectedTemplate ? templateToConfig(selectedTemplate) : undefined}
+              />
             </ErrorBoundary>
           </div>
         )}
