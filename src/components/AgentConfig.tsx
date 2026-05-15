@@ -24,37 +24,56 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   )
 }
 
+function FoundOrMissing({ found }: { found: boolean }) {
+  return found ? (
+    <Pill label="Found" />
+  ) : (
+    <span className="font-mono text-xs text-black/25">Not found</span>
+  )
+}
+
+function SectionHeader({ label }: { label: string }) {
+  return <p className="font-mono text-xs tracking-widest text-black/50 uppercase">{label}</p>
+}
+
 function ConfigBody({ config }: { config: RepoAgentConfig }) {
   return (
-    <div className="flex flex-col gap-3 border-t border-black px-4 py-4">
-      <Row label="CLAUDE.md">
-        {config.hasClaude ? (
-          <Pill label="Found" />
-        ) : (
-          <span className="font-mono text-xs text-black/25">Not found</span>
-        )}
-      </Row>
-      <Row label="settings.json">
-        {config.hasSettings ? (
-          <Pill label="Found" />
-        ) : (
-          <span className="font-mono text-xs text-black/25">Not found</span>
-        )}
-      </Row>
-      <Row label="Skills">
-        {config.skills.length === 0 ? (
-          <span className="font-mono text-xs text-black/25">None</span>
-        ) : (
-          config.skills.map((s) => <Pill key={s} label={s} />)
-        )}
-      </Row>
-      <Row label="Agents">
-        {config.agents.length === 0 ? (
-          <span className="font-mono text-xs text-black/25">None</span>
-        ) : (
-          config.agents.map((a) => <Pill key={a} label={a} />)
-        )}
-      </Row>
+    <div className="flex flex-col gap-4 border-t border-black px-4 py-4">
+      <div className="flex flex-col gap-3">
+        <SectionHeader label="Claude" />
+        <Row label="CLAUDE.md">
+          <FoundOrMissing found={config.hasClaude} />
+        </Row>
+        <Row label="settings.json">
+          <FoundOrMissing found={config.hasSettings} />
+        </Row>
+        <Row label="Skills">
+          {config.skills.length === 0 ? (
+            <span className="font-mono text-xs text-black/25">None</span>
+          ) : (
+            config.skills.map((s) => <Pill key={s} label={s} />)
+          )}
+        </Row>
+        <Row label="Agents">
+          {config.agents.length === 0 ? (
+            <span className="font-mono text-xs text-black/25">None</span>
+          ) : (
+            config.agents.map((a) => <Pill key={a} label={a} />)
+          )}
+        </Row>
+      </div>
+      <div className="flex flex-col gap-3">
+        <SectionHeader label="Codex CLI / Kimi" />
+        <Row label="AGENTS.md">
+          <FoundOrMissing found={config.hasAgentsMd} />
+        </Row>
+        <Row label="config.toml">
+          <FoundOrMissing found={config.hasCodexConfig} />
+        </Row>
+        <Row label="hooks.json">
+          <FoundOrMissing found={config.hasCodexHooks} />
+        </Row>
+      </div>
     </div>
   )
 }

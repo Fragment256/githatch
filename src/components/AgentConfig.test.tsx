@@ -24,10 +24,13 @@ describe('AgentConfig', () => {
       hasSettings: false,
       skills: ['research', 'summarise'],
       agents: ['analyst'],
+      hasAgentsMd: true,
+      hasCodexConfig: false,
+      hasCodexHooks: false,
     })
     render(<AgentConfig {...BASE_PROPS} />)
     fireEvent.click(screen.getByRole('button', { name: /agent config/i }))
-    await waitFor(() => expect(screen.getByText('Found')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getAllByText('Found').length).toBeGreaterThan(0))
     expect(screen.getByText('research')).toBeInTheDocument()
     expect(screen.getByText('summarise')).toBeInTheDocument()
     expect(screen.getByText('analyst')).toBeInTheDocument()
@@ -39,11 +42,30 @@ describe('AgentConfig', () => {
       hasSettings: false,
       skills: [],
       agents: [],
+      hasAgentsMd: false,
+      hasCodexConfig: false,
+      hasCodexHooks: false,
     })
     render(<AgentConfig {...BASE_PROPS} />)
     fireEvent.click(screen.getByRole('button', { name: /agent config/i }))
-    await waitFor(() => expect(screen.getAllByText(/not found/i).length).toBe(2))
+    await waitFor(() => expect(screen.getAllByText(/not found/i).length).toBe(5))
     expect(screen.getAllByText(/none/i).length).toBe(2)
+  })
+
+  it('shows Codex CLI section with found/not found states', async () => {
+    vi.spyOn(github, 'fetchRepoAgentConfig').mockResolvedValue({
+      hasClaude: false,
+      hasSettings: false,
+      skills: [],
+      agents: [],
+      hasAgentsMd: true,
+      hasCodexConfig: true,
+      hasCodexHooks: false,
+    })
+    render(<AgentConfig {...BASE_PROPS} />)
+    fireEvent.click(screen.getByRole('button', { name: /agent config/i }))
+    await waitFor(() => expect(screen.getByText(/codex cli/i)).toBeInTheDocument())
+    expect(screen.getAllByText('Found').length).toBe(2)
   })
 
   it('shows error message when fetch fails', async () => {
@@ -56,7 +78,15 @@ describe('AgentConfig', () => {
   it('does not fetch again when toggled closed and reopened', async () => {
     const spy = vi
       .spyOn(github, 'fetchRepoAgentConfig')
-      .mockResolvedValue({ hasClaude: true, hasSettings: true, skills: [], agents: [] })
+      .mockResolvedValue({
+        hasClaude: true,
+        hasSettings: true,
+        skills: [],
+        agents: [],
+        hasAgentsMd: false,
+        hasCodexConfig: false,
+        hasCodexHooks: false,
+      })
     render(<AgentConfig {...BASE_PROPS} />)
     const btn = screen.getByRole('button', { name: /agent config/i })
     fireEvent.click(btn)
@@ -69,7 +99,15 @@ describe('AgentConfig', () => {
   it('resets and re-fetches when repo changes', async () => {
     const spy = vi
       .spyOn(github, 'fetchRepoAgentConfig')
-      .mockResolvedValue({ hasClaude: false, hasSettings: false, skills: [], agents: [] })
+      .mockResolvedValue({
+        hasClaude: false,
+        hasSettings: false,
+        skills: [],
+        agents: [],
+        hasAgentsMd: false,
+        hasCodexConfig: false,
+        hasCodexHooks: false,
+      })
     const { rerender } = render(<AgentConfig {...BASE_PROPS} />)
     fireEvent.click(screen.getByRole('button', { name: /agent config/i }))
     await waitFor(() => expect(spy).toHaveBeenCalledOnce())
