@@ -117,7 +117,6 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
         setPRs([])
       })
       .finally(() => setRepoLoading(false))
-     
   }, [token, owner, repo])
 
   const DAYS = 14
