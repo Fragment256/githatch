@@ -1,6 +1,6 @@
-# Githatch — Weekly Planning Sprint
+# Githatch — Sprint Planning
 # githatch:output_type=agent_managed
-name: githatch-weekly-planning-sprint
+name: githatch-sprint-planning
 
 on:
   workflow_dispatch:
