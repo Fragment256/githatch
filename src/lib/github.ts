@@ -112,10 +112,15 @@ export async function fetchFileContent(params: {
 }
 
 export interface RepoAgentConfig {
+  // Claude
   hasClaude: boolean
   hasSettings: boolean
   skills: string[]
   agents: string[]
+  // Codex CLI (also used by Synthetic/Kimi)
+  hasAgentsMd: boolean
+  hasCodexConfig: boolean
+  hasCodexHooks: boolean
 }
 
 function parseNames(items: Array<{ name: string; type: string }>): string[] {
@@ -133,12 +138,16 @@ export async function fetchRepoAgentConfig(params: {
   const headers = authHeaders(token)
   const base = `${API}/repos/${owner}/${repo}/contents`
 
-  const [claudeRes, settingsRes, skillsRes, agentsRes] = await Promise.allSettled([
-    fetch(`${base}/CLAUDE.md`, { headers }),
-    fetch(`${base}/.claude/settings.json`, { headers }),
-    fetch(`${base}/.claude/skills`, { headers }),
-    fetch(`${base}/.claude/agents`, { headers }),
-  ])
+  const [claudeRes, settingsRes, skillsRes, agentsRes, agentsMdRes, codexConfigRes, codexHooksRes] =
+    await Promise.allSettled([
+      fetch(`${base}/CLAUDE.md`, { headers }),
+      fetch(`${base}/.claude/settings.json`, { headers }),
+      fetch(`${base}/.claude/skills`, { headers }),
+      fetch(`${base}/.claude/agents`, { headers }),
+      fetch(`${base}/AGENTS.md`, { headers }),
+      fetch(`${base}/.codex/config.toml`, { headers }),
+      fetch(`${base}/.codex/hooks.json`, { headers }),
+    ])
 
   const hasClaude = claudeRes.status === 'fulfilled' && claudeRes.value.ok
   const hasSettings = settingsRes.status === 'fulfilled' && settingsRes.value.ok
@@ -153,7 +162,11 @@ export async function fetchRepoAgentConfig(params: {
       ? parseNames((await agentsRes.value.json()) as Array<{ name: string; type: string }>)
       : []
 
-  return { hasClaude, hasSettings, skills, agents }
+  const hasAgentsMd = agentsMdRes.status === 'fulfilled' && agentsMdRes.value.ok
+  const hasCodexConfig = codexConfigRes.status === 'fulfilled' && codexConfigRes.value.ok
+  const hasCodexHooks = codexHooksRes.status === 'fulfilled' && codexHooksRes.value.ok
+
+  return { hasClaude, hasSettings, skills, agents, hasAgentsMd, hasCodexConfig, hasCodexHooks }
 }
 
 export async function listPushableRepos(token: string): Promise<GitHubRepo[]> {
