@@ -184,7 +184,7 @@ export default function App() {
           <div className="flex w-full max-w-2xl flex-col gap-6">
             {/* Toolbar */}
             <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex gap-1 border-2 border-black bg-white p-0.5">
                   <button
                     onClick={() => setView('tasks')}
