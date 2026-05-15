@@ -24,3 +24,11 @@ Agent-maintained. One entry per daily sprint run.
 - Summary: Reviewed and approved PR #17 (Playwright E2E smoke tests); fixed CI formatting failure on ROADMAP.md and sprint workflow YAML; waited for green CI then squash-merged and deleted branch.
 - PR: #17
 - ROADMAP updated: yes
+
+## 2026-05-15
+
+- Action: ci-fix
+- Summary: Fixed CI failure on main — `pnpm format:check` was failing because `ActivityPanel.tsx` had a trailing whitespace issue; ran Prettier and pushed fix directly to main.
+- Rationale: CI was broken on main; fixing it is the top priority before any feature or backlog work can be considered green.
+- PR: n/a
+- ROADMAP updated: no
