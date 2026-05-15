@@ -15,8 +15,8 @@ import { ToolsPanel } from '@/components/ToolsPanel'
 import { ActivityPanel } from '@/components/ActivityPanel'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 
-const TokenSetup = lazy(() =>
-  import('@/components/TokenSetup').then((m) => ({ default: m.TokenSetup })),
+const SecretsView = lazy(() =>
+  import('@/components/SecretsView').then((m) => ({ default: m.SecretsView })),
 )
 import { upsertWorkflowFile, fetchFileContent } from '@/lib/github'
 import { slugify, taskConfigFromYaml, type TaskConfig } from '@/lib/yamlGenerator'
@@ -222,7 +222,7 @@ export default function App() {
                   onClick={() => setView('token-setup')}
                   className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white"
                 >
-                  API token
+                  Secrets
                 </button>
                 <button
                   onClick={() => setActiveRepo(null)}
@@ -291,7 +291,7 @@ export default function App() {
                   </p>
                 }
               >
-                <TokenSetup
+                <SecretsView
                   token={token}
                   owner={activeRepo.full_name.split('/')[0]}
                   repo={activeRepo.full_name.split('/')[1]}

@@ -3,6 +3,7 @@ import {
   generateWorkflowYaml,
   slugify,
   parseOutputDestination,
+  parseProvider,
   parsePromptFromYaml,
   taskConfigFromYaml,
   type TaskConfig,
@@ -279,6 +280,116 @@ describe('parsePromptFromYaml', () => {
         .filter((l) => l.trim().length > 0) ?? []
     const contentIndent = contentLines[0]?.match(/^( +)/)?.[1].length ?? 0
     expect(contentIndent).toBeGreaterThan(keyIndent)
+  })
+})
+
+describe('parseProvider', () => {
+  it('returns claude_oauth when comment is absent', () => {
+    expect(parseProvider('name: test')).toBe('claude_oauth')
+  })
+
+  it('parses claude_oauth', () => {
+    expect(parseProvider('# githatch:provider=claude_oauth\nname: test')).toBe('claude_oauth')
+  })
+
+  it('parses codex', () => {
+    expect(parseProvider('# githatch:provider=codex\nname: test')).toBe('codex')
+  })
+
+  it('parses synthetic', () => {
+    expect(parseProvider('# githatch:provider=synthetic\nname: test')).toBe('synthetic')
+  })
+
+  it('defaults unknown value to claude_oauth', () => {
+    expect(parseProvider('# githatch:provider=unknown\nname: test')).toBe('claude_oauth')
+  })
+})
+
+describe('generateWorkflowYaml — Codex provider', () => {
+  const base: TaskConfig = {
+    name: 'Daily Sprint',
+    schedule: '0 2 * * *',
+    provider: 'codex',
+    prompt: 'Review open issues and raise PRs.',
+    outputDestination: { type: 'agent_managed' },
+  }
+
+  it('uses openai/codex-action', () => {
+    expect(generateWorkflowYaml(base)).toContain('openai/codex-action')
+  })
+
+  it('uses OPENAI_API_KEY secret', () => {
+    expect(generateWorkflowYaml(base)).toContain('OPENAI_API_KEY')
+  })
+
+  it('sets danger-full-access sandbox', () => {
+    expect(generateWorkflowYaml(base)).toContain('danger-full-access')
+  })
+
+  it('does not include Claude-specific keys', () => {
+    const yaml = generateWorkflowYaml(base)
+    expect(yaml).not.toContain('claude-code-action')
+    expect(yaml).not.toContain('CLAUDE_CODE_OAUTH_TOKEN')
+    expect(yaml).not.toContain('allowedTools')
+  })
+
+  it('embeds provider comment for round-trip', () => {
+    expect(generateWorkflowYaml(base)).toContain('# githatch:provider=codex')
+  })
+
+  it('round-trips provider via taskConfigFromYaml', () => {
+    const yaml = generateWorkflowYaml(base)
+    const parsed = taskConfigFromYaml(base.name, base.schedule, yaml)
+    expect(parsed.provider).toBe('codex')
+  })
+})
+
+describe('generateWorkflowYaml — Synthetic provider', () => {
+  const base: TaskConfig = {
+    name: 'Daily Sprint',
+    schedule: '0 2 * * *',
+    provider: 'synthetic',
+    prompt: 'Review open issues and raise PRs.',
+    outputDestination: { type: 'agent_managed' },
+  }
+
+  it('uses openai/codex-action with Synthetic base URL', () => {
+    const yaml = generateWorkflowYaml(base)
+    expect(yaml).toContain('openai/codex-action')
+    expect(yaml).toContain('https://api.synthetic.new/openai/v1')
+  })
+
+  it('uses SYNTHETIC_API_KEY secret', () => {
+    expect(generateWorkflowYaml(base)).toContain('SYNTHETIC_API_KEY')
+  })
+
+  it('sets kimi-k2.6 model', () => {
+    expect(generateWorkflowYaml(base)).toContain('kimi-k2.6')
+  })
+
+  it('sets danger-full-access sandbox', () => {
+    expect(generateWorkflowYaml(base)).toContain('danger-full-access')
+  })
+
+  it('does not include Claude-specific keys', () => {
+    const yaml = generateWorkflowYaml(base)
+    expect(yaml).not.toContain('claude-code-action')
+    expect(yaml).not.toContain('CLAUDE_CODE_OAUTH_TOKEN')
+  })
+
+  it('embeds provider comment for round-trip', () => {
+    expect(generateWorkflowYaml(base)).toContain('# githatch:provider=synthetic')
+  })
+
+  it('round-trips provider via taskConfigFromYaml', () => {
+    const yaml = generateWorkflowYaml(base)
+    const parsed = taskConfigFromYaml(base.name, base.schedule, yaml)
+    expect(parsed.provider).toBe('synthetic')
+  })
+
+  it('round-trips prompt via parsePromptFromYaml', () => {
+    const yaml = generateWorkflowYaml(base)
+    expect(parsePromptFromYaml(yaml)).toBe(base.prompt)
   })
 })
 

@@ -1,4 +1,4 @@
-export type Provider = 'claude_oauth'
+export type Provider = 'claude_oauth' | 'codex' | 'synthetic'
 
 export type OutputDestination =
   | { type: 'issue_comment'; issueNumber: number }
@@ -11,8 +11,25 @@ export interface TaskConfig {
   name: string
   schedule?: string
   provider: Provider
+  model?: string
   prompt: string
   outputDestination: OutputDestination
+}
+
+export const PROVIDER_MODELS: Record<Provider, { value: string; label: string }[]> = {
+  claude_oauth: [
+    { value: '', label: 'Default (Sonnet 4.6)' },
+    { value: 'claude-opus-4-7', label: 'Opus 4.7 — most capable' },
+    { value: 'claude-sonnet-4-6', label: 'Sonnet 4.6' },
+    { value: 'claude-haiku-4-5-20251001', label: 'Haiku 4.5 — fastest' },
+  ],
+  codex: [{ value: '', label: 'Default' }],
+  synthetic: [
+    { value: 'kimi-k2.6', label: 'Kimi K2.6' },
+    { value: 'minimax-m2.5', label: 'MiniMax M2.5' },
+    { value: 'glm-5.1', label: 'GLM 5.1' },
+    { value: 'glm-4.7-flash', label: 'GLM 4.7 Flash' },
+  ],
 }
 
 export function slugify(name: string): string {
@@ -83,6 +100,19 @@ export function parseOutputDestination(yaml: string): OutputDestination {
   return { type: 'new_issue' }
 }
 
+export function parseModel(yaml: string): string | undefined {
+  const match = yaml.match(/^# githatch:model=(\S+)$/m)
+  return match ? match[1] : undefined
+}
+
+export function parseProvider(yaml: string): Provider {
+  const match = yaml.match(/^# githatch:provider=(\S+)$/m)
+  if (!match) return 'claude_oauth'
+  const p = match[1]
+  if (p === 'codex' || p === 'synthetic') return p
+  return 'claude_oauth'
+}
+
 export function parsePromptFromYaml(yaml: string): string {
   const blockMatch = yaml.match(/ {10}prompt: \|\n([\s\S]+)$/)
   if (blockMatch) {
@@ -96,7 +126,7 @@ export function parsePromptFromYaml(yaml: string): string {
       .trimEnd()
     return full.split('\n\nWhen done,')[0].trimEnd()
   }
-  const singleMatch = yaml.match(/ {10}prompt: '([\s\S]+)'$/)
+  const singleMatch = yaml.match(/ {10}prompt: '(.*)'$/m)
   if (singleMatch) return singleMatch[1].replace(/''/g, "'")
   return ''
 }
@@ -109,10 +139,44 @@ export function taskConfigFromYaml(
   return {
     name,
     schedule: schedule || undefined,
-    provider: 'claude_oauth',
+    provider: parseProvider(yaml),
+    model: parseModel(yaml),
     prompt: parsePromptFromYaml(yaml),
     outputDestination: parseOutputDestination(yaml),
   }
+}
+
+function buildAgentStep(config: TaskConfig, promptYaml: string, allowedTools: string): string {
+  if (config.provider === 'codex') {
+    const modelLine = config.model ? `\n          model: ${config.model}` : ''
+    return `      - name: Run Codex agent
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: \${{ secrets.OPENAI_API_KEY }}${modelLine}
+          sandbox: danger-full-access
+          prompt: ${promptYaml}`
+  }
+
+  if (config.provider === 'synthetic') {
+    const syntheticModel = config.model || 'kimi-k2.6'
+    return `      - name: Run Synthetic agent
+        uses: openai/codex-action@v1
+        env:
+          OPENAI_BASE_URL: https://api.synthetic.new/openai/v1
+        with:
+          openai-api-key: \${{ secrets.SYNTHETIC_API_KEY }}
+          model: ${syntheticModel}
+          sandbox: danger-full-access
+          prompt: ${promptYaml}`
+  }
+
+  const modelFlag = config.model ? ` --model ${config.model}` : ''
+  return `      - name: Run Claude agent
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: \${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: --allowedTools "${allowedTools}"${modelFlag}
+          prompt: ${promptYaml}`
 }
 
 export function generateWorkflowYaml(config: TaskConfig): string {
@@ -146,8 +210,13 @@ export function generateWorkflowYaml(config: TaskConfig): string {
     ? `on:\n  schedule:\n    - cron: '${config.schedule}'\n  workflow_dispatch:`
     : `on:\n  workflow_dispatch:`
 
+  const agentStep = buildAgentStep(config, promptYaml, allowedTools)
+
+  const modelComment = config.model ? `\n# githatch:model=${config.model}` : ''
+
   return `# Githatch — ${config.name}
 ${outputComment}
+# githatch:provider=${config.provider}${modelComment}
 name: githatch-${slug}
 
 ${onBlock}
@@ -163,11 +232,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run Claude agent
-        uses: anthropics/claude-code-action@v1
-        with:
-          claude_code_oauth_token: \${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          claude_args: --allowedTools "${allowedTools}"
-          prompt: ${promptYaml}
+${agentStep}
 `
 }

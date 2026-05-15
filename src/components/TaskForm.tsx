@@ -4,13 +4,16 @@ import {
   slugify,
   type TaskConfig,
   type OutputDestination,
+  type Provider,
+  PROVIDER_MODELS,
 } from '@/lib/yamlGenerator'
 
 export interface TaskFormValues {
   name: string
   schedule: string
   customCron: string
-  provider: 'claude_oauth'
+  provider: Provider
+  model: string
   prompt: string
   outputType: 'issue_comment' | 'new_issue' | 'file' | 'pull_request' | 'agent_managed'
   issueNumber: string
@@ -31,11 +34,22 @@ const SCHEDULE_PRESETS = [
   { label: 'Custom cron…', value: 'custom' },
 ] as const
 
+const PROVIDER_OPTIONS: { value: Provider; label: string; secret: string }[] = [
+  { value: 'claude_oauth', label: 'Claude (OAuth)', secret: 'CLAUDE_CODE_OAUTH_TOKEN' },
+  { value: 'codex', label: 'Codex (OpenAI)', secret: 'OPENAI_API_KEY' },
+  { value: 'synthetic', label: 'Synthetic ($30/mo flat)', secret: 'SYNTHETIC_API_KEY' },
+]
+
+function defaultModel(provider: Provider): string {
+  return PROVIDER_MODELS[provider][0].value
+}
+
 const DEFAULT_VALUES: TaskFormValues = {
   name: '',
   schedule: '',
   customCron: '',
   provider: 'claude_oauth',
+  model: defaultModel('claude_oauth'),
   prompt: '',
   outputType: 'issue_comment',
   issueNumber: '',
@@ -59,6 +73,7 @@ function configToFormValues(config: TaskConfig): TaskFormValues {
     schedule,
     customCron,
     provider: config.provider,
+    model: config.model ?? defaultModel(config.provider),
     prompt: config.prompt,
     outputType,
     issueNumber,
@@ -112,6 +127,7 @@ export function TaskForm({ onSubmit, loading = false, initialConfig }: Props) {
       name: values.name.trim(),
       schedule: resolvedSchedule || undefined,
       provider: values.provider,
+      model: values.model || undefined,
       prompt: values.prompt.trim(),
       outputDestination,
     }
@@ -189,12 +205,49 @@ export function TaskForm({ onSubmit, loading = false, initialConfig }: Props) {
         <select
           id="task-provider"
           value={values.provider}
-          onChange={(e) => set('provider', e.target.value as 'claude_oauth')}
+          onChange={(e) => {
+            const p = e.target.value as Provider
+            setValues((v) => ({ ...v, provider: p, model: defaultModel(p) }))
+          }}
           className="block w-full border-2 border-black bg-white px-3 py-2 text-sm focus:outline-none"
         >
-          <option value="claude_oauth">Claude (OAuth)</option>
+          {PROVIDER_OPTIONS.map((p) => (
+            <option key={p.value} value={p.value}>
+              {p.label}
+            </option>
+          ))}
         </select>
+        <p className="mt-1 font-mono text-xs text-black/50">
+          Requires repo secret:{' '}
+          <span className="font-semibold">
+            {PROVIDER_OPTIONS.find((p) => p.value === values.provider)?.secret}
+          </span>
+        </p>
       </div>
+
+      {/* Model */}
+      {PROVIDER_MODELS[values.provider].length > 1 && (
+        <div>
+          <label
+            htmlFor="task-model"
+            className="mb-1 block font-mono text-xs tracking-widest text-black uppercase"
+          >
+            Model
+          </label>
+          <select
+            id="task-model"
+            value={values.model}
+            onChange={(e) => set('model', e.target.value)}
+            className="block w-full border-2 border-black bg-white px-3 py-2 text-sm focus:outline-none"
+          >
+            {PROVIDER_MODELS[values.provider].map((m) => (
+              <option key={m.value} value={m.value}>
+                {m.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* Prompt */}
       <div>
