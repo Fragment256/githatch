@@ -76,17 +76,15 @@ describe('AgentConfig', () => {
   })
 
   it('does not fetch again when toggled closed and reopened', async () => {
-    const spy = vi
-      .spyOn(github, 'fetchRepoAgentConfig')
-      .mockResolvedValue({
-        hasClaude: true,
-        hasSettings: true,
-        skills: [],
-        agents: [],
-        hasAgentsMd: false,
-        hasCodexConfig: false,
-        hasCodexHooks: false,
-      })
+    const spy = vi.spyOn(github, 'fetchRepoAgentConfig').mockResolvedValue({
+      hasClaude: true,
+      hasSettings: true,
+      skills: [],
+      agents: [],
+      hasAgentsMd: false,
+      hasCodexConfig: false,
+      hasCodexHooks: false,
+    })
     render(<AgentConfig {...BASE_PROPS} />)
     const btn = screen.getByRole('button', { name: /agent config/i })
     fireEvent.click(btn)
@@ -97,17 +95,15 @@ describe('AgentConfig', () => {
   })
 
   it('resets and re-fetches when repo changes', async () => {
-    const spy = vi
-      .spyOn(github, 'fetchRepoAgentConfig')
-      .mockResolvedValue({
-        hasClaude: false,
-        hasSettings: false,
-        skills: [],
-        agents: [],
-        hasAgentsMd: false,
-        hasCodexConfig: false,
-        hasCodexHooks: false,
-      })
+    const spy = vi.spyOn(github, 'fetchRepoAgentConfig').mockResolvedValue({
+      hasClaude: false,
+      hasSettings: false,
+      skills: [],
+      agents: [],
+      hasAgentsMd: false,
+      hasCodexConfig: false,
+      hasCodexHooks: false,
+    })
     const { rerender } = render(<AgentConfig {...BASE_PROPS} />)
     fireEvent.click(screen.getByRole('button', { name: /agent config/i }))
     await waitFor(() => expect(spy).toHaveBeenCalledOnce())
