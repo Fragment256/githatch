@@ -123,17 +123,15 @@ jobs:
             - Push branch, raise PR, update ROADMAP.md In Progress in the PR commit
             - Go to REPORT
 
-            ## 4. DISCOVERY
+            ## 4. SPECS
             If roadmap Backlog is empty:
-            - Check docs/specs/ for any spec with owner: claude[bot] not yet in a PR
-            - If found: implement it (step 2 logic)
-            - If none: review README.md, ROADMAP.md, docs/, and key source files
-              - Identify ONE improvement (security, performance, DX, test coverage, docs, devops, build times)
-              - Write spec to docs/specs/YYYY-MM-DD-<slug>.md with: problem, proposed solution, acceptance criteria, owner: claude[bot]
-              - Add to ROADMAP.md Backlog
-              - git add docs/specs/ ROADMAP.md && git commit -m "docs: add spec for <title>" && git push
-              - Do NOT implement this run
-            - Go to REPORT
+            - Run: ls docs/specs/
+            - Check docs/specs/ for any spec with owner: claude[bot] not already covered by an open PR
+            - If found: pick the highest-priority spec and implement it (same TDD flow as step 2)
+              - Push to branch claude/spec-YYYY-MM-DD
+              - Raise PR: gh pr create --title "..." --body "Implements spec: <filename>\n\n<summary>"
+              - Go to REPORT
+            - If none found: log "nothing actionable this run" in REPORT and stop
 
             ---
 
@@ -142,7 +140,7 @@ jobs:
             Append to docs/sprint-log.md:
 
             ## YYYY-MM-DD
-            - Action: [pr-closed | pr-merged | pr-review | pr-addressed | issues | roadmap | spec-written | discovery]
+            - Action: [pr-closed | pr-merged | pr-review | pr-addressed | issues | roadmap | spec-implemented | nothing-actionable]
             - Summary: <one sentence>
             - Rationale: <why this over alternatives>
             - PR: #N or n/a

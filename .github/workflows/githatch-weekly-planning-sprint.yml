@@ -1,0 +1,106 @@
+# Githatch — Weekly Planning Sprint
+# githatch:output_type=agent_managed
+name: githatch-weekly-planning-sprint
+
+on:
+  schedule:
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+  id-token: write
+  pull-requests: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Claude agent
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: --allowedTools "Bash,Write,Edit,Read" --model claude-opus-4-7
+          prompt: |
+            You are the product strategist and tech lead for this project. This is the weekly planning sprint. Your job is to assess the current state, update the roadmap, and write specs for the next round of work.
+
+            Do NOT implement anything this run. Specs and roadmap only.
+
+            Read these first:
+            - README.md — purpose, architecture, definition of "good"
+            - ROADMAP.md — current work stack
+            - docs/sprint-log.md — what has shipped recently
+            - docs/specs/ — existing specs (avoid duplicating)
+
+            Also gather recent activity:
+            - gh issue list --state open --json number,title,labels,body --limit 20
+            - gh pr list --state all --json number,title,state,mergedAt --limit 20
+            - git log --oneline -20
+
+            ---
+
+            ## STEP 1: ASSESS
+
+            Build a picture of current state:
+            - What shipped since the last planning run? (sprint-log.md + merged PRs)
+            - What is in progress or stale in ROADMAP.md?
+            - What issues are open and not covered by a spec or PR?
+            - What unimplemented specs exist in docs/specs/?
+
+            ---
+
+            ## STEP 2: UPDATE ROADMAP
+
+            Edit ROADMAP.md:
+            - Move any Backlog or In Progress items that are clearly done to the Done table (with today's date)
+            - Remove or deprioritise items that no longer make sense given recent direction
+            - Reorder the Backlog by priority: user-facing value first, then DX, then hygiene
+            - Add any obvious missing items surfaced by the assessment
+
+            ---
+
+            ## STEP 3: WRITE SPECS
+
+            Write 1-3 new spec files in docs/specs/YYYY-MM-DD-<slug>.md
+
+            Choose the highest-value work not already specced or in progress. Priority order:
+            1. User-facing feature or UX improvement
+            2. Developer experience / build / automation
+            3. Documentation or testing gaps (only if a concrete gap exists)
+
+            Each spec must include:
+
+            ## Problem
+            What user or developer pain does this solve?
+
+            ## Proposed solution
+            Concrete description of what to build. Enough detail that the daily sprint agent can implement it without further clarification.
+
+            ## Acceptance criteria
+            - Bullet list of testable outcomes
+
+            ## Owner
+            claude[bot]
+
+            ## Priority
+            high / medium / low
+
+            Add each new spec to ROADMAP.md Backlog.
+
+            Do NOT implement. Specs and roadmap only.
+
+            ---
+
+            ## REPORT
+
+            Append to docs/sprint-log.md:
+
+            ## YYYY-MM-DD (planning)
+            - Roadmap changes: <what moved, what was added/removed>
+            - Specs written: <list of filenames>
+            - Rationale: <why these over other options>
+
+            git add docs/specs/ docs/sprint-log.md ROADMAP.md && git commit -m "docs: weekly planning sprint YYYY-MM-DD" && git push
