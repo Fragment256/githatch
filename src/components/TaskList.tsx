@@ -1,31 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { GithatchTask, WorkflowRun } from '@/lib/workflows'
-
-function describeCron(cron: string): string {
-  const parts = cron.trim().split(/\s+/)
-  if (parts.length !== 5) return cron
-  const [minute, hour, dom, month, dow] = parts
-  const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-
-  function fmt(h: string, m: string): string {
-    const hn = parseInt(h, 10)
-    const mn = parseInt(m, 10)
-    if (isNaN(hn) || isNaN(mn)) return `${h}:${m}`
-    const period = hn >= 12 ? 'PM' : 'AM'
-    const h12 = hn % 12 || 12
-    return mn === 0 ? `${h12} ${period}` : `${h12}:${String(mn).padStart(2, '0')} ${period}`
-  }
-
-  if (minute === '0' && hour.startsWith('*/') && dom === '*' && month === '*' && dow === '*')
-    return `Every ${hour.slice(2)} hours`
-  if (dom === '*' && month === '*' && dow === '1-5' && !isNaN(+hour) && !isNaN(+minute))
-    return `Weekdays at ${fmt(hour, minute)}`
-  if (dom === '*' && month === '*' && dow !== '*' && !isNaN(+dow))
-    return `Weekly ${DAYS[+dow] ?? dow} at ${fmt(hour, minute)}`
-  if (dom === '*' && month === '*' && dow === '*' && !isNaN(+hour) && !isNaN(+minute))
-    return `Daily at ${fmt(hour, minute)}`
-  return cron
-}
+import { describeCron } from '@/lib/cronLabel'
 import {
   triggerWorkflow,
   getWorkflowRuns,
@@ -467,7 +442,9 @@ function ScheduledRow({
     <li className="flex flex-col gap-3 border border-black bg-white p-4">
       <div>
         <p className="font-semibold text-black">{task.displayName}</p>
-        {task.schedule && <p className="mt-0.5 font-mono text-xs text-black/50">{task.schedule}</p>}
+        {task.schedule && (
+          <p className="mt-0.5 font-mono text-xs text-black/50">{describeCron(task.schedule)}</p>
+        )}
       </div>
       <div className="flex items-center gap-2">
         <button
