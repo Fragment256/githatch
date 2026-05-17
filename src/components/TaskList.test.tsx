@@ -47,11 +47,10 @@ describe('TaskList', () => {
     expect(screen.getByText(/no tasks yet/i)).toBeInTheDocument()
   })
 
-  it('renders task name and schedule', () => {
+  it('renders task name and human-readable schedule', () => {
     render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
-    // Appears in both Tasks and Scheduled sections
     expect(screen.getAllByText('Daily Standup').length).toBeGreaterThanOrEqual(1)
-    expect(screen.getAllByText('0 9 * * 1-5').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Weekdays at 9 AM UTC').length).toBeGreaterThanOrEqual(1)
   })
 
   it('calls triggerWorkflow when Run now is clicked', async () => {

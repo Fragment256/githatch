@@ -7,6 +7,7 @@ import {
   type Provider,
   PROVIDER_MODELS,
 } from '@/lib/yamlGenerator'
+import { describeCron } from '@/lib/cronLabel'
 
 export interface TaskFormValues {
   name: string
@@ -191,6 +192,14 @@ export function TaskForm({ onSubmit, loading = false, initialConfig }: Props) {
             placeholder="e.g. 0 9 * * 1"
             className="mt-2 block w-full border-2 border-black bg-white px-3 py-2 font-mono text-sm focus:outline-none"
           />
+        )}
+        {values.schedule && values.schedule !== 'custom' && (
+          <p className="mt-1 font-mono text-xs text-black/40">cron: {values.schedule}</p>
+        )}
+        {values.schedule === 'custom' && values.customCron.trim() && (
+          <p className="mt-1 font-mono text-xs text-black/40">
+            {describeCron(values.customCron.trim())}
+          </p>
         )}
       </div>
 
