@@ -40,3 +40,11 @@ Agent-maintained. One entry per daily sprint run.
 - Rationale: ScheduledRow was showing raw cron strings (`0 9 * * 1`) while TaskRow showed human-readable labels — a UX inconsistency that confused users; this was the highest-value unimplemented UX fix with no open issues or roadmap backlog items to pick from. Chose over dark mode (cosmetic) and other nice-to-haves because it fixes an actual displayed bug.
 - PR: #18
 - ROADMAP updated: yes
+
+## 2026-05-17
+
+- Action: pr-merged
+- Summary: Reviewed PR #18 (cronLabel extraction + ScheduledRow bug fix); CI was green, code correct and well-tested; merged via squash.
+- Rationale: Only open PR had green CI and no blocking issues — merging it immediately ships the UX fix (human-readable cron labels in task list) to users rather than leaving it in review limbo.
+- PR: #18
+- ROADMAP updated: yes
