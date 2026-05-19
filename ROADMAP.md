@@ -6,7 +6,7 @@ Agent instructions: work top-to-bottom in Backlog. Move item to In Progress when
 
 ## In Progress
 
-_nothing currently in progress_
+- [ ] **Next-run display in task list** — `nextCronRun()` + `formatRelativeTime()` in cronLabel.ts; TaskRow shows "Next: in X hours/days" for enabled scheduled tasks. Branch: claude/feat-next-run-display-2026-05-19, PR #19 (2026-05-19)
 
 ---
 

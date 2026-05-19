@@ -56,3 +56,11 @@ Agent-maintained. One entry per daily sprint run.
 - Rationale: Every structured pipeline step exhausted — invention of work outside the backlog is explicitly ruled out by PRIORITIES; nothing-actionable is the correct outcome.
 - PR: n/a
 - ROADMAP updated: no
+
+## 2026-05-19
+
+- Action: roadmap
+- Summary: Identified and implemented "next-run display" — adds `nextCronRun()` + `formatRelativeTime()` to cronLabel.ts, wires "Next: in X hours/days" into TaskRow for enabled scheduled tasks; 180 → 192 tests. PR #19 raised.
+- Rationale: Backlog was empty (second consecutive nothing-actionable); proactively identified the highest user-facing UX gap — users creating a scheduled task have no visible answer to "when will this run next?" Chose over dark mode (cosmetic-only) and test coverage work (already at 192 tests, no critical gaps).
+- PR: #19
+- ROADMAP updated: yes
