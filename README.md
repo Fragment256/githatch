@@ -214,6 +214,18 @@ on:
 
 This can be done via Githatch's edit task view.
 
+
+### Without programattic access
+Using Claude code code interactive, for example for Sprint Planning:
+
+**Copy the prompt, e.g. Sprint Planning**
+```
+SPRINT_PROMPT=$(python3 -c "import yaml; print(yaml.safe_load(open('.github/workflows/githatch-sprint-planning.yml'))['jobs']['run']['steps'][1]['with']['prompt'])"); echo ${SPRINT_PROMPT} | pbcopy
+```
+
+- Paste the prompt into Claude code.
+- Commit/push as required.
+
 ---
 
 ## Architecture decisions
