@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { GithatchTask, WorkflowRun } from '@/lib/workflows'
-import { describeCron } from '@/lib/cronLabel'
+import { describeCron, nextCronRun, formatRelativeTime } from '@/lib/cronLabel'
 import {
   triggerWorkflow,
   getWorkflowRuns,
@@ -318,6 +318,14 @@ function TaskRow({
           {task.schedule && (
             <p className="mt-0.5 font-mono text-xs text-black/50">{describeCron(task.schedule)}</p>
           )}
+          {task.schedule &&
+            enabled &&
+            (() => {
+              const next = nextCronRun(task.schedule)
+              return next ? (
+                <p className="font-mono text-xs text-black/30">Next: {formatRelativeTime(next)}</p>
+              ) : null
+            })()}
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {task.workflowId === undefined ? (
