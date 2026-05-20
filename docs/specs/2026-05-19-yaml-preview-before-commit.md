@@ -2,7 +2,7 @@
 
 ## Problem
 
-A stated definition of "good" (README): *"Thin and auditable: every action Githatch takes is a visible API call or a committed file."* Today the task form does the opposite of auditable for its single most consequential action. In `App.tsx`, `handleTaskFormSubmit` / `handleEditFormSubmit` call `upsertWorkflowFile` immediately on form submit — the user never sees the YAML that gets committed to `.github/workflows/` in their repo. They are trusting a generator they cannot inspect, on a file that runs in their CI with their secrets. For an edit, they also can't see what changed versus the file already in the repo. This is a trust and correctness gap directly at odds with the project's core ethos, and a likely source of silent mistakes (wrong cron, wrong output destination).
+A stated definition of "good" (README): _"Thin and auditable: every action Githatch takes is a visible API call or a committed file."_ Today the task form does the opposite of auditable for its single most consequential action. In `App.tsx`, `handleTaskFormSubmit` / `handleEditFormSubmit` call `upsertWorkflowFile` immediately on form submit — the user never sees the YAML that gets committed to `.github/workflows/` in their repo. They are trusting a generator they cannot inspect, on a file that runs in their CI with their secrets. For an edit, they also can't see what changed versus the file already in the repo. This is a trust and correctness gap directly at odds with the project's core ethos, and a likely source of silent mistakes (wrong cron, wrong output destination).
 
 ## Proposed solution
 

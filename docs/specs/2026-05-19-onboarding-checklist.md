@@ -2,7 +2,7 @@
 
 ## Problem
 
-The project's definition of "good" (README) is: *"a non-technical user can create a working agent task in under 2 minutes."* Today, after a user logs in and picks a repo with no tasks, they land on an empty `TaskList` with no guidance. The three things required for a working agent — (1) repo selected, (2) `CLAUDE_CODE_OAUTH_TOKEN` secret set, (3) at least one task created — are scattered across separate views (Secrets, + New task) with no indication that the token step is mandatory. A first-time user can easily create a task that fails on first run because the token secret was never set. This is the single largest gap against the stated 2-minute goal.
+The project's definition of "good" (README) is: _"a non-technical user can create a working agent task in under 2 minutes."_ Today, after a user logs in and picks a repo with no tasks, they land on an empty `TaskList` with no guidance. The three things required for a working agent — (1) repo selected, (2) `CLAUDE_CODE_OAUTH_TOKEN` secret set, (3) at least one task created — are scattered across separate views (Secrets, + New task) with no indication that the token step is mandatory. A first-time user can easily create a task that fails on first run because the token secret was never set. This is the single largest gap against the stated 2-minute goal.
 
 ## Proposed solution
 
@@ -11,7 +11,7 @@ Add a `GettingStarted` component, rendered in the `tasks` view (above `AgentConf
 The component is a 3-step checklist. Each step shows a done/todo state and a primary action button:
 
 1. **Repository selected** — always satisfied when the component renders (the user has an `activeRepo`). Show as done, display `activeRepo.name`.
-2. **Claude token configured** — detect whether the repo has an Actions secret named `CLAUDE_CODE_OAUTH_TOKEN`. Use a `listRepoSecrets({ token, owner, repo })` helper in `src/lib/github.ts` (GitHub API: `GET /repos/{owner}/{repo}/actions/secrets`, which returns secret *names* only). If the call succeeds and the name is present → done. If it succeeds and the name is absent → todo, with a "Set up token" button that calls `setView('token-setup')`. If the call fails (e.g. 403 insufficient scope) → render the step as "unknown" with the same "Set up token" button and a one-line note ("couldn't verify — set it up to be safe"); never block on this.
+2. **Claude token configured** — detect whether the repo has an Actions secret named `CLAUDE_CODE_OAUTH_TOKEN`. Use a `listRepoSecrets({ token, owner, repo })` helper in `src/lib/github.ts` (GitHub API: `GET /repos/{owner}/{repo}/actions/secrets`, which returns secret _names_ only). If the call succeeds and the name is present → done. If it succeeds and the name is absent → todo, with a "Set up token" button that calls `setView('token-setup')`. If the call fails (e.g. 403 insufficient scope) → render the step as "unknown" with the same "Set up token" button and a one-line note ("couldn't verify — set it up to be safe"); never block on this.
 3. **Create your first task** — done when `tasks.length > 0`. Otherwise todo, with a "+ New task" button that calls `setView('new-task')`.
 
 Behaviour:
