@@ -70,3 +70,11 @@ Agent-maintained. One entry per daily sprint run.
 - Roadmap changes: Backlog was empty (root cause of two recent nothing-actionable sprints) — refilled with 5 prioritised items. Added 3 specced items (onboarding checklist, YAML preview, template library), plus dark mode (low, needs spec) and a README file-map refresh (hygiene). In Progress PR #19 annotated "CI green, awaiting merge" (not merged this run — planning only). No Done moves: nothing merged since #18 (already recorded 2026-05-16); #19 still open.
 - Specs written: `docs/specs/2026-05-19-onboarding-checklist.md`, `docs/specs/2026-05-19-yaml-preview-before-commit.md`, `docs/specs/2026-05-19-starter-template-library.md`
 - Rationale: All three target the project's own stated definition of "good." Onboarding directly serves "non-technical user creates a working agent in under 2 minutes" — currently no guided first-run path and the mandatory token step is easy to miss, causing first runs to fail. YAML preview serves "thin and auditable" — today the most consequential action (committing a workflow that runs in the user's CI with their secrets) happens with zero visibility. Template library serves blank-page friction: the existing template system ships only two self-referential meta-agents, none for the documented use cases the product is pitched on. Chose these over dark mode (cosmetic, low leverage on the 2-min goal) and the GitHub App registration (deliberately Paused — still a personal tool). Three independent specs touching different files (new component+App.tsx / TaskForm / templates.ts) so daily sprints can ship them without conflicts.
+
+## 2026-05-20
+
+- Action: ci-fix
+- Summary: Deploy to GitHub Pages was failing on main (commit 9a0ec31) due to `pnpm format:check` — Prettier flagged README.md and two spec markdown files; ran `pnpm format` and pushed fix directly to main (763b4c4).
+- Rationale: CI broken on main is the top priority before PR review or feature work; the root cause was a trivial markdown formatting difference (trailing whitespace / wrap differences) introduced by the 2026-05-19 planning sprint. PR #19 (next-run display) remains open awaiting review — will be handled next sprint.
+- PR: n/a
+- ROADMAP updated: no
