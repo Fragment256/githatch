@@ -71,6 +71,14 @@ Agent-maintained. One entry per daily sprint run.
 - Specs written: `docs/specs/2026-05-19-onboarding-checklist.md`, `docs/specs/2026-05-19-yaml-preview-before-commit.md`, `docs/specs/2026-05-19-starter-template-library.md`
 - Rationale: All three target the project's own stated definition of "good." Onboarding directly serves "non-technical user creates a working agent in under 2 minutes" — currently no guided first-run path and the mandatory token step is easy to miss, causing first runs to fail. YAML preview serves "thin and auditable" — today the most consequential action (committing a workflow that runs in the user's CI with their secrets) happens with zero visibility. Template library serves blank-page friction: the existing template system ships only two self-referential meta-agents, none for the documented use cases the product is pitched on. Chose these over dark mode (cosmetic, low leverage on the 2-min goal) and the GitHub App registration (deliberately Paused — still a personal tool). Three independent specs touching different files (new component+App.tsx / TaskForm / templates.ts) so daily sprints can ship them without conflicts.
 
+## 2026-05-21
+
+- Action: pr-merged
+- Summary: Reviewed and merged PR #19 (next-run display in task list) — `nextCronRun()` + `formatRelativeTime()` in cronLabel.ts, "Next: in X hours/days" shown in TaskRow for enabled scheduled tasks; 3 new component tests, 6+ lib tests, CI green.
+- Rationale: PR #19 was the only open PR (In Progress on ROADMAP), CI was green, code was correct and well-tested — merging ships the user-facing UX improvement (answer to "when will this run next?") with no blocking issues.
+- PR: #19
+- ROADMAP updated: yes
+
 ## 2026-05-20
 
 - Action: ci-fix

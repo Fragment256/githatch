@@ -6,7 +6,7 @@ Agent instructions: work top-to-bottom in Backlog. Move item to In Progress when
 
 ## In Progress
 
-- [ ] **Next-run display in task list** — `nextCronRun()` + `formatRelativeTime()` in cronLabel.ts; TaskRow shows "Next: in X hours/days" for enabled scheduled tasks. PR #19 — **CI green, awaiting merge** (2026-05-19)
+_(none)_
 
 ---
 
@@ -57,3 +57,4 @@ Items deliberately on hold — not prioritised but not abandoned.
 | CSP headers (\_headers + meta http-equiv)                  | —   | 2026-05-14 |
 | Activity tab: execution sparklines, PRs, commits           | —   | 2026-05-14 |
 | cronLabel lib: human-readable schedule in task list + form | #18 | 2026-05-16 |
+| Next-run display in task list ("Next: in X hours/days")    | #19 | 2026-05-21 |
