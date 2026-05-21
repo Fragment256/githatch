@@ -143,6 +143,24 @@ describe('TaskList', () => {
     expect(screen.getByRole('button', { name: /pause task/i })).toBeInTheDocument()
   })
 
+  it('shows next-run time for an enabled scheduled task', () => {
+    render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+    // The "Next:" label should appear for a scheduled, enabled task
+    expect(screen.getByText(/^Next:/)).toBeInTheDocument()
+  })
+
+  it('does not show next-run time for a paused task', () => {
+    const paused: GithatchTask = { ...TASK, enabled: false }
+    render(<TaskList {...BASE_PROPS} tasks={[paused]} />)
+    expect(screen.queryByText(/^Next:/)).not.toBeInTheDocument()
+  })
+
+  it('does not show next-run time for a task with no schedule', () => {
+    const noSchedule: GithatchTask = { ...TASK, schedule: '' }
+    render(<TaskList {...BASE_PROPS} tasks={[noSchedule]} />)
+    expect(screen.queryByText(/^Next:/)).not.toBeInTheDocument()
+  })
+
   it('shows Scheduled section only for tasks that have a schedule', () => {
     const manualTask: GithatchTask = {
       ...TASK,

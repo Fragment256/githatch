@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { describeCron } from './cronLabel'
+import { describeCron, nextCronRun, formatRelativeTime } from './cronLabel'
 
 describe('describeCron', () => {
   it('describes every-N-minutes patterns', () => {
@@ -42,5 +42,92 @@ describe('describeCron', () => {
 
   it('returns the raw expression when fields are invalid', () => {
     expect(describeCron('abc def * * *')).toBe('abc def * * *')
+  })
+})
+
+describe('nextCronRun', () => {
+  // Fixed reference point: Wednesday 2026-01-14 14:23:30 UTC
+  const REF = new Date('2026-01-14T14:23:30Z')
+
+  it('returns null for unrecognized patterns', () => {
+    expect(nextCronRun('0 9 1 * *', REF)).toBeNull()
+    expect(nextCronRun('not a cron', REF)).toBeNull()
+    expect(nextCronRun('* * * * * *', REF)).toBeNull()
+  })
+
+  it('computes next fire for every-N-minutes pattern', () => {
+    // from 14:23:30, next */30 is 14:30:00
+    expect(nextCronRun('*/30 * * * *', REF)).toEqual(new Date('2026-01-14T14:30:00Z'))
+    // from 14:30:00 exactly, next */30 is 15:00:00
+    expect(nextCronRun('*/30 * * * *', new Date('2026-01-14T14:30:00Z'))).toEqual(
+      new Date('2026-01-14T15:00:00Z'),
+    )
+    // from 23:55:00, next */10 is next day 00:00:00
+    expect(nextCronRun('*/10 * * * *', new Date('2026-01-14T23:55:00Z'))).toEqual(
+      new Date('2026-01-15T00:00:00Z'),
+    )
+  })
+
+  it('computes next fire for every-N-hours pattern', () => {
+    // from 14:23:30, next */6 is 18:00:00
+    expect(nextCronRun('0 */6 * * *', REF)).toEqual(new Date('2026-01-14T18:00:00Z'))
+    // from exactly 6:00:00, next */6 is 12:00:00
+    expect(nextCronRun('0 */6 * * *', new Date('2026-01-14T06:00:00Z'))).toEqual(
+      new Date('2026-01-14T12:00:00Z'),
+    )
+    // from 23:01:00, next */6 rolls to next day 00:00:00
+    expect(nextCronRun('0 */6 * * *', new Date('2026-01-14T23:01:00Z'))).toEqual(
+      new Date('2026-01-15T00:00:00Z'),
+    )
+  })
+
+  it('computes next fire for daily pattern', () => {
+    // from 7:00 UTC, daily 8am fires today
+    expect(nextCronRun('0 8 * * *', new Date('2026-01-14T07:00:00Z'))).toEqual(
+      new Date('2026-01-14T08:00:00Z'),
+    )
+    // from 9:00 UTC, daily 8am fires tomorrow
+    expect(nextCronRun('0 8 * * *', new Date('2026-01-14T09:00:00Z'))).toEqual(
+      new Date('2026-01-15T08:00:00Z'),
+    )
+    // from exactly 8:00:00, next is tomorrow (strictly after)
+    expect(nextCronRun('0 8 * * *', new Date('2026-01-14T08:00:00Z'))).toEqual(
+      new Date('2026-01-15T08:00:00Z'),
+    )
+  })
+
+  it('computes next fire for specific day-of-week pattern', () => {
+    // REF is Wednesday. Next Monday (dow=1) at 9am is 2026-01-19
+    expect(nextCronRun('0 9 * * 1', REF)).toEqual(new Date('2026-01-19T09:00:00Z'))
+    // REF is Wednesday. Next Thursday (dow=4) at 9am is 2026-01-15
+    expect(nextCronRun('0 9 * * 4', REF)).toEqual(new Date('2026-01-15T09:00:00Z'))
+  })
+
+  it('computes next fire for weekdays pattern', () => {
+    // REF is Wednesday 14:23. Weekday 9am: already passed today, next is Thursday
+    expect(nextCronRun('0 9 * * 1-5', REF)).toEqual(new Date('2026-01-15T09:00:00Z'))
+    // Friday 10:00, weekdays 9am: next is Monday
+    expect(nextCronRun('0 9 * * 1-5', new Date('2026-01-16T10:00:00Z'))).toEqual(
+      new Date('2026-01-19T09:00:00Z'),
+    )
+  })
+})
+
+describe('formatRelativeTime', () => {
+  const FROM = new Date('2026-01-14T14:00:00Z')
+
+  it('formats minutes', () => {
+    expect(formatRelativeTime(new Date('2026-01-14T14:01:00Z'), FROM)).toBe('in 1 minute')
+    expect(formatRelativeTime(new Date('2026-01-14T14:30:00Z'), FROM)).toBe('in 30 minutes')
+  })
+
+  it('formats hours', () => {
+    expect(formatRelativeTime(new Date('2026-01-14T15:00:00Z'), FROM)).toBe('in 1 hour')
+    expect(formatRelativeTime(new Date('2026-01-14T16:00:00Z'), FROM)).toBe('in 2 hours')
+  })
+
+  it('formats days', () => {
+    expect(formatRelativeTime(new Date('2026-01-15T14:00:00Z'), FROM)).toBe('in 1 day')
+    expect(formatRelativeTime(new Date('2026-01-17T14:00:00Z'), FROM)).toBe('in 3 days')
   })
 })
