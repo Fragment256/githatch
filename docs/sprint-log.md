@@ -86,3 +86,11 @@ Agent-maintained. One entry per daily sprint run.
 - Rationale: CI broken on main is the top priority before PR review or feature work; the root cause was a trivial markdown formatting difference (trailing whitespace / wrap differences) introduced by the 2026-05-19 planning sprint. PR #19 (next-run display) remains open awaiting review — will be handled next sprint.
 - PR: n/a
 - ROADMAP updated: no
+
+## 2026-05-22
+
+- Action: ci-fix
+- Summary: Fixed "Deploy to GitHub Pages" failure on main (commit 4d52c6b) — `pnpm store path` (called by `setup-node@v4 cache: pnpm`) errored with "packages field missing or empty" because the previous sprint added `pnpm-workspace.yaml` with only `allowBuilds: esbuild: true` and no `packages:` field; added `packages: ['.']` for this single-package repo.
+- Rationale: CI broken on main is mandatory first priority; root cause was a one-line omission in pnpm-workspace.yaml introduced by the pnpm 11 build-script approval step. All 192 tests still pass locally.
+- PR: n/a
+- ROADMAP updated: no
