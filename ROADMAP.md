@@ -6,7 +6,7 @@ Agent instructions: work top-to-bottom in Backlog. Move item to In Progress when
 
 ## In Progress
 
-_(none)_
+- [ ] **First-run onboarding checklist** — branch: claude/sprint-2026-05-23, PR #20, started: 2026-05-23
 
 ---
 
@@ -14,7 +14,6 @@ _(none)_
 
 Priority order. Top item is highest priority.
 
-- [ ] **First-run onboarding checklist** — 3-step getting-started checklist (repo ✓ / token / first task) shown when a repo has no tasks or no `CLAUDE_CODE_OAUTH_TOKEN` secret. Spec: `docs/specs/2026-05-19-onboarding-checklist.md` (high, user-facing)
 - [ ] **Workflow YAML preview & confirm before commit** — preview/diff step in TaskForm before `upsertWorkflowFile`; nothing committed until the user confirms. Spec: `docs/specs/2026-05-19-yaml-preview-before-commit.md` (high, user-facing / auditability)
 - [ ] **Starter template library for real use cases** — add Weekly Status Digest, Stale Issue Triage, Dependency Update Digest, Docs Freshness Check templates; support inline `config` templates. Spec: `docs/specs/2026-05-19-starter-template-library.md` (medium, user-facing)
 - [ ] **Dark mode** — v0 nice-to-have; theme toggle over the monochrome system, persisted in sessionStorage. No spec yet (low, user-facing). Spec before implementing.
