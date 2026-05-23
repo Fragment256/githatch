@@ -94,3 +94,11 @@ Agent-maintained. One entry per daily sprint run.
 - Rationale: CI broken on main is mandatory first priority; root cause was a one-line omission in pnpm-workspace.yaml introduced by the pnpm 11 build-script approval step. All 192 tests still pass locally.
 - PR: n/a
 - ROADMAP updated: no
+
+## 2026-05-23
+
+- Action: roadmap
+- Summary: Implemented first-run onboarding checklist (spec: `docs/specs/2026-05-19-onboarding-checklist.md`) — `GettingStarted` component with 3-step checklist (repo selected / token configured / first task), secret detection via new `listRepoSecrets` API helper, per-repo dismiss in sessionStorage; 208 tests passing (13 new), lint/format/type-check clean. PR #20 raised.
+- Rationale: Top ROADMAP backlog item and directly serves the project's stated definition of "good" — a non-technical user can now create a working agent in under 2 minutes without missing the mandatory CLAUDE_CODE_OAUTH_TOKEN step. Chose over YAML preview (also high priority but more complex) because the onboarding gap causes silent first-run failures, a worse UX outcome than a missing preview step.
+- PR: #20
+- ROADMAP updated: yes
