@@ -169,6 +169,20 @@ export async function fetchRepoAgentConfig(params: {
   return { hasClaude, hasSettings, skills, agents, hasAgentsMd, hasCodexConfig, hasCodexHooks }
 }
 
+export async function listRepoSecrets(params: {
+  token: string
+  owner: string
+  repo: string
+}): Promise<string[]> {
+  const { token, owner, repo } = params
+  const res = await fetch(`${API}/repos/${owner}/${repo}/actions/secrets`, {
+    headers: authHeaders(token),
+  })
+  if (!res.ok) throw new Error(`Failed to list secrets: ${res.status}`)
+  const data = (await res.json()) as { secrets: Array<{ name: string }> }
+  return data.secrets.map((s) => s.name)
+}
+
 export async function listPushableRepos(token: string): Promise<GitHubRepo[]> {
   const all: GitHubRepo[] = []
   let url: string | null = `${API}/user/repos?per_page=100&sort=pushed`

@@ -18,7 +18,8 @@ import { ErrorBoundary } from '@/components/ErrorBoundary'
 const SecretsView = lazy(() =>
   import('@/components/SecretsView').then((m) => ({ default: m.SecretsView })),
 )
-import { upsertWorkflowFile, fetchFileContent } from '@/lib/github'
+import { upsertWorkflowFile, fetchFileContent, listRepoSecrets } from '@/lib/github'
+import { GettingStarted, type SecretStatus } from '@/components/GettingStarted'
 import { slugify, taskConfigFromYaml, type TaskConfig } from '@/lib/yamlGenerator'
 import { TemplatePicker } from '@/components/TemplatePicker'
 import { templateToConfig, type Template } from '@/lib/templates'
@@ -36,6 +37,8 @@ export default function App() {
   const [editingConfig, setEditingConfig] = useState<TaskConfig | null>(null)
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null)
 
+  const [secretStatus, setSecretStatus] = useState<SecretStatus>('loading')
+
   const [owner, repo] = activeRepo ? activeRepo.full_name.split('/') : ['', '']
   const defaultBranch = activeRepo?.default_branch ?? 'main'
   const {
@@ -51,6 +54,16 @@ export default function App() {
       loadTasks()
     }
   }, [activeRepo, token, loadTasks])
+
+  useEffect(() => {
+    if (!token || !owner || !repo) return
+    setSecretStatus('loading')
+    listRepoSecrets({ token, owner, repo })
+      .then((names) =>
+        setSecretStatus(names.includes('CLAUDE_CODE_OAUTH_TOKEN') ? 'present' : 'absent'),
+      )
+      .catch(() => setSecretStatus('unknown'))
+  }, [token, owner, repo])
 
   async function handleEditTask(task: GithatchTask) {
     if (!token) return
@@ -235,6 +248,17 @@ export default function App() {
                 )}
               </div>
             </div>
+
+            {view === 'tasks' && activeRepo && (
+              <GettingStarted
+                repoFullName={activeRepo.full_name}
+                repoName={activeRepo.name}
+                secretStatus={secretStatus}
+                hasTasks={tasks.length > 0}
+                onSetupToken={() => setView('token-setup')}
+                onNewTask={() => setView('new-task')}
+              />
+            )}
 
             {view === 'tasks' && (
               <ErrorBoundary>
