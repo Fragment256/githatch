@@ -102,3 +102,11 @@ Agent-maintained. One entry per daily sprint run.
 - Rationale: Top ROADMAP backlog item and directly serves the project's stated definition of "good" — a non-technical user can now create a working agent in under 2 minutes without missing the mandatory CLAUDE_CODE_OAUTH_TOKEN step. Chose over YAML preview (also high priority but more complex) because the onboarding gap causes silent first-run failures, a worse UX outcome than a missing preview step.
 - PR: #20
 - ROADMAP updated: yes
+
+## 2026-05-24
+
+- Action: pr-merged
+- Summary: Resolved merge conflict in PR #20 (unrelated histories due to main squash-reset) by rebasing the feature onto main, re-running 208 tests (all green), then merging with squash.
+- Rationale: PR #20 contained the highest-priority roadmap item (first-run onboarding checklist) and was feature-complete with passing CI — the only blocker was the history conflict, which was a mechanics fix not a code change.
+- PR: #20
+- ROADMAP updated: yes
