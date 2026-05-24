@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import {
   listPushableRepos,
+  listRepoSecrets,
   upsertWorkflowFile,
   deleteWorkflowFile,
   type GitHubRepo,
@@ -178,5 +179,47 @@ describe('deleteWorkflowFile', () => {
       .mockResolvedValueOnce({ ok: false, status: 403 })
     vi.stubGlobal('fetch', fetchMock)
     await expect(deleteWorkflowFile(params)).rejects.toThrow()
+  })
+})
+
+describe('listRepoSecrets', () => {
+  beforeEach(() => vi.restoreAllMocks())
+
+  it('returns array of secret names on success', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            total_count: 2,
+            secrets: [
+              { name: 'GH_TOKEN', created_at: '', updated_at: '' },
+              { name: 'CLAUDE_CODE_OAUTH_TOKEN', created_at: '', updated_at: '' },
+            ],
+          }),
+      }),
+    )
+    const names = await listRepoSecrets({ token: 'gho_test', owner: 'alice', repo: 'my-repo' })
+    expect(names).toEqual(['GH_TOKEN', 'CLAUDE_CODE_OAUTH_TOKEN'])
+  })
+
+  it('returns empty array when no secrets exist', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ total_count: 0, secrets: [] }),
+      }),
+    )
+    const names = await listRepoSecrets({ token: 'gho_test', owner: 'alice', repo: 'my-repo' })
+    expect(names).toEqual([])
+  })
+
+  it('throws on non-ok response', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 403 }))
+    await expect(
+      listRepoSecrets({ token: 'gho_test', owner: 'alice', repo: 'my-repo' }),
+    ).rejects.toThrow()
   })
 })
