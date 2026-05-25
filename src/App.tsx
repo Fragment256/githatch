@@ -35,6 +35,7 @@ export default function App() {
   const [saveError, setSaveError] = useState<string | null>(null)
   const [editingTask, setEditingTask] = useState<GithatchTask | null>(null)
   const [editingConfig, setEditingConfig] = useState<TaskConfig | null>(null)
+  const [editingOriginalYaml, setEditingOriginalYaml] = useState<string | null>(null)
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null)
 
   const [secretStatus, setSecretStatus] = useState<SecretStatus>('loading')
@@ -72,6 +73,7 @@ export default function App() {
       const config = taskConfigFromYaml(task.displayName, task.schedule || undefined, yaml)
       setEditingTask(task)
       setEditingConfig(config)
+      setEditingOriginalYaml(yaml)
       setSaveError(null)
       setView('edit-task')
     } catch (err) {
@@ -369,6 +371,7 @@ export default function App() {
                 setView('tasks')
                 setEditingTask(null)
                 setEditingConfig(null)
+                setEditingOriginalYaml(null)
               }}
               className="mb-4 font-mono text-xs tracking-widest text-gray-500 uppercase hover:text-black"
             >
@@ -384,6 +387,7 @@ export default function App() {
                 onSubmit={handleEditFormSubmit}
                 loading={saving}
                 initialConfig={editingConfig}
+                originalYaml={editingOriginalYaml ?? undefined}
               />
             </ErrorBoundary>
           </div>
