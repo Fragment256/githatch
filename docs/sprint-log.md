@@ -110,3 +110,11 @@ Agent-maintained. One entry per daily sprint run.
 - Rationale: PR #20 contained the highest-priority roadmap item (first-run onboarding checklist) and was feature-complete with passing CI — the only blocker was the history conflict, which was a mechanics fix not a code change.
 - PR: #20
 - ROADMAP updated: yes
+
+## 2026-05-25
+
+- Action: roadmap
+- Summary: Implemented YAML preview & confirm before commit (spec: `docs/specs/2026-05-19-yaml-preview-before-commit.md`) — `TaskForm` now shows the exact YAML bytes to be committed with a line-level LCS diff for edits; nothing is committed until "Commit to repo" is clicked; 215 tests passing (8 new), all checks clean. PR #21 raised.
+- Rationale: Top ROADMAP backlog item; directly addresses the project's "thin and auditable" core ethos — previously the most consequential action (committing a workflow that runs in the user's CI with their secrets) happened with zero visibility.
+- PR: #21
+- ROADMAP updated: yes

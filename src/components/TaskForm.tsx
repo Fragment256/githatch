@@ -8,6 +8,7 @@ import {
   PROVIDER_MODELS,
 } from '@/lib/yamlGenerator'
 import { describeCron } from '@/lib/cronLabel'
+import { computeLineDiff } from '@/lib/utils'
 
 export interface TaskFormValues {
   name: string
@@ -25,6 +26,7 @@ interface Props {
   onSubmit: (yaml: string, slug: string, config: TaskConfig) => void
   loading?: boolean
   initialConfig?: TaskConfig
+  originalYaml?: string
 }
 
 const SCHEDULE_PRESETS = [
@@ -97,12 +99,20 @@ function buildOutputDestination(values: TaskFormValues): OutputDestination {
   return { type: 'new_issue' }
 }
 
-export function TaskForm({ onSubmit, loading = false, initialConfig }: Props) {
+interface PendingSubmit {
+  yaml: string
+  slug: string
+  config: TaskConfig
+}
+
+export function TaskForm({ onSubmit, loading = false, initialConfig, originalYaml }: Props) {
   const isEditing = !!initialConfig
   const [values, setValues] = useState<TaskFormValues>(() =>
     initialConfig ? configToFormValues(initialConfig) : DEFAULT_VALUES,
   )
   const [error, setError] = useState<string | null>(null)
+  const [viewState, setViewState] = useState<'form' | 'preview'>('form')
+  const [pending, setPending] = useState<PendingSubmit | null>(null)
 
   const set = <K extends keyof TaskFormValues>(key: K, value: TaskFormValues[K]) =>
     setValues((v) => ({ ...v, [key]: value }))
@@ -135,7 +145,87 @@ export function TaskForm({ onSubmit, loading = false, initialConfig }: Props) {
 
     const yaml = generateWorkflowYaml(config)
     const slug = slugify(config.name)
-    onSubmit(yaml, slug, config)
+    setPending({ yaml, slug, config })
+    setViewState('preview')
+  }
+
+  const handleConfirmCommit = () => {
+    if (pending) onSubmit(pending.yaml, pending.slug, pending.config)
+  }
+
+  const handleBackToEdit = () => {
+    setViewState('form')
+  }
+
+  if (viewState === 'preview' && pending) {
+    const diff = originalYaml ? computeLineDiff(originalYaml, pending.yaml) : null
+    const hasDiff = diff?.some((l) => l.type !== ' ')
+
+    return (
+      <div className="flex w-full max-w-lg flex-col gap-5">
+        <h2 className="font-display text-2xl font-bold tracking-tight">Review YAML</h2>
+
+        {diff && hasDiff && (
+          <div>
+            <p className="mb-1 font-mono text-xs tracking-widest text-black uppercase">Changes</p>
+            <div
+              data-testid="yaml-diff"
+              className="max-h-48 overflow-auto border-2 border-black bg-white p-3 font-mono text-xs leading-relaxed"
+            >
+              {diff.map((l, idx) => (
+                <div
+                  key={idx}
+                  className={
+                    l.type === '+'
+                      ? 'text-black'
+                      : l.type === '-'
+                        ? 'text-black/40 line-through'
+                        : 'text-black/50'
+                  }
+                >
+                  {l.type}
+                  {l.line}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {diff && !hasDiff && (
+          <p className="font-mono text-xs text-black/50">No changes from current file.</p>
+        )}
+
+        <div>
+          <p className="mb-1 font-mono text-xs tracking-widest text-black uppercase">
+            YAML to be committed
+          </p>
+          <pre
+            data-testid="yaml-preview"
+            className="max-h-80 overflow-auto border-2 border-black bg-white p-3 font-mono text-xs leading-relaxed whitespace-pre"
+          >
+            {pending.yaml}
+          </pre>
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={handleBackToEdit}
+            className="border-2 border-black px-4 py-3 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white"
+          >
+            ← Edit
+          </button>
+          <button
+            type="button"
+            onClick={handleConfirmCommit}
+            disabled={loading}
+            className="flex-1 border-2 border-black bg-black px-4 py-3 font-mono text-xs tracking-widest text-white uppercase transition-colors duration-100 hover:bg-white hover:text-black disabled:opacity-50"
+          >
+            {loading ? 'Committing…' : 'Commit to repo'}
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
