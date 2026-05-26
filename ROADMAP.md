@@ -6,7 +6,7 @@ Agent instructions: work top-to-bottom in Backlog. Move item to In Progress when
 
 ## In Progress
 
-- [ ] **Workflow YAML preview & confirm before commit** — branch `claude/sprint-2026-05-25`, PR #21, started 2026-05-25
+_(none)_
 
 ---
 
@@ -57,3 +57,4 @@ Items deliberately on hold — not prioritised but not abandoned.
 | cronLabel lib: human-readable schedule in task list + form | #18 | 2026-05-16 |
 | Next-run display in task list ("Next: in X hours/days")    | #19 | 2026-05-21 |
 | First-run onboarding checklist (3-step, token detection)   | #20 | 2026-05-24 |
+| Workflow YAML preview & confirm before commit              | #21 | 2026-05-26 |

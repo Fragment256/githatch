@@ -118,3 +118,11 @@ Agent-maintained. One entry per daily sprint run.
 - Rationale: Top ROADMAP backlog item; directly addresses the project's "thin and auditable" core ethos — previously the most consequential action (committing a workflow that runs in the user's CI with their secrets) happened with zero visibility.
 - PR: #21
 - ROADMAP updated: yes
+
+## 2026-05-26
+
+- Action: pr-merged
+- Summary: Reviewed and merged PR #21 (YAML preview & confirm before commit) — two-phase submit flow with LCS diff rendering; 8 new tests; CI green.
+- Rationale: PR was the highest-priority backlog item, feature-complete with passing CI; merging it was the highest-value action over starting a new roadmap item.
+- PR: #21
+- ROADMAP updated: yes
