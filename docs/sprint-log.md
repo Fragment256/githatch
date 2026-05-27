@@ -126,3 +126,11 @@ Agent-maintained. One entry per daily sprint run.
 - Rationale: PR was the highest-priority backlog item, feature-complete with passing CI; merging it was the highest-value action over starting a new roadmap item.
 - PR: #21
 - ROADMAP updated: yes
+
+## 2026-05-27
+
+- Action: roadmap
+- Summary: Implemented starter template library — extended Template type to support inline config, added 4 new general-purpose templates (Weekly Status Digest, Stale Issue Triage, Dependency Update Digest, Docs Freshness Check), 12 new tests, all 227 tests pass.
+- Rationale: Top backlog item with a complete spec; directly addresses the zero-friction 2-minute onboarding goal by giving new users real-world starter templates instead of a blank form.
+- PR: #22
+- ROADMAP updated: yes
