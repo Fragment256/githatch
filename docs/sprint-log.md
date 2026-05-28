@@ -134,3 +134,11 @@ Agent-maintained. One entry per daily sprint run.
 - Rationale: Top backlog item with a complete spec; directly addresses the zero-friction 2-minute onboarding goal by giving new users real-world starter templates instead of a blank form.
 - PR: #22
 - ROADMAP updated: yes
+
+## 2026-05-28
+
+- Action: pr-merged
+- Summary: Reviewed and merged PR #22 (starter template library) — discriminated union Template type, 4 new practical templates with appropriate schedules and output destinations, 12 tests, CI green; ROADMAP moved to Done.
+- Rationale: PR #22 was the only open PR (In Progress on ROADMAP), CI was green across both check runs, code was correct and well-tested — merging ships real-use-case templates to users immediately.
+- PR: #22
+- ROADMAP updated: yes
