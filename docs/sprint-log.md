@@ -142,3 +142,11 @@ Agent-maintained. One entry per daily sprint run.
 - Rationale: PR #22 was the only open PR (In Progress on ROADMAP), CI was green across both check runs, code was correct and well-tested — merging ships real-use-case templates to users immediately.
 - PR: #22
 - ROADMAP updated: yes
+
+## 2026-05-29
+
+- Action: roadmap
+- Summary: Implemented dark mode — Tailwind v4 CSS variable inversion (`--color-black ↔ --color-white` in `.dark`) flips the entire monochrome palette globally; header gets a Dark / Light toggle button; `Sparkline` SVG updated to `currentColor` + `--sparkline-empty` CSS token; `useTheme` hook with 6 tests; 233 total tests passing. PR #23 raised, spec written at `docs/specs/2026-05-29-dark-mode.md`.
+- Rationale: Top ROADMAP backlog item (CI green, no open PRs or issues). Dark mode is user-facing and the monochrome design makes it an unusually elegant CSS-only implementation with zero per-component changes.
+- PR: #23
+- ROADMAP updated: yes
