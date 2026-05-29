@@ -3,6 +3,7 @@ import { GITHUB_CLIENT_ID } from '@/lib/config'
 import { useAuth } from '@/hooks/useAuth'
 import { useRepo } from '@/hooks/useRepo'
 import { useTasks } from '@/hooks/useTasks'
+import { useTheme } from '@/hooks/useTheme'
 import { LoginButton } from '@/components/LoginButton'
 import { UserMenu } from '@/components/UserMenu'
 import { Landing } from '@/components/Landing'
@@ -28,6 +29,7 @@ import type { GithatchTask } from '@/lib/workflows'
 type View = 'tasks' | 'tools' | 'activity' | 'token-setup' | 'new-task' | 'edit-task' | 'about'
 
 export default function App() {
+  const { theme, toggleTheme } = useTheme()
   const { user, loading, error, login, logout, token } = useAuth()
   const { repos, reposLoading, reposError, activeRepo, setActiveRepo } = useRepo(token)
   const [view, setView] = useState<View>('tasks')
@@ -143,6 +145,13 @@ export default function App() {
             )}
           </div>
           <div className="flex shrink-0 items-center gap-3">
+            <button
+              onClick={toggleTheme}
+              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              className="px-2 font-mono text-xs tracking-widest text-black/40 uppercase hover:text-black"
+            >
+              {theme === 'dark' ? 'Light' : 'Dark'}
+            </button>
             <button
               onClick={() => setView('about')}
               className="px-2 font-mono text-xs tracking-widest text-black/40 uppercase hover:text-black"
