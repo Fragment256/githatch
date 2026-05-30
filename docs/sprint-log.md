@@ -143,6 +143,14 @@ Agent-maintained. One entry per daily sprint run.
 - PR: #22
 - ROADMAP updated: yes
 
+## 2026-05-30
+
+- Action: pr-merged
+- Summary: Reviewed and merged PR #23 (dark mode via CSS variable inversion) — `useTheme` hook, Tailwind v4 class-based dark variant, symmetric gray scale inversion in `.dark`, sparkline SVG updated to `currentColor`; 6 tests, CI green; ROADMAP moved to Done.
+- Rationale: PR #23 was the only open PR with green CI and no review — merging it immediately ships dark mode to users rather than leaving it awaiting next sprint.
+- PR: #23
+- ROADMAP updated: yes
+
 ## 2026-05-29
 
 - Action: roadmap

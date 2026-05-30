@@ -6,7 +6,7 @@ Agent instructions: work top-to-bottom in Backlog. Move item to In Progress when
 
 ## In Progress
 
-- [ ] **Dark mode** — branch: `claude/sprint-2026-05-29`, started: 2026-05-29
+_(none)_
 
 ---
 
@@ -57,3 +57,4 @@ Items deliberately on hold — not prioritised but not abandoned.
 | First-run onboarding checklist (3-step, token detection)   | #20 | 2026-05-24 |
 | Workflow YAML preview & confirm before commit              | #21 | 2026-05-26 |
 | Starter template library (4 real-use-case templates)       | #22 | 2026-05-28 |
+| Dark mode (CSS variable inversion, theme toggle)           | #23 | 2026-05-30 |
