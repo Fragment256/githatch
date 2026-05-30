@@ -22,7 +22,7 @@ function buildDayBuckets(runs: WorkflowRun[], days: number): number[] {
   return buckets
 }
 
-function Sparkline({ buckets, color = '#000' }: { buckets: number[]; color?: string }) {
+function Sparkline({ buckets }: { buckets: number[] }) {
   const max = Math.max(...buckets, 1)
   const w = 6
   const gap = 2
@@ -40,7 +40,7 @@ function Sparkline({ buckets, color = '#000' }: { buckets: number[]; color?: str
             y={h - barH}
             width={w}
             height={barH}
-            fill={v === 0 ? '#e5e7eb' : color}
+            fill={v === 0 ? 'var(--sparkline-empty)' : 'currentColor'}
             rx={1}
           />
         )

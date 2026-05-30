@@ -6,7 +6,7 @@ Agent instructions: work top-to-bottom in Backlog. Move item to In Progress when
 
 ## In Progress
 
-_(none)_
+- [ ] **Dark mode** — branch: `claude/sprint-2026-05-29`, started: 2026-05-29
 
 ---
 
@@ -14,7 +14,6 @@ _(none)_
 
 Priority order. Top item is highest priority.
 
-- [ ] **Dark mode** — v0 nice-to-have; theme toggle over the monochrome system, persisted in sessionStorage. No spec yet (low, user-facing). Spec before implementing.
 - [ ] **Refresh README file map** — file map omits `ActivityPanel`, `ErrorBoundary`, `SecretsView`, `TemplatePicker`, `cronLabel.ts`, `templates.ts`. Hygiene; no spec needed (low).
 
 ---
