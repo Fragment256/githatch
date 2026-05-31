@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-05-31
+
+- Action: roadmap
+- Summary: Updated README file map to add 8 files added since initial scaffold: ActivityPanel, ErrorBoundary, GettingStarted, SecretsView, TemplatePicker, cronLabel.ts, templates.ts, useTheme.ts.
+- Rationale: Only Backlog item; README accuracy is hygiene that aids every contributor — chosen over discovery work as nothing else was actionable.
+- PR: #24
+- ROADMAP updated: yes
+
+---
+
 ## 2026-05-14
 
 - Action: pr-review

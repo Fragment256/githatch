@@ -14,7 +14,7 @@ _(none)_
 
 Priority order. Top item is highest priority.
 
-- [ ] **Refresh README file map** — file map omits `ActivityPanel`, `ErrorBoundary`, `SecretsView`, `TemplatePicker`, `cronLabel.ts`, `templates.ts`. Hygiene; no spec needed (low).
+_(empty)_
 
 ---
 
@@ -58,3 +58,4 @@ Items deliberately on hold — not prioritised but not abandoned.
 | Workflow YAML preview & confirm before commit              | #21 | 2026-05-26 |
 | Starter template library (4 real-use-case templates)       | #22 | 2026-05-28 |
 | Dark mode (CSS variable inversion, theme toggle)           | #23 | 2026-05-30 |
+| Refresh README file map (add 8 missing files)              | #24 | 2026-05-31 |
