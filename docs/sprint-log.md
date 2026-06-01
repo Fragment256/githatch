@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-06-01
+
+- Action: pr-merged
+- Summary: Reviewed and merged PR #24 (README file map refresh) — verified all 8 newly documented files exist with accurate descriptions; CI green, clean merge.
+- Rationale: Only open PR; docs accuracy is hygiene that pays off for every future contributor — merging it immediately over starting new roadmap discovery work.
+- PR: #24
+- ROADMAP updated: no (already updated in PR)
+
+---
+
 ## 2026-05-31
 
 - Action: roadmap
