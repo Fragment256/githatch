@@ -59,14 +59,19 @@ Githatch takes a different bet: GitHub Actions already solves scheduling, secret
 ```
 src/
   components/
-    AgentConfig.tsx       — collapsible panel: reads .claude/ from active repo
     AboutPage.tsx         — static about page
+    ActivityPanel.tsx     — run history sparklines, recent commits and PRs for active repo
+    AgentConfig.tsx       — collapsible panel: reads .claude/ from active repo
     ConfirmDialog.tsx     — native <dialog> modal (used for destructive actions)
+    ErrorBoundary.tsx     — React error boundary wrapping all major view sections
+    GettingStarted.tsx    — first-run onboarding checklist (token detection, 3 steps)
     Landing.tsx           — logged-out hero + how-it-works + callouts
     LoginButton.tsx       — GitHub OAuth trigger
     RepoPicker.tsx        — repo selection list
+    SecretsView.tsx       — Actions secrets status panel (CLAUDE_CODE_OAUTH_TOKEN + others)
     TaskForm.tsx          — create/edit agent task form
     TaskList.tsx          — task cards with run/history/delete
+    TemplatePicker.tsx    — template selector used inside TaskForm
     TokenSetup.tsx        — CLAUDE_CODE_OAUTH_TOKEN setup helper
     ToolsPanel.tsx        — pre-built tool templates
     UserMenu.tsx          — avatar + logout
@@ -74,11 +79,14 @@ src/
     useAuth.ts            — GitHub OAuth PKCE flow, token in sessionStorage
     useRepo.ts            — active repo state, persisted in sessionStorage
     useTasks.ts           — loads githatch-*.yml from .github/workflows/
+    useTheme.ts           — dark/light theme toggle, persisted in sessionStorage
   lib/
     auth.ts               — OAuth helpers
     config.ts             — VITE_GITHUB_CLIENT_ID env var
+    cronLabel.ts          — human-readable cron schedule labels + next-run computation
     github.ts             — GitHub Contents / Actions / Repos API wrappers
     secrets.ts            — libsodium encrypt/upload for Actions secrets
+    templates.ts          — pre-built task templates (senior engineer, sprint planning, etc.)
     tools.ts              — pre-built tool definitions
     utils.ts              — shared utilities
     workflows.ts          — workflow run listing and dispatch
