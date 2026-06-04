@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-06-04
+
+- Action: roadmap (bug fix + spec)
+- Summary: Fixed retired `claude-opus-4-7` model ID → `claude-opus-4-8` in PROVIDER_MODELS (would have generated broken YAML for any user selecting Opus); added "Daily 8am UTC (weekdays)" schedule preset and UTC suffix to all time-based presets to prevent timezone confusion; wrote new spec for schedule local-time preview + cron validator; refilled ROADMAP backlog. 235 tests passing (up from 233).
+- Rationale: After three consecutive nothing-actionable runs, identified two concrete user-facing bugs: (1) retired model ID in the dropdown generates broken workflow YAML, (2) no weekday-only preset forces users to know cron syntax for the most common use case; both are higher-priority than any test/docs work. Spec written to re-seed the pipeline.
+- PR: #25
+- ROADMAP updated: yes
+
+---
+
 ## 2026-06-03
 
 - Action: nothing-actionable
