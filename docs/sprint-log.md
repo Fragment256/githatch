@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-06-05
+
+- Action: pr-merged
+- Summary: Merged PR #25 — fixes retired Opus 4.7 model ID, adds weekday schedule preset, clarifies UTC labels on all schedule presets.
+- Rationale: PR was green, mergeable, no review required (self-authored bot PR); merging unblocks users who would have gotten broken workflow YAML from selecting the retired model.
+- PR: #25
+- ROADMAP updated: no
+
+---
+
 ## 2026-06-04
 
 - Action: roadmap (bug fix + spec)
