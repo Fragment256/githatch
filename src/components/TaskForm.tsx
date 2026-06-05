@@ -31,8 +31,9 @@ interface Props {
 
 const SCHEDULE_PRESETS = [
   { label: 'Manual only (no schedule)', value: '' },
-  { label: 'Every Monday 9am', value: '0 9 * * 1' },
-  { label: 'Daily 8am', value: '0 8 * * *' },
+  { label: 'Daily 8am UTC (weekdays)', value: '0 8 * * 1-5' },
+  { label: 'Daily 8am UTC', value: '0 8 * * *' },
+  { label: 'Every Monday 9am UTC', value: '0 9 * * 1' },
   { label: 'Every 6 hours', value: '0 */6 * * *' },
   { label: 'Custom cron…', value: 'custom' },
 ] as const

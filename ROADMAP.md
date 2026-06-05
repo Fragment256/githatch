@@ -14,7 +14,7 @@ _(none)_
 
 Priority order. Top item is highest priority.
 
-_(empty)_
+- [ ] **Schedule local-time preview in TaskForm** — show next 3 run times in both UTC and browser local time when a schedule is selected; inline validation for custom cron expressions. Spec: `docs/specs/2026-06-04-schedule-local-preview.md`
 
 ---
 

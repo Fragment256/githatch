@@ -6,6 +6,7 @@ import {
   parseProvider,
   parsePromptFromYaml,
   taskConfigFromYaml,
+  PROVIDER_MODELS,
   type TaskConfig,
 } from './yamlGenerator'
 
@@ -436,5 +437,26 @@ describe('taskConfigFromYaml', () => {
     const parsed = taskConfigFromYaml(original.name, undefined, yaml)
 
     expect(parsed.outputDestination).toEqual({ type: 'issue_comment', issueNumber: 99 })
+  })
+})
+
+describe('PROVIDER_MODELS', () => {
+  it('includes claude-opus-4-8 (not the retired 4-7) for claude_oauth', () => {
+    const values = PROVIDER_MODELS.claude_oauth.map((m) => m.value)
+    expect(values).toContain('claude-opus-4-8')
+    expect(values).not.toContain('claude-opus-4-7')
+  })
+})
+
+describe('generateWorkflowYaml — weekday schedule', () => {
+  it('accepts weekday-only 8am preset (0 8 * * 1-5)', () => {
+    const yaml = generateWorkflowYaml({
+      name: 'x',
+      schedule: '0 8 * * 1-5',
+      provider: 'claude_oauth',
+      prompt: 'y',
+      outputDestination: { type: 'new_issue' },
+    })
+    expect(yaml).toContain("'0 8 * * 1-5'")
   })
 })
