@@ -6,7 +6,7 @@ Agent instructions: work top-to-bottom in Backlog. Move item to In Progress when
 
 ## In Progress
 
-- [ ] **Schedule local-time preview in TaskForm** — branch: `claude/sprint-2026-06-06`, started: 2026-06-06
+_(none)_
 
 ---
 
@@ -59,3 +59,4 @@ Items deliberately on hold — not prioritised but not abandoned.
 | Starter template library (4 real-use-case templates)       | #22 | 2026-05-28 |
 | Dark mode (CSS variable inversion, theme toggle)           | #23 | 2026-05-30 |
 | Refresh README file map (add 8 missing files)              | #24 | 2026-05-31 |
+| Schedule local-time preview in TaskForm                    | #26 | 2026-06-07 |

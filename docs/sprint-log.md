@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-06-07
+
+- Action: pr-merged
+- Summary: Reviewed and merged PR #26 (schedule local-time preview in TaskForm) — `nextCronRuns`/`isValidCron` added to cronLabel, `SchedulePreview` component shows next 3 UTC + local run times, invalid custom cron blocks submit; CI green, implementation correct.
+- Rationale: PR was the only open item, CI green, code matched spec exactly — merging directly ships the timezone-confusion fix to users.
+- PR: #26
+- ROADMAP updated: yes
+
 ## 2026-06-06
 
 - Action: roadmap
