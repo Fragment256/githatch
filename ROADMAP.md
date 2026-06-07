@@ -6,7 +6,7 @@ Agent instructions: work top-to-bottom in Backlog. Move item to In Progress when
 
 ## In Progress
 
-_(none)_
+- [ ] **Schedule local-time preview in TaskForm** — branch: `claude/sprint-2026-06-06`, started: 2026-06-06
 
 ---
 
@@ -14,7 +14,7 @@ _(none)_
 
 Priority order. Top item is highest priority.
 
-- [ ] **Schedule local-time preview in TaskForm** — show next 3 run times in both UTC and browser local time when a schedule is selected; inline validation for custom cron expressions. Spec: `docs/specs/2026-06-04-schedule-local-preview.md`
+_(empty)_
 
 ---
 

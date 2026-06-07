@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { describeCron, nextCronRun, formatRelativeTime } from './cronLabel'
+import {
+  describeCron,
+  nextCronRun,
+  formatRelativeTime,
+  nextCronRuns,
+  isValidCron,
+} from './cronLabel'
 
 describe('describeCron', () => {
   it('describes every-N-minutes patterns', () => {
@@ -110,6 +116,43 @@ describe('nextCronRun', () => {
     expect(nextCronRun('0 9 * * 1-5', new Date('2026-01-16T10:00:00Z'))).toEqual(
       new Date('2026-01-19T09:00:00Z'),
     )
+  })
+})
+
+describe('nextCronRuns', () => {
+  const FROM = new Date('2026-06-06T06:00:00Z')
+
+  it('returns count consecutive dates for a valid daily expression', () => {
+    const runs = nextCronRuns('0 8 * * *', 3, FROM)
+    expect(runs).toHaveLength(3)
+    expect(runs[0]).toEqual(new Date('2026-06-06T08:00:00Z'))
+    expect(runs[1]).toEqual(new Date('2026-06-07T08:00:00Z'))
+    expect(runs[2]).toEqual(new Date('2026-06-08T08:00:00Z'))
+    expect(runs.every((d) => d.getUTCHours() === 8 && d.getUTCMinutes() === 0)).toBe(true)
+  })
+
+  it('returns empty array for an invalid expression', () => {
+    expect(nextCronRuns('99 99 * * *', 3, FROM)).toEqual([])
+  })
+
+  it('returns fewer than count when expression runs out', () => {
+    expect(nextCronRuns('0 9 1 * *', 3, FROM)).toEqual([])
+  })
+})
+
+describe('isValidCron', () => {
+  it('returns true for valid expressions', () => {
+    expect(isValidCron('0 8 * * *')).toBe(true)
+    expect(isValidCron('*/15 * * * *')).toBe(true)
+    expect(isValidCron('0 */6 * * *')).toBe(true)
+    expect(isValidCron('0 9 * * 1-5')).toBe(true)
+    expect(isValidCron('0 9 * * 1')).toBe(true)
+  })
+
+  it('returns false for invalid expressions', () => {
+    expect(isValidCron('99 99 * * *')).toBe(false)
+    expect(isValidCron('not a cron')).toBe(false)
+    expect(isValidCron('0 9 1 * *')).toBe(false)
   })
 })
 

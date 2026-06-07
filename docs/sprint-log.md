@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-06-06
+
+- Action: roadmap
+- Summary: Implemented schedule local-time preview in TaskForm — added `nextCronRuns`/`isValidCron` to cronLabel, added `SchedulePreview` component showing next 3 UTC (and local) run times, inline "Invalid cron expression" error with submit disabled.
+- Rationale: Top backlog item with a ready spec; direct user-facing UX improvement preventing silent timezone confusion.
+- PR: #26
+- ROADMAP updated: yes
+
 ## 2026-06-05
 
 - Action: pr-merged

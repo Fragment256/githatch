@@ -180,6 +180,29 @@ describe('TaskForm', () => {
     expect(screen.getByText(/no changes from current file/i)).toBeInTheDocument()
   })
 
+  // Schedule preview
+  it('shows "Next runs" label when a preset schedule is selected', () => {
+    render(<TaskForm onSubmit={mockSubmit} />)
+    fireEvent.change(screen.getByLabelText(/schedule/i), { target: { value: '0 8 * * 1-5' } })
+    expect(screen.getByText(/next runs/i)).toBeInTheDocument()
+  })
+
+  it('shows "Invalid cron expression" for an invalid custom cron and disables submit', () => {
+    render(<TaskForm onSubmit={mockSubmit} />)
+    fireEvent.change(screen.getByLabelText(/schedule/i), { target: { value: 'custom' } })
+    fireEvent.change(screen.getByPlaceholderText(/e\.g\. 0 9/i), {
+      target: { value: '99 99 * * *' },
+    })
+    expect(screen.getByText(/invalid cron expression/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /create task/i })).toBeDisabled()
+  })
+
+  it('does not show schedule preview when schedule is manual only', () => {
+    render(<TaskForm onSubmit={mockSubmit} />)
+    expect(screen.queryByText(/next runs/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/invalid cron expression/i)).not.toBeInTheDocument()
+  })
+
   // Commit button disabled during loading in preview state
   it('disables commit button when loading in preview state', () => {
     render(<TaskForm onSubmit={mockSubmit} loading={false} />)

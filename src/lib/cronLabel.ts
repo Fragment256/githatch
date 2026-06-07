@@ -34,7 +34,8 @@ export function nextCronRun(expr: string, from: Date = new Date()): Date | null 
 
   const h = parseInt(hour, 10)
   const m = parseInt(minute, 10)
-  if (isNaN(h) || isNaN(m) || dom !== '*' || month !== '*') return null
+  if (isNaN(h) || isNaN(m) || h < 0 || h > 23 || m < 0 || m > 59 || dom !== '*' || month !== '*')
+    return null
 
   for (let d = 0; d <= 7; d++) {
     const c = new Date(from)
@@ -51,6 +52,22 @@ export function nextCronRun(expr: string, from: Date = new Date()): Date | null 
   }
 
   return null
+}
+
+export function nextCronRuns(expr: string, count: number, from: Date = new Date()): Date[] {
+  const results: Date[] = []
+  let cursor = from
+  for (let i = 0; i < count; i++) {
+    const next = nextCronRun(expr, cursor)
+    if (!next) break
+    results.push(next)
+    cursor = next
+  }
+  return results
+}
+
+export function isValidCron(expr: string): boolean {
+  return nextCronRun(expr, new Date(0)) !== null
 }
 
 export function formatRelativeTime(future: Date, from: Date = new Date()): string {

@@ -7,7 +7,7 @@ import {
   type Provider,
   PROVIDER_MODELS,
 } from '@/lib/yamlGenerator'
-import { describeCron } from '@/lib/cronLabel'
+import { describeCron, nextCronRuns, isValidCron } from '@/lib/cronLabel'
 import { computeLineDiff } from '@/lib/utils'
 
 export interface TaskFormValues {
@@ -100,6 +100,55 @@ function buildOutputDestination(values: TaskFormValues): OutputDestination {
   return { type: 'new_issue' }
 }
 
+function formatUTC(d: Date): string {
+  const yr = d.getUTCFullYear()
+  const mo = String(d.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(d.getUTCDate()).padStart(2, '0')
+  const hr = String(d.getUTCHours()).padStart(2, '0')
+  const min = String(d.getUTCMinutes()).padStart(2, '0')
+  return `${yr}-${mo}-${day} ${hr}:${min}`
+}
+
+function formatLocal(d: Date): string {
+  const parts = new Intl.DateTimeFormat(undefined, {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).formatToParts(d)
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '??'
+  return `${get('year')}-${get('month')}-${get('day')} ${get('hour')}:${get('minute')}`
+}
+
+function SchedulePreview({ expr }: { expr: string }) {
+  if (!expr) return null
+
+  if (!isValidCron(expr)) {
+    return <p className="mt-2 font-mono text-xs text-red-600">Invalid cron expression</p>
+  }
+
+  const runs = nextCronRuns(expr, 3)
+  const localTz = Intl.DateTimeFormat().resolvedOptions().timeZone
+  const showLocal = localTz !== 'UTC'
+
+  return (
+    <div className="mt-2 font-mono text-xs text-black/60">
+      <div className="mb-1 flex gap-6 font-semibold text-black/80">
+        <span className="w-36">Next runs (UTC)</span>
+        {showLocal && <span>{localTz}</span>}
+      </div>
+      {runs.map((d, i) => (
+        <div key={i} className="flex gap-6">
+          <span className="w-36">{formatUTC(d)}</span>
+          {showLocal && <span>{formatLocal(d)}</span>}
+        </div>
+      ))}
+    </div>
+  )
+}
+
 interface PendingSubmit {
   yaml: string
   slug: string
@@ -119,6 +168,8 @@ export function TaskForm({ onSubmit, loading = false, initialConfig, originalYam
     setValues((v) => ({ ...v, [key]: value }))
 
   const resolvedSchedule = values.schedule === 'custom' ? values.customCron.trim() : values.schedule
+  const customCronInvalid =
+    values.schedule === 'custom' && resolvedSchedule.length > 0 && !isValidCron(resolvedSchedule)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -287,11 +338,12 @@ export function TaskForm({ onSubmit, loading = false, initialConfig, originalYam
         {values.schedule && values.schedule !== 'custom' && (
           <p className="mt-1 font-mono text-xs text-black/40">cron: {values.schedule}</p>
         )}
-        {values.schedule === 'custom' && values.customCron.trim() && (
+        {values.schedule === 'custom' && values.customCron.trim() && !customCronInvalid && (
           <p className="mt-1 font-mono text-xs text-black/40">
             {describeCron(values.customCron.trim())}
           </p>
         )}
+        <SchedulePreview expr={resolvedSchedule} />
       </div>
 
       {/* Provider */}
@@ -420,7 +472,7 @@ export function TaskForm({ onSubmit, loading = false, initialConfig, originalYam
 
       <button
         type="submit"
-        disabled={loading}
+        disabled={loading || customCronInvalid}
         className="border-2 border-black bg-black px-4 py-3 font-mono text-xs tracking-widest text-white uppercase transition-colors duration-100 hover:bg-white hover:text-black disabled:opacity-50"
       >
         {loading
