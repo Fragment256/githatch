@@ -4,7 +4,6 @@ import { describeCron, nextCronRun, formatRelativeTime } from '@/lib/cronLabel'
 import {
   triggerWorkflow,
   getWorkflowRuns,
-  updateWorkflowSchedule,
   enableWorkflow,
   disableWorkflow,
   fetchRunOutput,
@@ -23,6 +22,18 @@ interface Props {
   error: string | null
   onRefresh: () => void
   onEdit: (task: GithatchTask) => void
+}
+
+function LastRunIndicator({ run }: { run: WorkflowRun | null }) {
+  if (!run) return null
+  if (run.status === 'completed' && run.conclusion === 'success') return null
+  const label =
+    run.status !== 'completed' ? 'Running' : run.conclusion === 'cancelled' ? 'Cancelled' : 'Failed'
+  return (
+    <span className="inline-flex items-center border border-black bg-black px-2 py-0.5 font-mono text-xs tracking-widest text-white uppercase">
+      {label}
+    </span>
+  )
 }
 
 function RunStatus({ run }: { run: WorkflowRun }) {
@@ -253,6 +264,15 @@ function TaskRow({
   const [toggling, setToggling] = useState(false)
   const [toggleError, setToggleError] = useState<string | null>(null)
   const [enabled, setEnabled] = useState(task.enabled)
+  const [lastRun, setLastRun] = useState<WorkflowRun | null>(null)
+
+  useEffect(() => {
+    if (!task.workflowId) return
+    getWorkflowRuns({ token, owner, repo, workflowId: task.workflowId, defaultBranch, perPage: 1 })
+      .then((runs) => setLastRun(runs[0] ?? null))
+      .catch(() => {})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [task.workflowId])
 
   const handleTrigger = async () => {
     if (!task.workflowId) return
@@ -307,14 +327,17 @@ function TaskRow({
     >
       <div className="flex flex-col gap-3">
         <div>
-          <p className={`font-semibold ${enabled ? 'text-black' : 'text-black/40'}`}>
-            {task.displayName}
-            {!enabled && (
-              <span className="ml-2 font-mono text-xs tracking-widest text-black/30 uppercase">
-                Paused
-              </span>
-            )}
-          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className={`font-semibold ${enabled ? 'text-black' : 'text-black/40'}`}>
+              {task.displayName}
+              {!enabled && (
+                <span className="ml-2 font-mono text-xs tracking-widest text-black/30 uppercase">
+                  Paused
+                </span>
+              )}
+            </p>
+            <LastRunIndicator run={lastRun} />
+          </div>
           {task.schedule && (
             <p className="mt-0.5 font-mono text-xs text-black/50">{describeCron(task.schedule)}</p>
           )}
@@ -415,75 +438,6 @@ function TaskRow({
   )
 }
 
-function ScheduledRow({
-  task,
-  token,
-  owner,
-  repo,
-  defaultBranch,
-  onRefresh,
-}: {
-  task: GithatchTask
-  token: string
-  owner: string
-  repo: string
-  defaultBranch: string
-  onRefresh: () => void
-}) {
-  const [showHistory, setShowHistory] = useState(false)
-  const [cancelling, setCancelling] = useState(false)
-  const [cancelError, setCancelError] = useState<string | null>(null)
-
-  const handleCancel = async () => {
-    setCancelling(true)
-    setCancelError(null)
-    try {
-      await updateWorkflowSchedule({ token, owner, repo, task, schedule: undefined })
-      onRefresh()
-    } catch (err) {
-      setCancelError(err instanceof Error ? err.message : 'Failed to cancel schedule')
-      setCancelling(false)
-    }
-  }
-
-  return (
-    <li className="flex flex-col gap-3 border border-black bg-white p-4">
-      <div>
-        <p className="font-semibold text-black">{task.displayName}</p>
-        {task.schedule && (
-          <p className="mt-0.5 font-mono text-xs text-black/50">{describeCron(task.schedule)}</p>
-        )}
-      </div>
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => setShowHistory((v) => !v)}
-          className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white"
-        >
-          {showHistory ? 'Hide history' : 'History'}
-        </button>
-        <button
-          onClick={handleCancel}
-          disabled={cancelling}
-          className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white disabled:opacity-50"
-        >
-          {cancelling ? 'Cancelling…' : 'Cancel'}
-        </button>
-      </div>
-      {cancelError && <p className="text-xs text-red-600">{cancelError}</p>}
-      {showHistory && (
-        <RunHistoryPanel
-          task={task}
-          token={token}
-          owner={owner}
-          repo={repo}
-          defaultBranch={defaultBranch}
-          onClose={() => setShowHistory(false)}
-        />
-      )}
-    </li>
-  )
-}
-
 export function TaskList({
   tasks,
   token,
@@ -521,58 +475,33 @@ export function TaskList({
     )
   }
 
-  const scheduled = tasks.filter((t) => t.schedule)
-
   return (
-    <div className="w-full space-y-8">
-      <div>
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-mono text-xs tracking-widest text-black uppercase">
-            Tasks ({tasks.length})
-          </h2>
-          <button
-            onClick={onRefresh}
-            className="font-mono text-xs tracking-widest text-gray-400 uppercase hover:text-black"
-          >
-            Refresh
-          </button>
-        </div>
-        <ul className="space-y-3">
-          {tasks.map((task) => (
-            <TaskRow
-              key={task.slug}
-              task={task}
-              token={token}
-              owner={owner}
-              repo={repo}
-              defaultBranch={defaultBranch}
-              onRefresh={onRefresh}
-              onEdit={onEdit}
-            />
-          ))}
-        </ul>
+    <div className="w-full">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="font-mono text-xs tracking-widest text-black uppercase">
+          Tasks ({tasks.length})
+        </h2>
+        <button
+          onClick={onRefresh}
+          className="font-mono text-xs tracking-widest text-gray-400 uppercase hover:text-black"
+        >
+          Refresh
+        </button>
       </div>
-
-      {scheduled.length > 0 && (
-        <div>
-          <h2 className="mb-4 font-mono text-xs tracking-widest text-black uppercase">
-            Scheduled ({scheduled.length})
-          </h2>
-          <ul className="space-y-2">
-            {scheduled.map((task) => (
-              <ScheduledRow
-                key={task.slug}
-                task={task}
-                token={token}
-                owner={owner}
-                repo={repo}
-                defaultBranch={defaultBranch}
-                onRefresh={onRefresh}
-              />
-            ))}
-          </ul>
-        </div>
-      )}
+      <ul className="space-y-3">
+        {tasks.map((task) => (
+          <TaskRow
+            key={task.slug}
+            task={task}
+            token={token}
+            owner={owner}
+            repo={repo}
+            defaultBranch={defaultBranch}
+            onRefresh={onRefresh}
+            onEdit={onEdit}
+          />
+        ))}
+      </ul>
     </div>
   )
 }
