@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-06-08
+
+- Action: issues (roadmap item identified and implemented)
+- Summary: Added last-run status badge (`Failed`/`Cancelled`/`Running`) to task cards via a silent background fetch on mount; removed the duplicate "Scheduled" section that rendered every scheduled task twice; 249 tests (↑ from 243); PR #27 raised.
+- Rationale: No open issues, no open PRs, roadmap backlog empty, all five specs implemented — identified the highest user-facing value from codebase inspection: users have no way to see a failing agent without manually clicking History on every card, and scheduled tasks render twice causing confusion. Both problems are in the same component and fixable together.
+- PR: #27
+- ROADMAP updated: no
+
 ## 2026-06-07
 
 - Action: pr-merged
