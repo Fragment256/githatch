@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-06-09
+
+- Action: pr-merged
+- Summary: Reviewed and merged PR #27 (last-run status badge + duplicate Scheduled section removal) — `LastRunIndicator` component silently fetches the most recent run on mount and shows a badge for Failed/Cancelled/Running states; duplicate "Scheduled" section and `ScheduledRow` component removed; 249 tests (all green), lint/format/type-check clean.
+- Rationale: PR was the only open item; feature-complete, all checks green, correctly removes UX confusion (tasks appearing twice) and adds actionable visibility into failing agents without requiring manual History clicks.
+- PR: #27
+- ROADMAP updated: yes
+
 ## 2026-06-08
 
 - Action: issues (roadmap item identified and implemented)
