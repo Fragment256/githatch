@@ -27,7 +27,10 @@ const BASE_PROPS = {
 }
 
 describe('TaskList', () => {
-  beforeEach(() => vi.restoreAllMocks())
+  beforeEach(() => {
+    vi.restoreAllMocks()
+    vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue([])
+  })
 
   it('shows loading state', () => {
     render(<TaskList {...BASE_PROPS} tasks={[]} loading={true} />)
@@ -91,13 +94,12 @@ describe('TaskList', () => {
   })
 
   it('shows empty run history message when no runs', async () => {
-    vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue([])
     render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
     fireEvent.click(screen.getAllByRole('button', { name: /^history$/i })[0])
     await waitFor(() => expect(screen.getByText(/no runs yet/i)).toBeInTheDocument())
   })
 
-  it('renders all tasks in the Tasks section and no Manual section', () => {
+  it('renders all tasks without duplication', () => {
     const manualTask: GithatchTask = {
       ...TASK,
       slug: 'ad-hoc',
@@ -105,9 +107,9 @@ describe('TaskList', () => {
       schedule: '',
     }
     render(<TaskList {...BASE_PROPS} tasks={[TASK, manualTask]} />)
-    expect(screen.queryByText('Manual')).not.toBeInTheDocument()
-    expect(screen.getAllByText('Daily Standup').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Daily Standup').length).toBe(1)
     expect(screen.getByText('Ad Hoc Task')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^cancel$/i })).not.toBeInTheDocument()
   })
 
   it('shows delete confirmation then calls deleteWorkflowFile on confirm', async () => {
@@ -145,7 +147,6 @@ describe('TaskList', () => {
 
   it('shows next-run time for an enabled scheduled task', () => {
     render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
-    // The "Next:" label should appear for a scheduled, enabled task
     expect(screen.getByText(/^Next:/)).toBeInTheDocument()
   })
 
@@ -161,19 +162,95 @@ describe('TaskList', () => {
     expect(screen.queryByText(/^Next:/)).not.toBeInTheDocument()
   })
 
-  it('shows Scheduled section only for tasks that have a schedule', () => {
-    const manualTask: GithatchTask = {
-      ...TASK,
-      slug: 'ad-hoc',
-      displayName: 'Ad Hoc Task',
-      schedule: '',
-    }
-    render(<TaskList {...BASE_PROPS} tasks={[TASK, manualTask]} />)
-    // Scheduled task appears in both Tasks and Scheduled sections
-    expect(screen.getAllByText('Daily Standup').length).toBe(2)
-    // Manual task appears only in Tasks section
-    expect(screen.getAllByText('Ad Hoc Task').length).toBe(1)
-    // Cancel button appears in Scheduled section
-    expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument()
+  describe('last-run status badge', () => {
+    it('shows Failed badge when last run conclusion is failure', async () => {
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue([
+        {
+          id: 1,
+          status: 'completed',
+          conclusion: 'failure',
+          createdAt: '2024-01-01T09:00:00Z',
+          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/1',
+        },
+      ])
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      await waitFor(() => expect(screen.getByText(/^Failed$/i)).toBeInTheDocument())
+    })
+
+    it('shows Cancelled badge when last run is cancelled', async () => {
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue([
+        {
+          id: 2,
+          status: 'completed',
+          conclusion: 'cancelled',
+          createdAt: '2024-01-01T09:00:00Z',
+          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/2',
+        },
+      ])
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      await waitFor(() => expect(screen.getByText(/^Cancelled$/i)).toBeInTheDocument())
+    })
+
+    it('shows Running badge when last run is in_progress', async () => {
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue([
+        {
+          id: 3,
+          status: 'in_progress',
+          conclusion: null,
+          createdAt: '2024-01-01T09:00:00Z',
+          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/3',
+        },
+      ])
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      await waitFor(() => expect(screen.getByText(/^Running$/i)).toBeInTheDocument())
+    })
+
+    it('shows no status badge when last run is success', async () => {
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue([
+        {
+          id: 4,
+          status: 'completed',
+          conclusion: 'success',
+          createdAt: '2024-01-01T09:00:00Z',
+          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/4',
+        },
+      ])
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      await waitFor(() =>
+        expect(workflows.getWorkflowRuns).toHaveBeenCalledWith(
+          expect.objectContaining({ workflowId: 42, perPage: 1 }),
+        ),
+      )
+      expect(screen.queryByText(/^Failed$/i)).not.toBeInTheDocument()
+      expect(screen.queryByText(/^Running$/i)).not.toBeInTheDocument()
+      expect(screen.queryByText(/^Cancelled$/i)).not.toBeInTheDocument()
+    })
+
+    it('shows no badge when there are no runs', async () => {
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      await waitFor(() =>
+        expect(workflows.getWorkflowRuns).toHaveBeenCalledWith(
+          expect.objectContaining({ workflowId: 42, perPage: 1 }),
+        ),
+      )
+      expect(screen.queryByText(/^Failed$/i)).not.toBeInTheDocument()
+    })
+
+    it('swallows fetch errors silently — no crash or error text', async () => {
+      vi.spyOn(workflows, 'getWorkflowRuns').mockRejectedValue(new Error('Network error'))
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      await waitFor(() =>
+        expect(workflows.getWorkflowRuns).toHaveBeenCalledWith(
+          expect.objectContaining({ workflowId: 42 }),
+        ),
+      )
+      expect(screen.queryByText(/Network error/i)).not.toBeInTheDocument()
+    })
+
+    it('does not fetch for a task with no workflowId', () => {
+      const unregistered: GithatchTask = { ...TASK, workflowId: undefined }
+      render(<TaskList {...BASE_PROPS} tasks={[unregistered]} />)
+      expect(workflows.getWorkflowRuns).not.toHaveBeenCalled()
+    })
   })
 })
