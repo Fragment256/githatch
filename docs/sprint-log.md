@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-06-10
+
+- Action: issues
+- Summary: Added 3 new workflow templates (Release Notes Drafter, Open PR Nudge, Security Vulnerability Scan) covering release workflow, PR health monitoring, and supply chain security — gaps not addressed by the existing 6 templates; 254 tests (↑ from 249); PR #28 raised.
+- Rationale: CI green, no open PRs, no open issues, roadmap backlog empty, all claude[bot] specs implemented — highest-value user-facing improvement is more templates since they reduce time-to-first-agent for new users; chose release/PR/security because they are universal to every repo and not yet covered.
+- PR: #28
+- ROADMAP updated: no
+
 ## 2026-06-09
 
 - Action: pr-merged
