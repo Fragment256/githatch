@@ -98,4 +98,39 @@ export const TEMPLATES: Template[] = [
       outputDestination: { type: 'new_issue' },
     },
   },
+  {
+    id: 'release-notes-drafter',
+    name: 'Release Notes Drafter',
+    description:
+      'On demand — compares the last two tags, groups merged PRs by type, and drafts formatted release notes as a new issue.',
+    defaultTaskName: 'Release Notes Drafter',
+    config: {
+      prompt: `Draft release notes for the next release. First run \`git tag --sort=-version:refname | head -5\` to find the most recent tag (e.g. v1.2.3). Then run \`git log <latest-tag>..HEAD --oneline --no-merges\` to list commits since that tag, and \`gh pr list --state merged --base main --json number,title,mergedAt,labels --limit 50\` to get merged PRs. Group the PRs and commits into sections: **Features** (feat:), **Bug Fixes** (fix:), **Performance** (perf:), **Chores & Dependencies** (chore:, deps:), and **Other**. Write a clean, user-facing changelog entry — omit purely internal changes. If there are no meaningful changes, say so. Title the new issue "Release Notes Draft — <next inferred version>".`,
+      outputDestination: { type: 'new_issue' },
+    },
+  },
+  {
+    id: 'open-pr-nudge',
+    name: 'Open PR Nudge',
+    description:
+      'Daily (weekdays) — finds pull requests open for 3+ days without a review and posts a digest so nothing gets lost.',
+    defaultTaskName: 'Open PR Nudge',
+    config: {
+      schedule: '0 9 * * 1-5',
+      prompt: `Find pull requests that need attention. Run \`gh pr list --state open --json number,title,author,createdAt,reviewDecision,isDraft --limit 50\`. Filter out draft PRs. For each non-draft PR open for 3 or more days without an approved review (reviewDecision not APPROVED), list it with: PR number, title, author, days open, and review status. Sort by days open descending. If all open PRs have recent activity or are approved, say "All open PRs are on track." Title the new issue "Open PR Nudge — <today's date YYYY-MM-DD>".`,
+      outputDestination: { type: 'new_issue' },
+    },
+  },
+  {
+    id: 'security-vulnerability-scan',
+    name: 'Security Vulnerability Scan',
+    description:
+      'Weekly — runs the package manager audit, groups findings by severity, and flags anything high or critical.',
+    defaultTaskName: 'Security Vulnerability Scan',
+    config: {
+      schedule: '0 9 * * 1',
+      prompt: `Run a security audit of this repository's dependencies. Detect the package manager: check for \`pnpm-lock.yaml\` (use \`pnpm audit --json\`), \`yarn.lock\` (use \`yarn audit --json\`), or default to \`npm audit --json\`. Parse the JSON output and group findings by severity: **Critical**, **High**, **Moderate**, **Low**. For Critical and High items, include the package name, vulnerability title, and the recommended fix or version range. For Moderate and Low, just list counts. If there are no vulnerabilities, say so explicitly. Title the new issue "Security Audit — <today's date YYYY-MM-DD>".`,
+      outputDestination: { type: 'new_issue' },
+    },
+  },
 ]

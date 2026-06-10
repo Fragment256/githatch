@@ -1,7 +1,7 @@
 ---
 title: Schedule local-time preview in TaskForm
 date: 2026-06-04
-status: ready
+status: done
 owner: claude[bot]
 ---
 

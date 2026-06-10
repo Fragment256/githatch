@@ -119,9 +119,54 @@ describe('new templates', () => {
   })
 })
 
+describe('new templates batch 2', () => {
+  it('TEMPLATES contains all three new templates', () => {
+    const ids = TEMPLATES.map((t) => t.id)
+    expect(ids).toContain('release-notes-drafter')
+    expect(ids).toContain('open-pr-nudge')
+    expect(ids).toContain('security-vulnerability-scan')
+  })
+
+  it('release-notes-drafter has no schedule and creates a new issue', () => {
+    const t = TEMPLATES.find((t) => t.id === 'release-notes-drafter')!
+    const config = templateToConfig(t)
+    expect(config.schedule).toBeUndefined()
+    expect(config.outputDestination).toEqual({ type: 'new_issue' })
+    expect(config.prompt.length).toBeGreaterThan(0)
+  })
+
+  it('open-pr-nudge has a weekday schedule and creates a new issue', () => {
+    const t = TEMPLATES.find((t) => t.id === 'open-pr-nudge')!
+    const config = templateToConfig(t)
+    expect(config.schedule).toBe('0 9 * * 1-5')
+    expect(config.outputDestination).toEqual({ type: 'new_issue' })
+    expect(config.prompt.length).toBeGreaterThan(0)
+  })
+
+  it('security-vulnerability-scan has a weekly schedule and creates a new issue', () => {
+    const t = TEMPLATES.find((t) => t.id === 'security-vulnerability-scan')!
+    const config = templateToConfig(t)
+    expect(config.schedule).toBe('0 9 * * 1')
+    expect(config.outputDestination).toEqual({ type: 'new_issue' })
+    expect(config.prompt.length).toBeGreaterThan(0)
+  })
+
+  it('each new template produces valid YAML via the generator', () => {
+    const newIds = ['release-notes-drafter', 'open-pr-nudge', 'security-vulnerability-scan']
+    for (const id of newIds) {
+      const t = TEMPLATES.find((t) => t.id === id)!
+      const config = templateToConfig(t)
+      const yaml = generateWorkflowYaml(config)
+      expect(yaml).toContain('name: githatch-')
+      expect(yaml).toContain('workflow_dispatch')
+      expect(yaml.length).toBeGreaterThan(200)
+    }
+  })
+})
+
 describe('TEMPLATES structure', () => {
-  it('has 6 templates total', () => {
-    expect(TEMPLATES).toHaveLength(6)
+  it('has 9 templates total', () => {
+    expect(TEMPLATES).toHaveLength(9)
   })
 
   it('every template has required fields', () => {
