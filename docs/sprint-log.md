@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-06-11
+
+- Action: pr-merged
+- Summary: Reviewed and merged PR #28 — adds 3 new templates (Release Notes Drafter, Open PR Nudge, Security Vulnerability Scan) to the starter template library, closing gaps around release workflow, PR lifecycle health, and supply chain security; 254 tests pass.
+- Rationale: Only open PR had green CI and was mergeable; merging it over starting new feature work is the right order — never skip a ready PR.
+- PR: #28
+- ROADMAP updated: no
+
 ## 2026-06-10
 
 - Action: issues
