@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-06-12
+
+- Action: roadmap
+- Summary: Added "Duplicate" button to task rows (loads YAML, pre-populates New Task form with name " Copy" appended) and made LastRunIndicator badges clickable links to the GitHub Actions run URL; 4 new tests, 258 total (↑ from 254); PR #29 raised.
+- Rationale: CI green, no open PRs or issues, roadmap backlog empty, all specs implemented — chose user-facing UX improvements from codebase inspection: duplicate reduces friction for creating task variations (was 7 clicks to re-enter config, now 1); clickable badge reduces "my agent failed" diagnostic flow from 3 clicks to 1, higher ROI than any test/docs work.
+- PR: #29
+- ROADMAP updated: no
+
 ## 2026-06-11
 
 - Action: pr-merged
