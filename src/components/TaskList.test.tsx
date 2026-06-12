@@ -24,6 +24,7 @@ const BASE_PROPS = {
   error: null,
   onRefresh: vi.fn(),
   onEdit: vi.fn(),
+  onDuplicate: vi.fn(),
 }
 
 describe('TaskList', () => {
@@ -251,6 +252,61 @@ describe('TaskList', () => {
       const unregistered: GithatchTask = { ...TASK, workflowId: undefined }
       render(<TaskList {...BASE_PROPS} tasks={[unregistered]} />)
       expect(workflows.getWorkflowRuns).not.toHaveBeenCalled()
+    })
+
+    it('Failed badge is an anchor linking to the run URL', async () => {
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue([
+        {
+          id: 10,
+          status: 'completed',
+          conclusion: 'failure',
+          createdAt: '2024-01-01T09:00:00Z',
+          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/10',
+        },
+      ])
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      await waitFor(() =>
+        expect(screen.getByRole('link', { name: /^Failed$/i })).toBeInTheDocument(),
+      )
+      expect(screen.getByRole('link', { name: /^Failed$/i })).toHaveAttribute(
+        'href',
+        'https://github.com/testuser/my-repo/actions/runs/10',
+      )
+    })
+
+    it('Running badge is an anchor linking to the run URL', async () => {
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue([
+        {
+          id: 11,
+          status: 'in_progress',
+          conclusion: null,
+          createdAt: '2024-01-01T09:00:00Z',
+          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/11',
+        },
+      ])
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      await waitFor(() =>
+        expect(screen.getByRole('link', { name: /^Running$/i })).toBeInTheDocument(),
+      )
+      expect(screen.getByRole('link', { name: /^Running$/i })).toHaveAttribute(
+        'href',
+        'https://github.com/testuser/my-repo/actions/runs/11',
+      )
+    })
+  })
+
+  describe('duplicate task', () => {
+    it('renders a Duplicate button for a task with a workflowId', () => {
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      expect(screen.getByRole('button', { name: /duplicate/i })).toBeInTheDocument()
+    })
+
+    it('calls onDuplicate with the task when Duplicate is clicked', () => {
+      const onDuplicate = vi.fn()
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} onDuplicate={onDuplicate} />)
+      fireEvent.click(screen.getByRole('button', { name: /duplicate/i }))
+      expect(onDuplicate).toHaveBeenCalledOnce()
+      expect(onDuplicate).toHaveBeenCalledWith(TASK)
     })
   })
 })
