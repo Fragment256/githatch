@@ -22,6 +22,7 @@ interface Props {
   error: string | null
   onRefresh: () => void
   onEdit: (task: GithatchTask) => void
+  onDuplicate: (task: GithatchTask) => void
 }
 
 function LastRunIndicator({ run }: { run: WorkflowRun | null }) {
@@ -30,9 +31,14 @@ function LastRunIndicator({ run }: { run: WorkflowRun | null }) {
   const label =
     run.status !== 'completed' ? 'Running' : run.conclusion === 'cancelled' ? 'Cancelled' : 'Failed'
   return (
-    <span className="inline-flex items-center border border-black bg-black px-2 py-0.5 font-mono text-xs tracking-widest text-white uppercase">
+    <a
+      href={run.htmlUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center border border-black bg-black px-2 py-0.5 font-mono text-xs tracking-widest text-white uppercase transition-colors duration-100 hover:bg-white hover:text-black"
+    >
       {label}
-    </span>
+    </a>
   )
 }
 
@@ -245,6 +251,7 @@ function TaskRow({
   defaultBranch,
   onRefresh,
   onEdit,
+  onDuplicate,
 }: {
   task: GithatchTask
   token: string
@@ -253,6 +260,7 @@ function TaskRow({
   defaultBranch: string
   onRefresh: () => void
   onEdit: (task: GithatchTask) => void
+  onDuplicate: (task: GithatchTask) => void
 }) {
   const [triggering, setTriggering] = useState(false)
   const [triggerError, setTriggerError] = useState<string | null>(null)
@@ -364,6 +372,12 @@ function TaskRow({
                 Edit
               </button>
               <button
+                onClick={() => onDuplicate(task)}
+                className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white"
+              >
+                Duplicate
+              </button>
+              <button
                 onClick={() => setShowHistory((v) => !v)}
                 className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white"
               >
@@ -448,6 +462,7 @@ export function TaskList({
   error,
   onRefresh,
   onEdit,
+  onDuplicate,
 }: Props) {
   if (loading) {
     return (
@@ -499,6 +514,7 @@ export function TaskList({
             defaultBranch={defaultBranch}
             onRefresh={onRefresh}
             onEdit={onEdit}
+            onDuplicate={onDuplicate}
           />
         ))}
       </ul>

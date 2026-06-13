@@ -41,6 +41,7 @@ export default function App() {
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null)
 
   const [secretStatus, setSecretStatus] = useState<SecretStatus>('loading')
+  const [duplicatingConfig, setDuplicatingConfig] = useState<TaskConfig | null>(null)
 
   const [owner, repo] = activeRepo ? activeRepo.full_name.split('/') : ['', '']
   const defaultBranch = activeRepo?.default_branch ?? 'main'
@@ -67,6 +68,20 @@ export default function App() {
       )
       .catch(() => setSecretStatus('unknown'))
   }, [token, owner, repo])
+
+  async function handleDuplicateTask(task: GithatchTask) {
+    if (!token) return
+    try {
+      const yaml = await fetchFileContent({ token, owner, repo, path: task.path })
+      const config = taskConfigFromYaml(task.displayName, task.schedule || undefined, yaml)
+      setDuplicatingConfig({ ...config, name: `${config.name} Copy` })
+      setSelectedTemplate(null)
+      setSaveError(null)
+      setView('new-task')
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Failed to load task')
+    }
+  }
 
   async function handleEditTask(task: GithatchTask) {
     if (!token) return
@@ -116,6 +131,7 @@ export default function App() {
         enabled: true,
         outputDestination: config.outputDestination,
       })
+      setDuplicatingConfig(null)
       setView('tasks')
       loadTasks()
     } catch (err) {
@@ -289,6 +305,7 @@ export default function App() {
                   error={tasksError}
                   onRefresh={loadTasks}
                   onEdit={handleEditTask}
+                  onDuplicate={handleDuplicateTask}
                 />
               </ErrorBoundary>
             )}
@@ -346,6 +363,7 @@ export default function App() {
               onClick={() => {
                 setView('tasks')
                 setSelectedTemplate(null)
+                setDuplicatingConfig(null)
               }}
               className="mb-4 font-mono text-xs tracking-widest text-gray-500 uppercase hover:text-black"
             >
@@ -362,10 +380,17 @@ export default function App() {
             />
             <ErrorBoundary>
               <TaskForm
-                key={selectedTemplate?.id ?? 'scratch'}
+                key={
+                  duplicatingConfig
+                    ? `dup-${duplicatingConfig.name}`
+                    : (selectedTemplate?.id ?? 'scratch')
+                }
                 onSubmit={handleTaskFormSubmit}
                 loading={saving}
-                initialConfig={selectedTemplate ? templateToConfig(selectedTemplate) : undefined}
+                initialConfig={
+                  duplicatingConfig ??
+                  (selectedTemplate ? templateToConfig(selectedTemplate) : undefined)
+                }
               />
             </ErrorBoundary>
           </div>
