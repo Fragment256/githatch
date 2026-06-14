@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-06-14
+
+- Action: roadmap
+- Summary: Added output destination labels to task cards (`→ New issue`, `→ Issue #42`, `→ Pull request`, `→ reports/weekly.md`) using already-fetched data — zero extra API calls; redesigned ToolsPanel to match app's sharp monochrome design system (removed jarring rounded/gray-\* inconsistency); 5 new tests, 263 total (↑ from 258); PR #30 raised.
+- Rationale: CI green, no open PRs or issues, roadmap backlog empty, all specs implemented — output destination on cards is the highest UX value because users with multiple tasks have no way to distinguish where agents post results without clicking Edit on each; ToolsPanel design fix removes the only component using a completely different visual language from the rest of the app.
+- PR: #30
+- ROADMAP updated: no
+
 ## 2026-06-13
 
 - Action: pr-merged
