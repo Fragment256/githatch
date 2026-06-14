@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { GithatchTask, WorkflowRun } from '@/lib/workflows'
+import type { OutputDestination } from '@/lib/yamlGenerator'
 import { describeCron, nextCronRun, formatRelativeTime } from '@/lib/cronLabel'
 import {
   triggerWorkflow,
@@ -23,6 +24,14 @@ interface Props {
   onRefresh: () => void
   onEdit: (task: GithatchTask) => void
   onDuplicate: (task: GithatchTask) => void
+}
+
+function describeOutputDestination(dest: OutputDestination): string | null {
+  if (dest.type === 'issue_comment') return `→ Issue #${dest.issueNumber}`
+  if (dest.type === 'new_issue') return '→ New issue'
+  if (dest.type === 'file') return `→ ${dest.filePath}`
+  if (dest.type === 'pull_request') return '→ Pull request'
+  return null
 }
 
 function LastRunIndicator({ run }: { run: WorkflowRun | null }) {
@@ -348,6 +357,11 @@ function TaskRow({
           </div>
           {task.schedule && (
             <p className="mt-0.5 font-mono text-xs text-black/50">{describeCron(task.schedule)}</p>
+          )}
+          {describeOutputDestination(task.outputDestination) && (
+            <p className="font-mono text-xs text-black/40">
+              {describeOutputDestination(task.outputDestination)}
+            </p>
           )}
           {task.schedule &&
             enabled &&

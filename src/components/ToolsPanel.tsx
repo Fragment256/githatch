@@ -42,24 +42,24 @@ function ToolCard({
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-5">
+    <div className="border-2 border-black bg-white p-4">
       <div className="mb-3 flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="font-medium text-gray-900">{tool.name}</h3>
+            <h3 className="font-semibold text-black">{tool.name}</h3>
             {installed === true && (
-              <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+              <span className="border border-black px-2 py-0.5 font-mono text-xs tracking-widest text-black uppercase">
                 Installed
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-sm text-gray-500">{tool.description}</p>
+          <p className="mt-0.5 text-sm text-black/50">{tool.description}</p>
         </div>
         {installed !== null && (
           <button
             onClick={handleInstall}
             disabled={installing || installed === true}
-            className="shrink-0 rounded-md bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700 disabled:opacity-40"
+            className="shrink-0 border-2 border-black bg-black px-3 py-1.5 font-mono text-xs tracking-widest text-white uppercase transition-colors duration-100 hover:bg-white hover:text-black disabled:opacity-50"
           >
             {installing ? 'Installing…' : installed ? 'Reinstall' : 'Install'}
           </button>
@@ -68,13 +68,15 @@ function ToolCard({
 
       {error && <p className="mb-3 text-xs text-red-600">{error}</p>}
 
-      <div className="mt-4 space-y-4 border-t border-gray-100 pt-4">
+      <div className="mt-4 space-y-4 border-t border-black/10 pt-4">
         <div>
-          <p className="mb-1.5 text-xs font-medium text-gray-700">Setup required</p>
+          <p className="mb-1.5 font-mono text-xs tracking-widest text-black uppercase">
+            Setup required
+          </p>
           <ol className="space-y-1">
             {tool.setupSteps.map((step, i) => (
-              <li key={i} className="flex gap-2 text-xs text-gray-600">
-                <span className="shrink-0 font-medium text-gray-400">{i + 1}.</span>
+              <li key={i} className="flex gap-2 text-xs text-black/70">
+                <span className="shrink-0 font-mono text-black/30">{i + 1}.</span>
                 <span>{step}</span>
               </li>
             ))}
@@ -83,15 +85,17 @@ function ToolCard({
             href={`https://github.com/${owner}/${repo}/settings/secrets/actions`}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-2 inline-block text-xs text-gray-500 underline hover:text-gray-700"
+            className="mt-2 inline-block font-mono text-xs tracking-widest text-black/40 uppercase underline hover:text-black"
           >
             Open repo secrets →
           </a>
         </div>
 
         <div>
-          <p className="mb-1.5 text-xs font-medium text-gray-700">Usage in prompt</p>
-          <pre className="overflow-x-auto rounded-md bg-gray-50 p-3 font-mono text-xs text-gray-700">
+          <p className="mb-1.5 font-mono text-xs tracking-widest text-black uppercase">
+            Usage in prompt
+          </p>
+          <pre className="overflow-x-auto border border-black/20 bg-white p-3 font-mono text-xs text-black/70">
             {tool.usageExample}
           </pre>
         </div>
@@ -104,8 +108,10 @@ export function ToolsPanel({ token, owner, repo }: Props) {
   return (
     <div className="w-full">
       <div className="mb-3">
-        <h2 className="text-sm font-semibold text-gray-700">Tools ({TOOLS.length})</h2>
-        <p className="mt-0.5 text-xs text-gray-400">
+        <h2 className="font-mono text-xs tracking-widest text-black uppercase">
+          Tools ({TOOLS.length})
+        </h2>
+        <p className="mt-0.5 font-mono text-xs text-black/50">
           Utility workflows that your agent tasks can call via the GitHub CLI.
         </p>
       </div>

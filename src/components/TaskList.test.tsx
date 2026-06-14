@@ -309,4 +309,41 @@ describe('TaskList', () => {
       expect(onDuplicate).toHaveBeenCalledWith(TASK)
     })
   })
+
+  describe('output destination label', () => {
+    it('shows "→ New issue" for new_issue output', () => {
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      expect(screen.getByText('→ New issue')).toBeInTheDocument()
+    })
+
+    it('shows "→ Issue #42" for issue_comment output', () => {
+      const commentTask: GithatchTask = {
+        ...TASK,
+        outputDestination: { type: 'issue_comment', issueNumber: 42 },
+      }
+      render(<TaskList {...BASE_PROPS} tasks={[commentTask]} />)
+      expect(screen.getByText('→ Issue #42')).toBeInTheDocument()
+    })
+
+    it('shows "→ Pull request" for pull_request output', () => {
+      const prTask: GithatchTask = { ...TASK, outputDestination: { type: 'pull_request' } }
+      render(<TaskList {...BASE_PROPS} tasks={[prTask]} />)
+      expect(screen.getByText('→ Pull request')).toBeInTheDocument()
+    })
+
+    it('shows the file path for file output', () => {
+      const fileTask: GithatchTask = {
+        ...TASK,
+        outputDestination: { type: 'file', filePath: 'reports/weekly.md' },
+      }
+      render(<TaskList {...BASE_PROPS} tasks={[fileTask]} />)
+      expect(screen.getByText('→ reports/weekly.md')).toBeInTheDocument()
+    })
+
+    it('shows no output destination label for agent_managed', () => {
+      const agentTask: GithatchTask = { ...TASK, outputDestination: { type: 'agent_managed' } }
+      render(<TaskList {...BASE_PROPS} tasks={[agentTask]} />)
+      expect(screen.queryByText(/^→/)).not.toBeInTheDocument()
+    })
+  })
 })
