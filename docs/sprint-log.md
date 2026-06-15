@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-06-15
+
+- Action: pr-merged
+- Summary: Reviewed and merged PR #30 — output destination label on task cards + ToolsPanel design alignment with monochrome system; CI green, all 263 tests passing.
+- Rationale: Open PR with green CI takes priority; self-approval blocked by GitHub so merged directly after manual review confirmed correctness.
+- PR: #30
+- ROADMAP updated: no
+
 ## 2026-06-14
 
 - Action: roadmap
