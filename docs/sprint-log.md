@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-06-16
+
+- Action: roadmap
+- Summary: Implemented auto-poll of run status after manual trigger — task cards show a "Queued" badge immediately after "Run now" succeeds and poll every 8 s until the run is found, transitioning to Running/Failed via the existing LastRunIndicator; 5 new tests, 268 total; PR #31 raised.
+- Rationale: CI green, no open PRs or issues, roadmap backlog empty, all specs implemented — the post-trigger UX gap (user clicks "Run now" and gets 3-second "Triggered!" then silence) was the clearest friction point against the "zero-friction UX" goal; auto-poll closes the feedback loop without adding any new dependencies.
+- PR: #31
+- ROADMAP updated: no
+
 ## 2026-06-15
 
 - Action: pr-merged
