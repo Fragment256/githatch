@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { GithatchTask, WorkflowRun } from '@/lib/workflows'
 import type { OutputDestination } from '@/lib/yamlGenerator'
 import { describeCron, nextCronRun, formatRelativeTime } from '@/lib/cronLabel'
@@ -34,7 +34,14 @@ function describeOutputDestination(dest: OutputDestination): string | null {
   return null
 }
 
-function LastRunIndicator({ run }: { run: WorkflowRun | null }) {
+function LastRunIndicator({ run, queued }: { run: WorkflowRun | null; queued?: boolean }) {
+  if (queued) {
+    return (
+      <span className="inline-flex items-center border border-black bg-black px-2 py-0.5 font-mono text-xs tracking-widest text-white uppercase">
+        Queued
+      </span>
+    )
+  }
   if (!run) return null
   if (run.status === 'completed' && run.conclusion === 'success') return null
   const label =
@@ -282,6 +289,8 @@ function TaskRow({
   const [toggleError, setToggleError] = useState<string | null>(null)
   const [enabled, setEnabled] = useState(task.enabled)
   const [lastRun, setLastRun] = useState<WorkflowRun | null>(null)
+  const [polling, setPolling] = useState(false)
+  const prevRunIdRef = useRef<number | null>(null)
 
   useEffect(() => {
     if (!task.workflowId) return
@@ -291,13 +300,42 @@ function TaskRow({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [task.workflowId])
 
+  useEffect(() => {
+    if (!polling || !task.workflowId) return
+    const startedAt = Date.now()
+    const POLL_INTERVAL = 8_000
+    const MAX_DURATION = 5 * 60_000
+    const workflowId = task.workflowId
+    const id = setInterval(() => {
+      if (Date.now() - startedAt > MAX_DURATION) {
+        clearInterval(id)
+        setPolling(false)
+        return
+      }
+      void getWorkflowRuns({ token, owner, repo, workflowId, defaultBranch, perPage: 1 })
+        .then((runs) => {
+          const run = runs[0]
+          if (!run || run.id === prevRunIdRef.current) return
+          setLastRun(run)
+          if (run.status === 'completed') {
+            clearInterval(id)
+            setPolling(false)
+          }
+        })
+        .catch(() => {})
+    }, POLL_INTERVAL)
+    return () => clearInterval(id)
+  }, [polling, task.workflowId, token, owner, repo, defaultBranch])
+
   const handleTrigger = async () => {
     if (!task.workflowId) return
     setTriggering(true)
     setTriggerError(null)
     try {
+      prevRunIdRef.current = lastRun?.id ?? null
       await triggerWorkflow({ token, owner, repo, workflowId: task.workflowId, defaultBranch })
       setTriggered(true)
+      setPolling(true)
       setTimeout(() => setTriggered(false), 3000)
     } catch (err) {
       setTriggerError(err instanceof Error ? err.message : 'Failed to trigger')
@@ -353,7 +391,10 @@ function TaskRow({
                 </span>
               )}
             </p>
-            <LastRunIndicator run={lastRun} />
+            <LastRunIndicator
+              run={lastRun}
+              queued={polling && (lastRun === null || lastRun.id === prevRunIdRef.current)}
+            />
           </div>
           {task.schedule && (
             <p className="mt-0.5 font-mono text-xs text-black/50">{describeCron(task.schedule)}</p>
@@ -407,7 +448,7 @@ function TaskRow({
               </button>
               <button
                 onClick={handleTrigger}
-                disabled={triggering || !enabled}
+                disabled={triggering || !enabled || polling}
                 className="border-2 border-black bg-black px-3 py-1.5 font-mono text-xs tracking-widest text-white uppercase transition-colors duration-100 hover:bg-white hover:text-black disabled:opacity-50"
               >
                 {triggering ? 'Triggering…' : triggered ? 'Triggered!' : 'Run now'}

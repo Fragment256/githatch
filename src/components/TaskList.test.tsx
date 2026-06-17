@@ -1,5 +1,5 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { TaskList } from './TaskList'
 import type { GithatchTask } from '@/lib/workflows'
 import * as workflows from '@/lib/workflows'
@@ -344,6 +344,117 @@ describe('TaskList', () => {
       const agentTask: GithatchTask = { ...TASK, outputDestination: { type: 'agent_managed' } }
       render(<TaskList {...BASE_PROPS} tasks={[agentTask]} />)
       expect(screen.queryByText(/^→/)).not.toBeInTheDocument()
+    })
+  })
+
+  describe('auto-poll after trigger', () => {
+    beforeEach(() => {
+      // Fake only setInterval/clearInterval so waitFor (which uses setTimeout) still works
+      vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] })
+    })
+
+    afterEach(() => {
+      vi.clearAllTimers()
+      vi.useRealTimers()
+    })
+
+    it('shows Queued badge immediately after Run now succeeds', async () => {
+      vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue([])
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      fireEvent.click(screen.getByRole('button', { name: /run now/i }))
+      await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
+    })
+
+    it('Queued badge is not a link', async () => {
+      vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue([])
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      fireEvent.click(screen.getByRole('button', { name: /run now/i }))
+      await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
+      expect(screen.queryByRole('link', { name: /^Queued$/i })).not.toBeInTheDocument()
+    })
+
+    it('transitions from Queued to Running when a new run appears via poll', async () => {
+      vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
+      const runsMock = vi.spyOn(workflows, 'getWorkflowRuns')
+      // Initial mount: no previous runs
+      runsMock.mockResolvedValue([])
+
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+
+      // Let initial load resolve
+      await act(async () => {
+        await Promise.resolve()
+      })
+
+      // After trigger, polls will return a new in_progress run with a different ID
+      runsMock.mockResolvedValue([
+        {
+          id: 999,
+          status: 'in_progress',
+          conclusion: null,
+          createdAt: new Date().toISOString(),
+          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/999',
+        },
+      ])
+
+      fireEvent.click(screen.getByRole('button', { name: /run now/i }))
+      await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
+
+      // Advance setInterval by one tick (8 s) to fire the first poll
+      await act(async () => {
+        vi.advanceTimersByTime(8000)
+        await Promise.resolve()
+      })
+
+      await waitFor(() => expect(screen.getByText(/^Running$/i)).toBeInTheDocument())
+      expect(screen.queryByText(/^Queued$/i)).not.toBeInTheDocument()
+    })
+
+    it('stops polling and clears Queued badge when run completes successfully', async () => {
+      vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
+      const runsMock = vi.spyOn(workflows, 'getWorkflowRuns')
+      runsMock.mockResolvedValue([])
+
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      await act(async () => {
+        await Promise.resolve()
+      })
+
+      runsMock.mockResolvedValue([
+        {
+          id: 999,
+          status: 'completed',
+          conclusion: 'success',
+          createdAt: new Date().toISOString(),
+          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/999',
+        },
+      ])
+
+      fireEvent.click(screen.getByRole('button', { name: /run now/i }))
+      await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
+
+      await act(async () => {
+        vi.advanceTimersByTime(8000)
+        await Promise.resolve()
+      })
+
+      // Run completed with success — neither Queued nor any failure badge
+      await waitFor(() => expect(screen.queryByText(/^Queued$/i)).not.toBeInTheDocument())
+      expect(screen.queryByText(/^Running$/i)).not.toBeInTheDocument()
+      expect(screen.queryByText(/^Failed$/i)).not.toBeInTheDocument()
+    })
+
+    it('disables the trigger button while polling', async () => {
+      vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue([])
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      fireEvent.click(screen.getByRole('button', { name: /run now/i }))
+      await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
+      // Button shows "Triggered!" for 3 s then returns to "Run now" — either way disabled
+      const triggerBtn = screen.getByRole('button', { name: /^(run now|triggered!)$/i })
+      expect(triggerBtn).toBeDisabled()
     })
   })
 })
