@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-06-17
+
+- Action: pr-merged
+- Summary: Reviewed and merged PR #31 — auto-poll run status after manual trigger; "Queued" badge shows immediately after "Run now", polls every 8s until new run detected, transitions to Running/Failed via existing LastRunIndicator; 5 new tests, 268 total; CI green.
+- Rationale: Open PR with green CI and correct implementation takes priority; self-approval blocked by GitHub so merged directly after manual review confirmed no logic flaws.
+- PR: #31
+- ROADMAP updated: no
+
 ## 2026-06-16
 
 - Action: roadmap
