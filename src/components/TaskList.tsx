@@ -290,7 +290,10 @@ function TaskRow({
   const [enabled, setEnabled] = useState(task.enabled)
   const [lastRun, setLastRun] = useState<WorkflowRun | null>(null)
   const [polling, setPolling] = useState(false)
+  const [triggeredOutput, setTriggeredOutput] = useState<RunOutput | null>(null)
   const prevRunIdRef = useRef<number | null>(null)
+  const outputDestRef = useRef(task.outputDestination)
+  outputDestRef.current = task.outputDestination
 
   useEffect(() => {
     if (!task.workflowId) return
@@ -320,6 +323,16 @@ function TaskRow({
           if (run.status === 'completed') {
             clearInterval(id)
             setPolling(false)
+            if (run.conclusion === 'success') {
+              const od = outputDestRef.current
+              if (od.type === 'new_issue' || od.type === 'issue_comment') {
+                void fetchRunOutput({ token, owner, repo, run, outputDestination: od })
+                  .then((out) => {
+                    if (out) setTriggeredOutput(out)
+                  })
+                  .catch(() => {})
+              }
+            }
           }
         })
         .catch(() => {})
@@ -483,6 +496,10 @@ function TaskRow({
       {triggerError && <p className="mt-1 text-xs text-red-600">{triggerError}</p>}
       {toggleError && <p className="mt-1 text-xs text-red-600">{toggleError}</p>}
       {deleteError && <p className="mt-1 text-xs text-red-600">{deleteError}</p>}
+
+      {triggeredOutput && (
+        <RunOutputViewer output={triggeredOutput} onClose={() => setTriggeredOutput(null)} />
+      )}
 
       <ConfirmDialog
         open={confirmDelete}
