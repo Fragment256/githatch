@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-06-18
+
+- Action: roadmap
+- Summary: Implemented auto-show of run output inline on the task card after a successful "Run now" trigger — for new_issue and issue_comment output types, the created issue or posted comment appears automatically when polling detects completion, dismissible with Close; 4 new tests, 272 total; PR #32 raised.
+- Rationale: CI green, no open PRs or issues, roadmap backlog empty, all specs implemented — the "Run now" flow had a feedback gap where successful completion left no visible signal; users had to manually open History to see what the agent produced; auto-surfacing the output closes the loop without adding any new abstractions.
+- PR: #32
+- ROADMAP updated: no
+
 ## 2026-06-17
 
 - Action: pr-merged
