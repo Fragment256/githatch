@@ -31,6 +31,7 @@ describe('TaskList', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
     vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue([])
+    vi.spyOn(workflows, 'fetchRunOutput').mockResolvedValue(null)
   })
 
   it('shows loading state', () => {
@@ -455,6 +456,167 @@ describe('TaskList', () => {
       // Button shows "Triggered!" for 3 s then returns to "Run now" — either way disabled
       const triggerBtn = screen.getByRole('button', { name: /^(run now|triggered!)$/i })
       expect(triggerBtn).toBeDisabled()
+    })
+  })
+
+  describe('auto-output after successful trigger', () => {
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] })
+    })
+
+    afterEach(() => {
+      vi.clearAllTimers()
+      vi.useRealTimers()
+    })
+
+    it('shows output inline after poll detects success for new_issue task', async () => {
+      vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
+      const runsMock = vi.spyOn(workflows, 'getWorkflowRuns')
+      runsMock.mockResolvedValue([])
+      vi.spyOn(workflows, 'fetchRunOutput').mockResolvedValue({
+        type: 'issue',
+        title: 'Weekly Report',
+        body: 'Agent findings here',
+        htmlUrl: 'https://github.com/testuser/my-repo/issues/1',
+        createdAt: new Date().toISOString(),
+      })
+
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      await act(async () => {
+        await Promise.resolve()
+      })
+
+      runsMock.mockResolvedValue([
+        {
+          id: 999,
+          status: 'completed',
+          conclusion: 'success',
+          createdAt: new Date().toISOString(),
+          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/999',
+        },
+      ])
+
+      fireEvent.click(screen.getByRole('button', { name: /run now/i }))
+      await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
+
+      await act(async () => {
+        vi.advanceTimersByTime(8000)
+        await Promise.resolve()
+      })
+
+      await waitFor(() => expect(workflows.fetchRunOutput).toHaveBeenCalledOnce())
+      await waitFor(() => expect(screen.getByText('Weekly Report')).toBeInTheDocument())
+      expect(screen.getByText('Agent findings here')).toBeInTheDocument()
+    })
+
+    it('does not fetch output when run fails', async () => {
+      vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
+      const runsMock = vi.spyOn(workflows, 'getWorkflowRuns')
+      runsMock.mockResolvedValue([])
+      const fetchOutput = vi.spyOn(workflows, 'fetchRunOutput')
+
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      await act(async () => {
+        await Promise.resolve()
+      })
+
+      runsMock.mockResolvedValue([
+        {
+          id: 999,
+          status: 'completed',
+          conclusion: 'failure',
+          createdAt: new Date().toISOString(),
+          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/999',
+        },
+      ])
+
+      fireEvent.click(screen.getByRole('button', { name: /run now/i }))
+      await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
+
+      await act(async () => {
+        vi.advanceTimersByTime(8000)
+        await Promise.resolve()
+      })
+
+      await waitFor(() => expect(screen.queryByText(/^Queued$/i)).not.toBeInTheDocument())
+      expect(fetchOutput).not.toHaveBeenCalled()
+    })
+
+    it('does not fetch output for file output type', async () => {
+      const fileTask: GithatchTask = {
+        ...TASK,
+        outputDestination: { type: 'file', filePath: 'reports/weekly.md' },
+      }
+      vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
+      const runsMock = vi.spyOn(workflows, 'getWorkflowRuns')
+      runsMock.mockResolvedValue([])
+      const fetchOutput = vi.spyOn(workflows, 'fetchRunOutput')
+
+      render(<TaskList {...BASE_PROPS} tasks={[fileTask]} />)
+      await act(async () => {
+        await Promise.resolve()
+      })
+
+      runsMock.mockResolvedValue([
+        {
+          id: 999,
+          status: 'completed',
+          conclusion: 'success',
+          createdAt: new Date().toISOString(),
+          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/999',
+        },
+      ])
+
+      fireEvent.click(screen.getByRole('button', { name: /run now/i }))
+      await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
+
+      await act(async () => {
+        vi.advanceTimersByTime(8000)
+        await Promise.resolve()
+      })
+
+      await waitFor(() => expect(screen.queryByText(/^Queued$/i)).not.toBeInTheDocument())
+      expect(fetchOutput).not.toHaveBeenCalled()
+    })
+
+    it('dismissing the output panel clears it', async () => {
+      vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
+      const runsMock = vi.spyOn(workflows, 'getWorkflowRuns')
+      runsMock.mockResolvedValue([])
+      vi.spyOn(workflows, 'fetchRunOutput').mockResolvedValue({
+        type: 'issue',
+        title: 'Sprint Report',
+        body: 'Done.',
+        htmlUrl: 'https://github.com/testuser/my-repo/issues/2',
+        createdAt: new Date().toISOString(),
+      })
+
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      await act(async () => {
+        await Promise.resolve()
+      })
+
+      runsMock.mockResolvedValue([
+        {
+          id: 999,
+          status: 'completed',
+          conclusion: 'success',
+          createdAt: new Date().toISOString(),
+          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/999',
+        },
+      ])
+
+      fireEvent.click(screen.getByRole('button', { name: /run now/i }))
+      await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
+
+      await act(async () => {
+        vi.advanceTimersByTime(8000)
+        await Promise.resolve()
+      })
+
+      await waitFor(() => expect(screen.getByText('Sprint Report')).toBeInTheDocument())
+      fireEvent.click(screen.getByRole('button', { name: /^close$/i }))
+      expect(screen.queryByText('Sprint Report')).not.toBeInTheDocument()
     })
   })
 })
