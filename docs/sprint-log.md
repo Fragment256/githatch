@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-06-22
+
+- Action: roadmap
+- Summary: Extended inline run output to all four trackable output types — pull_request now queries the issues API for a bot-created PR since the run started; file constructs a deterministic GitHub blob/tree URL without an API call; 5 new tests (277 total); PR #33 raised.
+- Rationale: Third consecutive nothing-actionable sprint; rather than log again, inspected codebase and found the "auto-show output" feature (shipped June 18-19) covered only new_issue and issue_comment — pull_request and file were silently excluded. Extending to all types directly serves the "thin and auditable" principle and closes the feedback loop for the two most action-oriented output types.
+- PR: #33
+- ROADMAP updated: no
+
 ## 2026-06-21
 
 - Action: nothing-actionable
