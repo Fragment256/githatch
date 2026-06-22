@@ -22,11 +22,11 @@ export interface GithatchTask {
 }
 
 export interface RunOutput {
-  type: 'issue' | 'comment'
+  type: 'issue' | 'comment' | 'pr' | 'file_link'
   title?: string
-  body: string
+  body?: string
   htmlUrl: string
-  createdAt: string
+  createdAt?: string
 }
 
 export interface WorkflowRun {
@@ -212,9 +212,48 @@ export async function fetchRunOutput(params: {
   repo: string
   run: WorkflowRun
   outputDestination: OutputDestination
+  defaultBranch?: string
 }): Promise<RunOutput | null> {
-  const { token, owner, repo, run, outputDestination } = params
+  const { token, owner, repo, run, outputDestination, defaultBranch } = params
   const headers = authHeaders(token)
+
+  if (outputDestination.type === 'file') {
+    const { filePath } = outputDestination
+    const branch = defaultBranch ?? 'main'
+    const isDir = filePath.endsWith('/')
+    const treeOrBlob = isDir ? 'tree' : 'blob'
+    const urlPath = isDir ? filePath.slice(0, -1) : filePath
+    return {
+      type: 'file_link',
+      title: filePath,
+      htmlUrl: `https://github.com/${owner}/${repo}/${treeOrBlob}/${branch}/${urlPath}`,
+    }
+  }
+
+  if (outputDestination.type === 'pull_request') {
+    const res = await fetch(
+      `${API}/repos/${owner}/${repo}/issues?creator=github-actions%5Bbot%5D&since=${encodeURIComponent(run.createdAt)}&per_page=5&sort=created&direction=asc&state=all`,
+      { headers },
+    )
+    if (!res.ok) return null
+    const items = (await res.json()) as Array<{
+      number: number
+      title: string
+      body: string | null
+      html_url: string
+      created_at: string
+      pull_request?: object
+    }>
+    const pr = items.find((item) => !!item.pull_request)
+    if (!pr) return null
+    return {
+      type: 'pr',
+      title: `#${pr.number} ${pr.title}`,
+      body: pr.body ?? undefined,
+      htmlUrl: pr.html_url,
+      createdAt: pr.created_at,
+    }
+  }
 
   if (outputDestination.type === 'new_issue') {
     const res = await fetch(

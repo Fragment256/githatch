@@ -454,16 +454,96 @@ describe('fetchRunOutput', () => {
     expect(result!.body).toBe('Bot comment body')
   })
 
-  it('returns null for unsupported output types', async () => {
+  it('returns null for agent_managed output type', async () => {
+    const result = await fetchRunOutput({
+      token: 'gho_test',
+      owner: 'testuser',
+      repo: 'my-repo',
+      run: baseRun,
+      outputDestination: { type: 'agent_managed' },
+    })
+
+    expect(result).toBeNull()
+  })
+
+  it('returns a pr result when a PR was created by the bot after the run', async () => {
+    const items = [
+      {
+        number: 15,
+        title: 'chore: update deps',
+        body: 'Automated dependency update',
+        html_url: 'https://github.com/testuser/my-repo/pull/15',
+        created_at: '2024-01-01T09:15:00Z',
+        pull_request: { url: 'https://api.github.com/repos/testuser/my-repo/pulls/15' },
+      },
+    ]
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(items) }),
+    )
+
+    const result = await fetchRunOutput({
+      token: 'gho_test',
+      owner: 'testuser',
+      repo: 'my-repo',
+      run: baseRun,
+      outputDestination: { type: 'pull_request' },
+    })
+
+    expect(result).not.toBeNull()
+    expect(result!.type).toBe('pr')
+    expect(result!.title).toBe('#15 chore: update deps')
+    expect(result!.body).toBe('Automated dependency update')
+    expect(result!.htmlUrl).toBe('https://github.com/testuser/my-repo/pull/15')
+  })
+
+  it('returns null for pull_request when no PR found after the run', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve([]) }))
+
+    const result = await fetchRunOutput({
+      token: 'gho_test',
+      owner: 'testuser',
+      repo: 'my-repo',
+      run: baseRun,
+      outputDestination: { type: 'pull_request' },
+    })
+
+    expect(result).toBeNull()
+  })
+
+  it('returns a file_link result for a specific file path without an API call', async () => {
+    const fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+
+    const result = await fetchRunOutput({
+      token: 'gho_test',
+      owner: 'testuser',
+      repo: 'my-repo',
+      run: baseRun,
+      outputDestination: { type: 'file', filePath: 'reports/weekly.md' },
+      defaultBranch: 'main',
+    })
+
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(result).not.toBeNull()
+    expect(result!.type).toBe('file_link')
+    expect(result!.title).toBe('reports/weekly.md')
+    expect(result!.htmlUrl).toBe('https://github.com/testuser/my-repo/blob/main/reports/weekly.md')
+  })
+
+  it('returns a tree link for a directory file path', async () => {
+    vi.stubGlobal('fetch', vi.fn())
+
     const result = await fetchRunOutput({
       token: 'gho_test',
       owner: 'testuser',
       repo: 'my-repo',
       run: baseRun,
       outputDestination: { type: 'file', filePath: 'reports/' },
+      defaultBranch: 'main',
     })
 
-    expect(result).toBeNull()
+    expect(result!.htmlUrl).toBe('https://github.com/testuser/my-repo/tree/main/reports')
   })
 })
 

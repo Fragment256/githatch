@@ -81,12 +81,19 @@ function RunStatus({ run }: { run: WorkflowRun }) {
 }
 
 function RunOutputViewer({ output, onClose }: { output: RunOutput; onClose: () => void }) {
+  const label =
+    output.type === 'issue'
+      ? 'Created issue'
+      : output.type === 'comment'
+        ? 'Posted comment'
+        : output.type === 'pr'
+          ? 'Created pull request'
+          : 'Committed to file'
+
   return (
     <div className="mt-2 border border-black bg-white p-4">
       <div className="mb-2 flex items-center justify-between">
-        <span className="font-mono text-xs tracking-widest uppercase">
-          {output.type === 'issue' ? 'Created issue' : 'Posted comment'}
-        </span>
+        <span className="font-mono text-xs tracking-widest uppercase">{label}</span>
         <div className="flex gap-2">
           <a
             href={output.htmlUrl}
@@ -105,9 +112,11 @@ function RunOutputViewer({ output, onClose }: { output: RunOutput; onClose: () =
         </div>
       </div>
       {output.title && <p className="mb-2 text-sm font-semibold text-black">{output.title}</p>}
-      <pre className="max-h-64 overflow-y-auto text-xs leading-relaxed whitespace-pre-wrap text-black/70">
-        {output.body || '(no content)'}
-      </pre>
+      {output.body !== undefined && (
+        <pre className="max-h-64 overflow-y-auto text-xs leading-relaxed whitespace-pre-wrap text-black/70">
+          {output.body || '(no content)'}
+        </pre>
+      )}
     </div>
   )
 }
@@ -154,7 +163,10 @@ function RunHistoryPanel({
   }, [])
 
   const canViewOutput =
-    task.outputDestination.type === 'new_issue' || task.outputDestination.type === 'issue_comment'
+    task.outputDestination.type === 'new_issue' ||
+    task.outputDestination.type === 'issue_comment' ||
+    task.outputDestination.type === 'pull_request' ||
+    task.outputDestination.type === 'file'
 
   const handleViewOutput = async (run: WorkflowRun) => {
     if (viewingOutput?.runId === run.id) {
@@ -170,6 +182,7 @@ function RunHistoryPanel({
         repo,
         run,
         outputDestination: task.outputDestination,
+        defaultBranch,
       })
       if (!output) {
         setOutputErrors((prev) => ({ ...prev, [run.id]: 'No output found for this run.' }))
@@ -325,8 +338,20 @@ function TaskRow({
             setPolling(false)
             if (run.conclusion === 'success') {
               const od = outputDestRef.current
-              if (od.type === 'new_issue' || od.type === 'issue_comment') {
-                void fetchRunOutput({ token, owner, repo, run, outputDestination: od })
+              if (
+                od.type === 'new_issue' ||
+                od.type === 'issue_comment' ||
+                od.type === 'pull_request' ||
+                od.type === 'file'
+              ) {
+                void fetchRunOutput({
+                  token,
+                  owner,
+                  repo,
+                  run,
+                  outputDestination: od,
+                  defaultBranch,
+                })
                   .then((out) => {
                     if (out) setTriggeredOutput(out)
                   })
