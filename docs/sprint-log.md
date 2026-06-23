@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-06-23
+
+- Action: pr-merged
+- Summary: Reviewed and merged PR #33 — inline run output extended to `pull_request` (queries issues API for bot-created PR since run start) and `file` (constructs deterministic blob/tree GitHub URL without an API call) output types.
+- Rationale: Open PR with green CI was the highest-priority item per decision tree; the feature is correct, well-tested, and directly improves UX for the two most action-oriented output types.
+- PR: #33
+- ROADMAP updated: no
+
 ## 2026-06-22
 
 - Action: roadmap
