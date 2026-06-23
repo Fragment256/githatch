@@ -542,7 +542,7 @@ describe('TaskList', () => {
       expect(fetchOutput).not.toHaveBeenCalled()
     })
 
-    it('does not fetch output for file output type', async () => {
+    it('shows file link inline after poll detects success for file task', async () => {
       const fileTask: GithatchTask = {
         ...TASK,
         outputDestination: { type: 'file', filePath: 'reports/weekly.md' },
@@ -550,7 +550,11 @@ describe('TaskList', () => {
       vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
       const runsMock = vi.spyOn(workflows, 'getWorkflowRuns')
       runsMock.mockResolvedValue([])
-      const fetchOutput = vi.spyOn(workflows, 'fetchRunOutput')
+      vi.spyOn(workflows, 'fetchRunOutput').mockResolvedValue({
+        type: 'file_link',
+        title: 'reports/weekly.md',
+        htmlUrl: 'https://github.com/testuser/my-repo/blob/main/reports/weekly.md',
+      })
 
       render(<TaskList {...BASE_PROPS} tasks={[fileTask]} />)
       await act(async () => {
@@ -575,8 +579,53 @@ describe('TaskList', () => {
         await Promise.resolve()
       })
 
-      await waitFor(() => expect(screen.queryByText(/^Queued$/i)).not.toBeInTheDocument())
-      expect(fetchOutput).not.toHaveBeenCalled()
+      await waitFor(() => expect(workflows.fetchRunOutput).toHaveBeenCalledOnce())
+      await waitFor(() => expect(screen.getByText(/committed to file/i)).toBeInTheDocument())
+      expect(screen.getByText('reports/weekly.md')).toBeInTheDocument()
+    })
+
+    it('shows pr link inline after poll detects success for pull_request task', async () => {
+      const prTask: GithatchTask = {
+        ...TASK,
+        outputDestination: { type: 'pull_request' },
+      }
+      vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
+      const runsMock = vi.spyOn(workflows, 'getWorkflowRuns')
+      runsMock.mockResolvedValue([])
+      vi.spyOn(workflows, 'fetchRunOutput').mockResolvedValue({
+        type: 'pr',
+        title: '#7 chore: update deps',
+        body: 'Bumps lodash to 4.17.21',
+        htmlUrl: 'https://github.com/testuser/my-repo/pull/7',
+        createdAt: new Date().toISOString(),
+      })
+
+      render(<TaskList {...BASE_PROPS} tasks={[prTask]} />)
+      await act(async () => {
+        await Promise.resolve()
+      })
+
+      runsMock.mockResolvedValue([
+        {
+          id: 999,
+          status: 'completed',
+          conclusion: 'success',
+          createdAt: new Date().toISOString(),
+          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/999',
+        },
+      ])
+
+      fireEvent.click(screen.getByRole('button', { name: /run now/i }))
+      await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
+
+      await act(async () => {
+        vi.advanceTimersByTime(8000)
+        await Promise.resolve()
+      })
+
+      await waitFor(() => expect(workflows.fetchRunOutput).toHaveBeenCalledOnce())
+      await waitFor(() => expect(screen.getByText(/created pull request/i)).toBeInTheDocument())
+      expect(screen.getByText('#7 chore: update deps')).toBeInTheDocument()
     })
 
     it('dismissing the output panel clears it', async () => {
