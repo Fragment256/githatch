@@ -78,6 +78,45 @@ jobs:
     const result = parseGithatchYaml(yamlNoCron, 'daily-standup', 1)
     expect(result.schedule).toBe('')
   })
+
+  it('returns empty string for prompt when no prompt block is present', () => {
+    const result = parseGithatchYaml(sampleYaml, 'daily-standup', 1)
+    expect(result.prompt).toBe('')
+  })
+
+  it('extracts the user prompt from a full workflow YAML, stripping the delivery instruction', () => {
+    const yamlWithPrompt = `# Githatch — Daily Standup
+# githatch:output_type=new_issue
+# githatch:provider=claude_oauth
+name: githatch-daily-standup
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+  id-token: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Claude agent
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: \${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: --allowedTools "Bash,Read"
+          prompt: |
+            Summarize the last 7 days of commits.
+
+            When done, create a new GitHub issue with your findings using: gh issue create --title "<descriptive title>" --body "<your response>"
+`
+    const result = parseGithatchYaml(yamlWithPrompt, 'daily-standup', 1)
+    expect(result.prompt).toBe('Summarize the last 7 days of commits.')
+  })
 })
 
 describe('listGithatchTasks', () => {

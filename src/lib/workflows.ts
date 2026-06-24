@@ -1,4 +1,4 @@
-import { parseOutputDestination } from './yamlGenerator'
+import { parseOutputDestination, parsePromptFromYaml } from './yamlGenerator'
 import type { OutputDestination } from './yamlGenerator'
 
 const API = 'https://api.github.com'
@@ -19,6 +19,7 @@ export interface GithatchTask {
   path: string
   enabled: boolean
   outputDestination: OutputDestination
+  prompt: string
 }
 
 export interface RunOutput {
@@ -68,6 +69,7 @@ export function parseGithatchYaml(
     path: `.github/workflows/githatch-${slug}.yml`,
     enabled,
     outputDestination: parseOutputDestination(yaml),
+    prompt: parsePromptFromYaml(yaml),
   }
 }
 
