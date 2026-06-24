@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-06-24
+
+- Action: roadmap
+- Summary: Added inline prompt viewer to task cards — a Prompt toggle button expands to show the agent's full prompt text without entering the edit flow; zero extra API calls since the YAML is already fetched during listGithatchTasks; 6 new tests (283 total); PR #34 raised.
+- Rationale: CI green, no open PRs or issues, roadmap backlog empty, all specs done — the prompt was already being parsed and discarded in GithatchTask; surfacing it directly serves the "Thin and auditable" principle (users can inspect what each agent is told to do before clicking Run now) without adding any new dependencies or API calls.
+- PR: #34
+- ROADMAP updated: no
+
 ## 2026-06-23
 
 - Action: pr-merged
