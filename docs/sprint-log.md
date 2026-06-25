@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-06-25
+
+- Action: pr-merged
+- Summary: Reviewed and merged PR #34 — inline prompt viewer on task cards; a Prompt toggle button expands to show the agent's full prompt text, with YAML parsing that strips the delivery instruction suffix and handles both block-scalar and single-quoted formats.
+- Rationale: Open PR with green CI was the highest-priority item per decision tree; the feature is correct, well-tested (4 UI tests + 2 parser tests), and directly advances the "thin and auditable" principle by letting users inspect the exact prompt before triggering a run.
+- PR: #34
+- ROADMAP updated: no
+
 ## 2026-06-24
 
 - Action: roadmap
