@@ -295,6 +295,7 @@ function TaskRow({
   const [triggerError, setTriggerError] = useState<string | null>(null)
   const [triggered, setTriggered] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
+  const [showPrompt, setShowPrompt] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
@@ -477,6 +478,12 @@ function TaskRow({
                 {showHistory ? 'Hide history' : 'History'}
               </button>
               <button
+                onClick={() => setShowPrompt((v) => !v)}
+                className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white"
+              >
+                {showPrompt ? 'Hide prompt' : 'Prompt'}
+              </button>
+              <button
                 onClick={handleToggle}
                 disabled={toggling}
                 aria-label={enabled ? 'Pause task' : 'Resume task'}
@@ -524,6 +531,23 @@ function TaskRow({
 
       {triggeredOutput && (
         <RunOutputViewer output={triggeredOutput} onClose={() => setTriggeredOutput(null)} />
+      )}
+
+      {showPrompt && (
+        <div className="mt-2 border border-black bg-white p-4">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="font-mono text-xs tracking-widest uppercase">Prompt</span>
+            <button
+              onClick={() => setShowPrompt(false)}
+              className="font-mono text-xs tracking-widest text-gray-400 uppercase hover:text-black"
+            >
+              Close
+            </button>
+          </div>
+          <pre className="max-h-64 overflow-y-auto text-xs leading-relaxed whitespace-pre-wrap text-black/70">
+            {task.prompt || '(no prompt)'}
+          </pre>
+        </div>
       )}
 
       <ConfirmDialog

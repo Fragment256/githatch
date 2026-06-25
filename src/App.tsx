@@ -130,6 +130,7 @@ export default function App() {
         path: `.github/workflows/githatch-${slug}.yml`,
         enabled: true,
         outputDestination: config.outputDestination,
+        prompt: config.prompt,
       })
       setDuplicatingConfig(null)
       setView('tasks')

@@ -13,6 +13,7 @@ const TASK: GithatchTask = {
   path: '.github/workflows/githatch-daily-standup.yml',
   enabled: true,
   outputDestination: { type: 'new_issue' },
+  prompt: 'Summarize the last week of activity in this repository.',
 }
 
 const BASE_PROPS = {
@@ -345,6 +346,35 @@ describe('TaskList', () => {
       const agentTask: GithatchTask = { ...TASK, outputDestination: { type: 'agent_managed' } }
       render(<TaskList {...BASE_PROPS} tasks={[agentTask]} />)
       expect(screen.queryByText(/^→/)).not.toBeInTheDocument()
+    })
+  })
+
+  describe('prompt viewer', () => {
+    it('renders a Prompt button for a task with a workflowId', () => {
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      expect(screen.getByRole('button', { name: /^prompt$/i })).toBeInTheDocument()
+    })
+
+    it('shows the prompt text when Prompt is clicked', () => {
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      expect(screen.queryByText(TASK.prompt)).not.toBeInTheDocument()
+      fireEvent.click(screen.getByRole('button', { name: /^prompt$/i }))
+      expect(screen.getByText(TASK.prompt)).toBeInTheDocument()
+    })
+
+    it('hides the prompt panel when Hide prompt is clicked', () => {
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      fireEvent.click(screen.getByRole('button', { name: /^prompt$/i }))
+      expect(screen.getByText(TASK.prompt)).toBeInTheDocument()
+      fireEvent.click(screen.getByRole('button', { name: /^hide prompt$/i }))
+      expect(screen.queryByText(TASK.prompt)).not.toBeInTheDocument()
+    })
+
+    it('shows "(no prompt)" for a task with an empty prompt', () => {
+      const noPromptTask: GithatchTask = { ...TASK, prompt: '' }
+      render(<TaskList {...BASE_PROPS} tasks={[noPromptTask]} />)
+      fireEvent.click(screen.getByRole('button', { name: /^prompt$/i }))
+      expect(screen.getByText('(no prompt)')).toBeInTheDocument()
     })
   })
 
