@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-06-26
+
+- Action: pr-closed
+- Summary: Fixed CI failure — `workflows.test.ts` fixture was missing the `prompt` field added to `GithatchTask` when PR #34 introduced the inline prompt viewer; added `prompt: ''` to the test fixture and pushed directly to main.
+- Rationale: CI was broken on main blocking all deploys; this was a trivial one-line type-error fix with no other PRs or issues pending.
+- PR: n/a
+- ROADMAP updated: no
+
+---
+
 ## 2026-06-25
 
 - Action: pr-merged
