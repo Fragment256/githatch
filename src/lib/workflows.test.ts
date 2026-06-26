@@ -290,6 +290,7 @@ describe('updateWorkflowSchedule', () => {
     path: '.github/workflows/githatch-test-task.yml',
     enabled: true,
     outputDestination: { type: 'new_issue' },
+    prompt: '',
   }
 
   const currentYaml = `# Githatch Test Task\nname: githatch-test-task\n\non:\n  workflow_dispatch:\n\npermissions:\n  contents: write\n`
