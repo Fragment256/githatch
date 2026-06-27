@@ -4,6 +4,10 @@ import {
   listRepoSecrets,
   upsertWorkflowFile,
   deleteWorkflowFile,
+  fetchFileContent,
+  fetchRepoAgentConfig,
+  getRecentCommits,
+  getRecentPRs,
   type GitHubRepo,
 } from './github'
 
@@ -221,5 +225,186 @@ describe('listRepoSecrets', () => {
     await expect(
       listRepoSecrets({ token: 'gho_test', owner: 'alice', repo: 'my-repo' }),
     ).rejects.toThrow()
+  })
+})
+
+describe('fetchFileContent', () => {
+  const params = { token: 'gho_test', owner: 'testuser', repo: 'my-repo', path: 'CLAUDE.md' }
+
+  beforeEach(() => vi.restoreAllMocks())
+
+  it('fetches and decodes a UTF-8 file', async () => {
+    const text = 'Hello, world!'
+    const encoded = btoa(unescape(encodeURIComponent(text)))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ content: encoded }),
+      }),
+    )
+    const result = await fetchFileContent(params)
+    expect(result).toBe(text)
+  })
+
+  it('handles base64 with whitespace (multi-line GitHub encoding)', async () => {
+    const text = 'test content'
+    const raw = btoa(unescape(encodeURIComponent(text)))
+    const withNewlines = raw.slice(0, 4) + '\n' + raw.slice(4)
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ content: withNewlines }),
+      }),
+    )
+    const result = await fetchFileContent(params)
+    expect(result).toBe(text)
+  })
+
+  it('throws on non-ok response', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 404 }))
+    await expect(fetchFileContent(params)).rejects.toThrow('404')
+  })
+})
+
+describe('fetchRepoAgentConfig', () => {
+  const params = { token: 'gho_test', owner: 'testuser', repo: 'my-repo' }
+
+  beforeEach(() => vi.restoreAllMocks())
+
+  it('returns hasClaude=true when CLAUDE.md exists', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve([]) }))
+    const config = await fetchRepoAgentConfig(params)
+    expect(config.hasClaude).toBe(true)
+  })
+
+  it('returns hasClaude=false when CLAUDE.md does not exist', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 404 }))
+    const config = await fetchRepoAgentConfig(params)
+    expect(config.hasClaude).toBe(false)
+    expect(config.hasSettings).toBe(false)
+    expect(config.skills).toEqual([])
+    expect(config.agents).toEqual([])
+  })
+
+  it('parses skill directory names from skills listing', async () => {
+    const fetchMock = vi.fn()
+    fetchMock
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([]) }) // CLAUDE.md
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([]) }) // settings.json
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve([
+            { name: 'my-skill', type: 'dir' },
+            { name: 'readme.md', type: 'file' },
+            { name: 'not-md', type: 'file' },
+          ]),
+      }) // skills
+      .mockResolvedValueOnce({ ok: false }) // agents
+      .mockResolvedValueOnce({ ok: false }) // AGENTS.md
+      .mockResolvedValueOnce({ ok: false }) // codex config
+      .mockResolvedValueOnce({ ok: false }) // codex hooks
+    vi.stubGlobal('fetch', fetchMock)
+    const config = await fetchRepoAgentConfig(params)
+    expect(config.skills).toEqual(['my-skill', 'readme'])
+  })
+})
+
+describe('getRecentCommits', () => {
+  const params = { token: 'gho_test', owner: 'testuser', repo: 'my-repo' }
+
+  beforeEach(() => vi.restoreAllMocks())
+
+  it('returns commit summaries', async () => {
+    const raw = [
+      {
+        sha: 'abcdef1234567',
+        commit: {
+          message: 'feat: add something\n\nbody',
+          author: { date: '2026-01-01', name: 'Alice' },
+        },
+      },
+    ]
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(raw) }),
+    )
+    const commits = await getRecentCommits(params)
+    expect(commits).toHaveLength(1)
+    expect(commits[0].sha).toBe('abcdef1')
+    expect(commits[0].message).toBe('feat: add something')
+    expect(commits[0].author).toBe('Alice')
+  })
+
+  it('handles null commit.author gracefully', async () => {
+    const raw = [{ sha: 'abc1234', commit: { message: 'msg', author: null } }]
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(raw) }),
+    )
+    const commits = await getRecentCommits(params)
+    expect(commits[0].author).toBe('')
+    expect(commits[0].date).toBe('')
+  })
+
+  it('throws on non-ok response', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 403 }))
+    await expect(getRecentCommits(params)).rejects.toThrow()
+  })
+})
+
+describe('getRecentPRs', () => {
+  const params = { token: 'gho_test', owner: 'testuser', repo: 'my-repo' }
+
+  beforeEach(() => vi.restoreAllMocks())
+
+  it('returns PR summaries with merged flag', async () => {
+    const raw = [
+      {
+        number: 42,
+        title: 'fix: something',
+        state: 'closed',
+        merged_at: '2026-01-02T00:00:00Z',
+        created_at: '2026-01-01T00:00:00Z',
+        updated_at: '2026-01-02T00:00:00Z',
+        html_url: 'https://github.com/testuser/my-repo/pull/42',
+      },
+    ]
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(raw) }),
+    )
+    const prs = await getRecentPRs(params)
+    expect(prs).toHaveLength(1)
+    expect(prs[0].number).toBe(42)
+    expect(prs[0].merged).toBe(true)
+    expect(prs[0].state).toBe('closed')
+  })
+
+  it('returns merged=false for open PRs', async () => {
+    const raw = [
+      {
+        number: 1,
+        title: 'wip',
+        state: 'open',
+        merged_at: null,
+        created_at: '2026-01-01T00:00:00Z',
+        updated_at: '2026-01-01T00:00:00Z',
+        html_url: 'https://github.com/testuser/my-repo/pull/1',
+      },
+    ]
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(raw) }),
+    )
+    const prs = await getRecentPRs(params)
+    expect(prs[0].merged).toBe(false)
+  })
+
+  it('throws on non-ok response', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 403 }))
+    await expect(getRecentPRs(params)).rejects.toThrow()
   })
 })

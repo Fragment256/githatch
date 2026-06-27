@@ -12,7 +12,8 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
-      exclude: ['node_modules/', 'src/main.tsx'],
+      include: ['src/**'],
+      exclude: ['node_modules/', 'src/main.tsx', '**/*.test.*', '**/*.spec.*'],
       thresholds: {
         lines: 80,
         functions: 80,
