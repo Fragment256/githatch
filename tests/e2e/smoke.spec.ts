@@ -74,7 +74,8 @@ test.describe('Task list (empty)', () => {
 
   test('shows the New task button', async ({ page }) => {
     await page.goto('/')
-    await expect(page.getByRole('button', { name: /\+ new task/i })).toBeVisible()
+    // GettingStarted also renders a "+ New task" CTA when there are no tasks yet
+    await expect(page.getByRole('button', { name: /\+ new task/i }).first()).toBeVisible()
   })
 
   test('shows the active repo name in the header', async ({ page }) => {
@@ -103,13 +104,20 @@ test.describe('Create task', () => {
 
   test('navigates to the task form on + New task click', async ({ page }) => {
     await page.goto('/')
-    await page.getByRole('button', { name: /\+ new task/i }).click()
+    // GettingStarted also renders a "+ New task" CTA when there are no tasks yet
+    await page
+      .getByRole('button', { name: /\+ new task/i })
+      .first()
+      .click()
     await expect(page.getByRole('heading', { name: /new task/i })).toBeVisible()
   })
 
   test('creates a task and returns to the task list', async ({ page }) => {
     await page.goto('/')
-    await page.getByRole('button', { name: /\+ new task/i }).click()
+    await page
+      .getByRole('button', { name: /\+ new task/i })
+      .first()
+      .click()
 
     // Fill form — use "new_issue" output type to avoid the issue-number field
     await page.locator('#task-name').fill('My New Task')
@@ -118,8 +126,11 @@ test.describe('Create task', () => {
 
     await page.getByRole('button', { name: /create task/i }).click()
 
+    // Submitting shows a YAML preview before committing
+    await page.getByRole('button', { name: /commit to repo/i }).click()
+
     // After creation we return to the task list view
-    await expect(page.getByRole('button', { name: /\+ new task/i })).toBeVisible()
+    await expect(page.getByRole('button', { name: /\+ new task/i }).first()).toBeVisible()
   })
 })
 
