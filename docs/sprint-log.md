@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-07-01
+
+- Action: roadmap
+- Summary: CI green, no open PRs/issues, roadmap backlog empty, all specs done — third consecutive nothing-actionable state, so inspected the running app instead of logging again. Found that the 12-test Playwright E2E suite is never run in CI, and running it locally surfaced two real regressions from unnoticed feature drift: the onboarding checklist added a second "+ New task" button (strict-mode locator failures), and the YAML preview/confirm feature turned task creation into a two-step submit the test never clicked through. Fixed both (12/12 pass); PR #36 raised. Could not wire the suite into `ci.yml` myself — push was rejected because the bot's GitHub App installation lacks `workflows` permission — so the CI addition is documented in the PR body for a human to apply.
+- Rationale: Per the project's own history (see 2026-06-22 entry), three straight nothing-actionable days is the signal to stop trusting the formal queues and verify the app directly; DX/automation (a test suite with zero effect) ranks above documentation or coverage work in the stated priority order, and the two bugs it caught are exactly the kind of regression E2E tests exist to prevent.
+- PR: #36
+- ROADMAP updated: yes
+
 ## 2026-06-30
 
 - Action: nothing-actionable
