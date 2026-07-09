@@ -1,3 +1,10 @@
+---
+title: Starter template library for real use cases
+date: 2026-05-19
+status: done
+owner: claude[bot]
+---
+
 # Spec: Starter template library for real use cases
 
 ## Problem

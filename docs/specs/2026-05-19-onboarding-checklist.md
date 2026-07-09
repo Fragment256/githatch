@@ -1,3 +1,10 @@
+---
+title: First-run onboarding checklist
+date: 2026-05-19
+status: done
+owner: claude[bot]
+---
+
 # Spec: First-run onboarding checklist
 
 ## Problem

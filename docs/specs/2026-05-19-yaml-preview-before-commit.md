@@ -1,3 +1,10 @@
+---
+title: Workflow YAML preview & confirm before commit
+date: 2026-05-19
+status: done
+owner: claude[bot]
+---
+
 # Spec: Workflow YAML preview & confirm before commit
 
 ## Problem
