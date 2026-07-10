@@ -165,6 +165,81 @@ describe('TaskList', () => {
     expect(screen.queryByText(/^Next:/)).not.toBeInTheDocument()
   })
 
+  describe('failure summary banner', () => {
+    it('shows a banner counting tasks whose last run failed', async () => {
+      const okTask: GithatchTask = {
+        ...TASK,
+        slug: 'ok-task',
+        displayName: 'OK Task',
+        workflowId: 99,
+      }
+      vi.spyOn(workflows, 'getWorkflowRuns').mockImplementation(({ workflowId }) => {
+        if (workflowId === TASK.workflowId) {
+          return Promise.resolve([
+            {
+              id: 1,
+              status: 'completed',
+              conclusion: 'failure',
+              createdAt: '2024-01-01T09:00:00Z',
+              htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/1',
+            },
+          ])
+        }
+        return Promise.resolve([
+          {
+            id: 2,
+            status: 'completed',
+            conclusion: 'success',
+            createdAt: '2024-01-01T09:00:00Z',
+            htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/2',
+          },
+        ])
+      })
+      render(<TaskList {...BASE_PROPS} tasks={[TASK, okTask]} />)
+      await waitFor(() =>
+        expect(screen.getByText(/1 of 2 tasks failed last run/i)).toBeInTheDocument(),
+      )
+    })
+
+    it('does not show a banner when no task has a failed last run', async () => {
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue([
+        {
+          id: 1,
+          status: 'completed',
+          conclusion: 'success',
+          createdAt: '2024-01-01T09:00:00Z',
+          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/1',
+        },
+      ])
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      await waitFor(() =>
+        expect(workflows.getWorkflowRuns).toHaveBeenCalledWith(
+          expect.objectContaining({ workflowId: 42, perPage: 1 }),
+        ),
+      )
+      expect(screen.queryByText(/tasks failed last run/i)).not.toBeInTheDocument()
+    })
+
+    it('does not count a Running task as failed', async () => {
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue([
+        {
+          id: 1,
+          status: 'in_progress',
+          conclusion: null,
+          createdAt: '2024-01-01T09:00:00Z',
+          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/1',
+        },
+      ])
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      await waitFor(() =>
+        expect(workflows.getWorkflowRuns).toHaveBeenCalledWith(
+          expect.objectContaining({ workflowId: 42, perPage: 1 }),
+        ),
+      )
+      expect(screen.queryByText(/tasks failed last run/i)).not.toBeInTheDocument()
+    })
+  })
+
   describe('last-run status badge', () => {
     it('shows Failed badge when last run conclusion is failure', async () => {
       vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue([

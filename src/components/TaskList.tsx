@@ -26,6 +26,10 @@ interface Props {
   onDuplicate: (task: GithatchTask) => void
 }
 
+function hasFailed(run: WorkflowRun | null): boolean {
+  return run !== null && run.status === 'completed' && run.conclusion !== 'success'
+}
+
 function describeOutputDestination(dest: OutputDestination): string | null {
   if (dest.type === 'issue_comment') return `→ Issue #${dest.issueNumber}`
   if (dest.type === 'new_issue') return '→ New issue'
@@ -281,6 +285,7 @@ function TaskRow({
   onRefresh,
   onEdit,
   onDuplicate,
+  onLastRunChange,
 }: {
   task: GithatchTask
   token: string
@@ -290,6 +295,7 @@ function TaskRow({
   onRefresh: () => void
   onEdit: (task: GithatchTask) => void
   onDuplicate: (task: GithatchTask) => void
+  onLastRunChange: (slug: string, run: WorkflowRun | null) => void
 }) {
   const [triggering, setTriggering] = useState(false)
   const [triggerError, setTriggerError] = useState<string | null>(null)
@@ -308,11 +314,17 @@ function TaskRow({
   const prevRunIdRef = useRef<number | null>(null)
   const outputDestRef = useRef(task.outputDestination)
   outputDestRef.current = task.outputDestination
+  const onLastRunChangeRef = useRef(onLastRunChange)
+  onLastRunChangeRef.current = onLastRunChange
 
   useEffect(() => {
     if (!task.workflowId) return
     getWorkflowRuns({ token, owner, repo, workflowId: task.workflowId, defaultBranch, perPage: 1 })
-      .then((runs) => setLastRun(runs[0] ?? null))
+      .then((runs) => {
+        const run = runs[0] ?? null
+        setLastRun(run)
+        onLastRunChangeRef.current(task.slug, run)
+      })
       .catch(() => {})
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [task.workflowId])
@@ -323,6 +335,7 @@ function TaskRow({
     const POLL_INTERVAL = 8_000
     const MAX_DURATION = 5 * 60_000
     const workflowId = task.workflowId
+    const slug = task.slug
     const id = setInterval(() => {
       if (Date.now() - startedAt > MAX_DURATION) {
         clearInterval(id)
@@ -334,6 +347,7 @@ function TaskRow({
           const run = runs[0]
           if (!run || run.id === prevRunIdRef.current) return
           setLastRun(run)
+          onLastRunChangeRef.current(slug, run)
           if (run.status === 'completed') {
             clearInterval(id)
             setPolling(false)
@@ -364,7 +378,7 @@ function TaskRow({
         .catch(() => {})
     }, POLL_INTERVAL)
     return () => clearInterval(id)
-  }, [polling, task.workflowId, token, owner, repo, defaultBranch])
+  }, [polling, task.workflowId, task.slug, token, owner, repo, defaultBranch])
 
   const handleTrigger = async () => {
     if (!task.workflowId) return
@@ -585,6 +599,12 @@ export function TaskList({
   onEdit,
   onDuplicate,
 }: Props) {
+  const [lastRuns, setLastRuns] = useState<Record<string, WorkflowRun | null>>({})
+
+  const handleLastRunChange = (slug: string, run: WorkflowRun | null) => {
+    setLastRuns((prev) => ({ ...prev, [slug]: run }))
+  }
+
   if (loading) {
     return (
       <p className="font-mono text-xs tracking-widest text-gray-400 uppercase">Loading tasks…</p>
@@ -611,6 +631,8 @@ export function TaskList({
     )
   }
 
+  const failedCount = Object.values(lastRuns).filter(hasFailed).length
+
   return (
     <div className="w-full">
       <div className="mb-4 flex items-center justify-between">
@@ -624,6 +646,11 @@ export function TaskList({
           Refresh
         </button>
       </div>
+      {failedCount > 0 && (
+        <div className="mb-3 border-2 border-black bg-black px-4 py-2 font-mono text-xs tracking-widest text-white uppercase">
+          {failedCount} of {tasks.length} tasks failed last run
+        </div>
+      )}
       <ul className="space-y-3">
         {tasks.map((task) => (
           <TaskRow
@@ -636,6 +663,7 @@ export function TaskList({
             onRefresh={onRefresh}
             onEdit={onEdit}
             onDuplicate={onDuplicate}
+            onLastRunChange={handleLastRunChange}
           />
         ))}
       </ul>
