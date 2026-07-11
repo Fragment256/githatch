@@ -500,3 +500,11 @@ Agent-maintained. One entry per daily sprint run.
 - Rationale: Followed decision tree strictly in order; the CI failure was infra-transient (not a code defect) and self-heals on next push, and every subsequent branch (PRs, issues, roadmap, specs) came up empty, so per step 4 the correct action is to log and stop rather than invent unscoped work.
 - PR: n/a
 - ROADMAP updated: no
+
+## 2026-07-11
+
+- Action: pr-merged
+- Summary: Reviewed and merged PR #37 (failure summary banner in task list) — lifts `lastRun` state from `TaskRow` to `TaskList` via a ref-backed callback and renders an aggregate "N of M tasks failed last run" banner reusing the existing per-card failure condition; 3 new tests, CI green. Moved ROADMAP item to Done.
+- Rationale: Only open PR, no review yet and CI green — reviewing and merging ships a small, well-scoped, already-tested feature gap (self-sourced last sprint) rather than leaving it idle; higher priority than sourcing new work while a ready PR sits open (step 1 precedes steps 2-4 in the decision tree).
+- PR: #37
+- ROADMAP updated: yes

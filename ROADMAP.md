@@ -6,7 +6,7 @@ Agent instructions: work top-to-bottom in Backlog. Move item to In Progress when
 
 ## In Progress
 
-- [ ] **Failure summary banner in task list** — branch `claude/roadmap-2026-07-10`, started 2026-07-10. Spec: `docs/specs/2026-07-10-failure-summary-banner.md`.
+_(none)_
 
 ---
 
@@ -14,7 +14,7 @@ Agent instructions: work top-to-bottom in Backlog. Move item to In Progress when
 
 Priority order. Top item is highest priority.
 
-_(empty — self-sourced from a codebase gap this sprint; see In Progress. Backlog and docs/specs/ have been empty for 3 consecutive sprints: 2026-07-05, 2026-07-07, 2026-07-10.)_
+_(empty)_
 
 ---
 
@@ -62,3 +62,4 @@ Items deliberately on hold — not prioritised but not abandoned.
 | Refresh README file map (add 8 missing files)                            | #24 | 2026-05-31 |
 | Schedule local-time preview in TaskForm                                  | #26 | 2026-06-07 |
 | Last-run status badge on task cards + remove duplicate Scheduled section | #27 | 2026-06-09 |
+| Failure summary banner in task list (aggregate view above cards)         | #37 | 2026-07-11 |
