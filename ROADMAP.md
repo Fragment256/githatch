@@ -6,7 +6,7 @@ Agent instructions: work top-to-bottom in Backlog. Move item to In Progress when
 
 ## In Progress
 
-_(none)_
+- [ ] **Failure summary banner in task list** — branch `claude/roadmap-2026-07-10`, started 2026-07-10. Spec: `docs/specs/2026-07-10-failure-summary-banner.md`.
 
 ---
 
@@ -14,7 +14,7 @@ _(none)_
 
 Priority order. Top item is highest priority.
 
-_(empty)_
+_(empty — self-sourced from a codebase gap this sprint; see In Progress. Backlog and docs/specs/ have been empty for 3 consecutive sprints: 2026-07-05, 2026-07-07, 2026-07-10.)_
 
 ---
 
