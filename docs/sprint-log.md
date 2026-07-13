@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-07-13
+
+- Action: nothing-actionable
+- Summary: CI green on main (only run in progress was this sprint invocation itself). No open PRs, no open issues, ROADMAP Backlog empty, both Paused items still correctly blocked on human action. Checked all six `docs/specs/` entries against ROADMAP's Done table — every one (`onboarding-checklist`, `starter-template-library`, `yaml-preview-before-commit`, `dark-mode`, `schedule-local-preview`, `failure-summary-banner`) maps to a completed item (#20-23, #26, #37). Following this project's established precedent for dry runs (2026-07-06, 2026-07-08, 2026-07-09), ran the full local baseline rather than stopping at static checks: `pnpm install --frozen-lockfile`, `format`, `lint`, `type-check`, `test` (361 passing), and `build` — all clean, no drift. Note: `pnpm`/corepack were not preinstalled in this sandbox (`corepack prepare` failed to resolve a cached pnpm build); worked around by `npm install -g pnpm@9` directly — a sandbox-environment quirk, not a repo issue.
+- Rationale: Decision tree exhausted through all four steps with nothing actionable at any of them; the local baseline run is verification/diligence consistent with prior sprint entries, not manufactured feature scope. The pre-existing `act()` warning in `SecretsView.test.tsx` is unchanged and still non-failing — left alone per the priority rule against standalone hygiene work absent a critical trigger.
+- PR: n/a
+- ROADMAP updated: no
+
 ## 2026-07-09
 
 - Action: nothing-actionable
