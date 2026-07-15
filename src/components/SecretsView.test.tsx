@@ -54,9 +54,10 @@ describe('SecretsView', () => {
     expect(screen.getByText('SYNTHETIC_API_KEY')).toBeInTheDocument()
   })
 
-  it('calls onDone when Done button is clicked', () => {
+  it('calls onDone when Done button is clicked', async () => {
     vi.spyOn(secrets, 'checkSecretExists').mockResolvedValue(false)
     render(<SecretsView {...BASE_PROPS} />)
+    await waitFor(() => screen.getAllByText(/not set/i))
     fireEvent.click(screen.getByRole('button', { name: /done/i }))
     expect(BASE_PROPS.onDone).toHaveBeenCalledOnce()
   })
