@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-07-15
+
+- Action: issues
+- Summary: CI green, no open PRs/issues, ROADMAP backlog empty, all specs shipped — but this was the third consecutive "nothing-actionable" day (07-12/13/14), so per project precedent (2026-07-01) investigated the codebase directly instead of logging a fourth dry entry. Found and fixed a real correctness/data-safety bug: `TaskForm`'s new-task submission had no check against existing tasks' slugs, so a name that slugifies to a collision (or an exact duplicate name) would silently overwrite the existing task's workflow file with zero warning, since the diff preview only renders in edit mode. Added an `existingSlugs` prop and a pre-submit collision check (2 new tests). Also fixed the long-standing `act()` warning in `SecretsView.test.tsx`, unaddressed across 8+ prior dry-run entries. 363/363 tests passing, build clean. PR #38 raised.
+- Rationale: Per the priority order, a genuine user-facing correctness bug outranks DX/docs/test-coverage work; three consecutive dry sprints is this project's own documented signal to stop trusting static queue checks and verify the app/code directly rather than logging a fourth no-op.
+- PR: #38
+- ROADMAP updated: no
+
 ## 2026-07-14
 
 - Action: nothing-actionable
