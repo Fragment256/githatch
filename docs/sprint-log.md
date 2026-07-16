@@ -540,3 +540,11 @@ Agent-maintained. One entry per daily sprint run.
 - Rationale: Only open PR, no review yet and CI green — reviewing and merging ships a small, well-scoped, already-tested feature gap (self-sourced last sprint) rather than leaving it idle; higher priority than sourcing new work while a ready PR sits open (step 1 precedes steps 2-4 in the decision tree).
 - PR: #37
 - ROADMAP updated: yes
+
+## 2026-07-16
+
+- Action: pr-merged
+- Summary: Reviewed and merged PR #38 (prevent silent workflow overwrite on task-name collision) — `TaskForm` now blocks submission with an inline error when the computed slug matches an existing task's slug, closing a real data-loss gap where two same-slugged tasks could silently clobber each other's committed workflow file; also fixes a long-standing `act()` warning in `SecretsView.test.tsx`. CI green, 2 new tests, verified the edit-task flow is correctly unaffected (it intentionally reuses its own slug) and the duplicate-task flow benefits (forces a rename instead of clobbering the source task).
+- Rationale: Step 1 of the decision tree (open PRs) precedes sourcing new work; this was the only open PR, already correct and tested, so shipping it outranks any DX/docs/test-coverage work per the stated priority order.
+- PR: #38
+- ROADMAP updated: no
