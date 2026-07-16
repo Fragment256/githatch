@@ -90,6 +90,22 @@ describe('TaskForm', () => {
     expect(screen.getByRole('button', { name: /creating/i })).toBeDisabled()
   })
 
+  it('blocks submit and shows an error when the name slugifies to an existing task', () => {
+    render(<TaskForm onSubmit={mockSubmit} existingSlugs={['my-task']} />)
+    fillMinimal({ name: 'My Task' })
+    fireEvent.click(screen.getByRole('button', { name: /create task/i }))
+    expect(screen.getByText(/a task already exists with this name/i)).toBeInTheDocument()
+    expect(mockSubmit).not.toHaveBeenCalled()
+    expect(screen.queryByTestId('yaml-preview')).not.toBeInTheDocument()
+  })
+
+  it('allows submit when the name does not collide with existingSlugs', () => {
+    render(<TaskForm onSubmit={mockSubmit} existingSlugs={['some-other-task']} />)
+    fillMinimal({ name: 'My Task' })
+    fireEvent.click(screen.getByRole('button', { name: /create task/i }))
+    expect(screen.getByTestId('yaml-preview')).toBeInTheDocument()
+  })
+
   // Preview gating: onSubmit is NOT called until "Commit to repo" is clicked
   it('shows preview after form submit and does not call onSubmit yet', () => {
     render(<TaskForm onSubmit={mockSubmit} />)

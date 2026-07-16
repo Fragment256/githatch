@@ -392,6 +392,7 @@ export default function App() {
                   duplicatingConfig ??
                   (selectedTemplate ? templateToConfig(selectedTemplate) : undefined)
                 }
+                existingSlugs={tasks.map((t) => t.slug)}
               />
             </ErrorBoundary>
           </div>

@@ -27,6 +27,7 @@ interface Props {
   loading?: boolean
   initialConfig?: TaskConfig
   originalYaml?: string
+  existingSlugs?: string[]
 }
 
 const SCHEDULE_PRESETS = [
@@ -155,7 +156,13 @@ interface PendingSubmit {
   config: TaskConfig
 }
 
-export function TaskForm({ onSubmit, loading = false, initialConfig, originalYaml }: Props) {
+export function TaskForm({
+  onSubmit,
+  loading = false,
+  initialConfig,
+  originalYaml,
+  existingSlugs = [],
+}: Props) {
   const isEditing = !!initialConfig
   const [values, setValues] = useState<TaskFormValues>(() =>
     initialConfig ? configToFormValues(initialConfig) : DEFAULT_VALUES,
@@ -177,6 +184,13 @@ export function TaskForm({ onSubmit, loading = false, initialConfig, originalYam
 
     if (!values.name.trim()) return setError('Task name is required')
     if (!values.prompt.trim()) return setError('Prompt is required')
+
+    const slugCandidate = slugify(values.name.trim())
+    if (existingSlugs.includes(slugCandidate)) {
+      return setError(
+        `A task already exists with this name ("${slugCandidate}"). Choose a different name — submitting would overwrite the existing task's workflow.`,
+      )
+    }
 
     let outputDestination: OutputDestination
     try {
