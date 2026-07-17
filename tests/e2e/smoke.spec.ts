@@ -46,15 +46,24 @@ test.describe('Repo picker', () => {
 
   test('lists the test repository as an option', async ({ page }) => {
     await page.goto('/')
-    // <option> elements are not visually visible; assert the select contains the text
-    await expect(page.locator('#repo-select')).toContainText(TEST_REPO.full_name)
+    await page.getByLabel(/active repository/i).click()
+    await expect(page.getByRole('option', { name: TEST_REPO.full_name })).toBeVisible()
+  })
+
+  test('filters options as the user types', async ({ page }) => {
+    await page.goto('/')
+    const input = page.getByLabel(/active repository/i)
+    await input.click()
+    await input.fill('does-not-exist')
+    await expect(page.getByText(/no repositories match/i)).toBeVisible()
   })
 
   test('navigates to the task list after selecting a repo', async ({ page }) => {
     await mockEmptyTaskList(page)
     await page.goto('/')
 
-    await page.getByLabel(/active repository/i).selectOption(TEST_REPO.full_name)
+    await page.getByLabel(/active repository/i).click()
+    await page.getByRole('option', { name: TEST_REPO.full_name }).click()
 
     // Task list empty state
     await expect(page.getByText(/no tasks yet/i)).toBeVisible()

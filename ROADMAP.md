@@ -6,7 +6,7 @@ Agent instructions: work top-to-bottom in Backlog. Move item to In Progress when
 
 ## In Progress
 
-_(none)_
+- [ ] **Searchable repo picker** — branch `claude/sprint-2026-07-17`, started 2026-07-17.
 
 ---
 
@@ -14,7 +14,7 @@ _(none)_
 
 Priority order. Top item is highest priority.
 
-_(empty)_
+- [ ] **Task search/filter in TaskList** — `TaskList` renders every task as a card with no way to narrow the list. Not urgent for today's typical few-task repos, but a real gap once a repo accumulates a dozen+ scheduled agents. Add a text filter above the task list matching on `displayName`, mirroring the pattern used for the repo picker.
 
 ---
 
