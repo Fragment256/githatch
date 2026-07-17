@@ -548,3 +548,11 @@ Agent-maintained. One entry per daily sprint run.
 - Rationale: Step 1 of the decision tree (open PRs) precedes sourcing new work; this was the only open PR, already correct and tested, so shipping it outranks any DX/docs/test-coverage work per the stated priority order.
 - PR: #38
 - ROADMAP updated: no
+
+## 2026-07-17
+
+- Action: roadmap
+- Summary: CI green, no open PRs/issues, ROADMAP Backlog empty, all 6 specs shipped. Rather than log another dry entry, reviewed the codebase directly (matching precedent from 2026-07-15) and found a genuine UX gap: `RepoPicker` is a native `<select>` listing every pushable repo with no search, even though `listPushableRepos` already paginates through the full list — a real friction point for org members against the README's "2-minute onboarding" goal, and the very first screen after login. Replaced it with a filterable combobox (type-to-filter, arrow keys, Enter/Escape), wrote a spec (`docs/specs/2026-07-17-searchable-repo-picker.md`), 11 new component tests, updated `App.test.tsx` and the Playwright smoke suite for the new semantics. 374/374 unit tests and 13/13 E2E tests passing, lint/type-check/build clean. Seeded ROADMAP Backlog with a follow-up item (task search/filter in TaskList) for a future sprint. PR #39 raised.
+- Rationale: Feature/UX work outranks documentation or test-coverage work per the stated priority order, and a real, well-scoped gap was identified directly rather than inventing arbitrary work — consistent with how the same "backlog empty" situation was resolved on 2026-07-15.
+- PR: #39
+- ROADMAP updated: yes
