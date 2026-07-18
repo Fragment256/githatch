@@ -556,3 +556,11 @@ Agent-maintained. One entry per daily sprint run.
 - Rationale: Feature/UX work outranks documentation or test-coverage work per the stated priority order, and a real, well-scoped gap was identified directly rather than inventing arbitrary work — consistent with how the same "backlog empty" situation was resolved on 2026-07-15.
 - PR: #39
 - ROADMAP updated: yes
+
+## 2026-07-18
+
+- Action: pr-merged
+- Summary: Reviewed PR #39 (searchable repo picker, opened 2026-07-17) — GitHub blocked a formal `gh pr review` since the PR and I share the `claude[bot]` identity, so posted findings as a comment instead. Found and reproduced a real bug: `RepoPicker`'s `onBlur` only closed the dropdown without reverting `query`, so typing a filter and then blurring without selecting (click outside, tab away) left the "Active repository" input permanently stuck showing stray search text instead of the actual selected repo, with no recovery on refocus since the list would reopen filtered by the stale text. Fixed by having `onBlur` call the existing `revert()` (already used by Escape), added a regression test, ran the full local baseline (375/375 tests, lint/type-check/format clean), then merged #39 once CI was green. Moved ROADMAP item to Done.
+- Rationale: Step 1 of the decision tree (open PRs) precedes sourcing new work; this was the only open PR, and finishing a genuine correctness bug found during review outranks starting new feature work with a known-broken PR left open.
+- PR: #39
+- ROADMAP updated: yes
