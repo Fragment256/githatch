@@ -79,7 +79,7 @@ export function RepoPicker({ repos, activeRepo, loading, error, onSelect }: Prop
           setOpen(true)
           setHighlightedIndex(0)
         }}
-        onBlur={() => setOpen(false)}
+        onBlur={() => revert()}
         onChange={(e) => {
           setQuery(e.target.value)
           setOpen(true)

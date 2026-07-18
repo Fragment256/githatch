@@ -187,4 +187,21 @@ describe('RepoPicker', () => {
     expect(screen.queryByText('acme/widgets')).not.toBeInTheDocument()
     expect(input).toHaveValue('octocat/hello-world')
   })
+
+  it('reverts stale query text when blurring without a selection', () => {
+    render(
+      <RepoPicker
+        repos={repos}
+        activeRepo={repos[0]}
+        loading={false}
+        error={null}
+        onSelect={mockOnSelect}
+      />,
+    )
+    const input = screen.getByRole('combobox')
+    fireEvent.focus(input)
+    fireEvent.change(input, { target: { value: 'zzz-no-match' } })
+    fireEvent.blur(input)
+    expect(input).toHaveValue('octocat/hello-world')
+  })
 })
