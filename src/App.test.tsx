@@ -141,6 +141,7 @@ describe('App — authenticated, no repo selected', () => {
 
   it('lists available repos in the picker', () => {
     render(<App />, { wrapper })
+    fireEvent.focus(screen.getByLabelText(/active repository/i))
     expect(screen.getByRole('option', { name: 'testuser/my-repo' })).toBeInTheDocument()
   })
 })
