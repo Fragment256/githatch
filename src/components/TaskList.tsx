@@ -600,6 +600,7 @@ export function TaskList({
   onDuplicate,
 }: Props) {
   const [lastRuns, setLastRuns] = useState<Record<string, WorkflowRun | null>>({})
+  const [filterQuery, setFilterQuery] = useState('')
 
   const handleLastRunChange = (slug: string, run: WorkflowRun | null) => {
     setLastRuns((prev) => ({ ...prev, [slug]: run }))
@@ -632,12 +633,15 @@ export function TaskList({
   }
 
   const failedCount = Object.values(lastRuns).filter(hasFailed).length
+  const filteredTasks = tasks.filter((task) =>
+    task.displayName.toLowerCase().includes(filterQuery.trim().toLowerCase()),
+  )
 
   return (
     <div className="w-full">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="font-mono text-xs tracking-widest text-black uppercase">
-          Tasks ({tasks.length})
+          Tasks ({filteredTasks.length})
         </h2>
         <button
           onClick={onRefresh}
@@ -646,27 +650,46 @@ export function TaskList({
           Refresh
         </button>
       </div>
+      <div className="mb-4">
+        <label htmlFor="task-filter" className="sr-only">
+          Filter tasks
+        </label>
+        <input
+          id="task-filter"
+          type="text"
+          value={filterQuery}
+          onChange={(e) => setFilterQuery(e.target.value)}
+          placeholder="Filter tasks by name…"
+          className="block w-full max-w-sm border-2 border-black bg-white px-3 py-2 text-sm focus:outline-none"
+        />
+      </div>
       {failedCount > 0 && (
         <div className="mb-3 border-2 border-black bg-black px-4 py-2 font-mono text-xs tracking-widest text-white uppercase">
           {failedCount} of {tasks.length} tasks failed last run
         </div>
       )}
-      <ul className="space-y-3">
-        {tasks.map((task) => (
-          <TaskRow
-            key={task.slug}
-            task={task}
-            token={token}
-            owner={owner}
-            repo={repo}
-            defaultBranch={defaultBranch}
-            onRefresh={onRefresh}
-            onEdit={onEdit}
-            onDuplicate={onDuplicate}
-            onLastRunChange={handleLastRunChange}
-          />
-        ))}
-      </ul>
+      {filteredTasks.length === 0 ? (
+        <p className="text-center font-mono text-sm tracking-widest text-gray-500 uppercase">
+          No tasks match "{filterQuery}".
+        </p>
+      ) : (
+        <ul className="space-y-3">
+          {filteredTasks.map((task) => (
+            <TaskRow
+              key={task.slug}
+              task={task}
+              token={token}
+              owner={owner}
+              repo={repo}
+              defaultBranch={defaultBranch}
+              onRefresh={onRefresh}
+              onEdit={onEdit}
+              onDuplicate={onDuplicate}
+              onLastRunChange={handleLastRunChange}
+            />
+          ))}
+        </ul>
+      )}
     </div>
   )
 }
