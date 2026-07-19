@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-07-19
+
+- Action: roadmap
+- Summary: CI green on main, no open PRs, no open issues. Implemented the sole ROADMAP Backlog item — a text filter above `TaskList` matching on `displayName`, mirroring the existing `RepoPicker` filter pattern (case-insensitive substring match, empty-state message when no tasks match, filtered count in the header). TDD: 6 new tests written first (confirmed RED), then implemented (confirmed GREEN). 381/381 tests passing, lint/type-check/format clean. PR #40 raised; ROADMAP item moved to In Progress pending merge.
+- Rationale: Followed the decision tree in order — CI healthy, no PRs/issues to address, so the top (and only) ROADMAP Backlog item was next; this is a real user-facing DX gap (finding a task in a repo with a dozen+ scheduled agents) and was next in line regardless, consistent with the priority order favoring feature/DX work over hygiene tasks.
+- PR: #40
+- ROADMAP updated: yes
+
 ## 2026-07-15
 
 - Action: issues
