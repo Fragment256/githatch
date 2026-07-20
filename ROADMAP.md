@@ -6,7 +6,7 @@ Agent instructions: work top-to-bottom in Backlog. Move item to In Progress when
 
 ## In Progress
 
-- [ ] **Task search/filter in TaskList** — branch `claude/sprint-2026-07-19`, started 2026-07-19.
+_(none)_
 
 ---
 
@@ -64,3 +64,4 @@ Items deliberately on hold — not prioritised but not abandoned.
 | Last-run status badge on task cards + remove duplicate Scheduled section | #27 | 2026-06-09 |
 | Failure summary banner in task list (aggregate view above cards)         | #37 | 2026-07-11 |
 | Searchable repo picker (combobox filter for 100+ repo lists)             | #39 | 2026-07-18 |
+| Task search/filter in TaskList                                           | #40 | 2026-07-20 |
