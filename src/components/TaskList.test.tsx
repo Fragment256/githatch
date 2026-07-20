@@ -372,6 +372,64 @@ describe('TaskList', () => {
     })
   })
 
+  describe('task filter', () => {
+    const manualTask: GithatchTask = {
+      ...TASK,
+      slug: 'ad-hoc',
+      displayName: 'Ad Hoc Task',
+      schedule: '',
+      workflowId: 43,
+    }
+
+    it('does not show a filter input when there are no tasks', () => {
+      render(<TaskList {...BASE_PROPS} tasks={[]} />)
+      expect(screen.queryByRole('textbox', { name: /filter/i })).not.toBeInTheDocument()
+    })
+
+    it('shows a filter input when there are tasks', () => {
+      render(<TaskList {...BASE_PROPS} tasks={[TASK, manualTask]} />)
+      expect(screen.getByRole('textbox', { name: /filter/i })).toBeInTheDocument()
+    })
+
+    it('filters tasks by display name', () => {
+      render(<TaskList {...BASE_PROPS} tasks={[TASK, manualTask]} />)
+      fireEvent.change(screen.getByRole('textbox', { name: /filter/i }), {
+        target: { value: 'Daily' },
+      })
+      expect(screen.getByText('Daily Standup')).toBeInTheDocument()
+      expect(screen.queryByText('Ad Hoc Task')).not.toBeInTheDocument()
+    })
+
+    it('filter matching is case-insensitive', () => {
+      render(<TaskList {...BASE_PROPS} tasks={[TASK, manualTask]} />)
+      fireEvent.change(screen.getByRole('textbox', { name: /filter/i }), {
+        target: { value: 'ad hoc' },
+      })
+      expect(screen.getByText('Ad Hoc Task')).toBeInTheDocument()
+      expect(screen.queryByText('Daily Standup')).not.toBeInTheDocument()
+    })
+
+    it('shows a message when no tasks match the filter', () => {
+      render(<TaskList {...BASE_PROPS} tasks={[TASK, manualTask]} />)
+      fireEvent.change(screen.getByRole('textbox', { name: /filter/i }), {
+        target: { value: 'nonexistent' },
+      })
+      expect(screen.getByText(/no tasks match/i)).toBeInTheDocument()
+      expect(screen.queryByText('Daily Standup')).not.toBeInTheDocument()
+      expect(screen.queryByText('Ad Hoc Task')).not.toBeInTheDocument()
+    })
+
+    it('clearing the filter shows all tasks again', () => {
+      render(<TaskList {...BASE_PROPS} tasks={[TASK, manualTask]} />)
+      const input = screen.getByRole('textbox', { name: /filter/i })
+      fireEvent.change(input, { target: { value: 'Daily' } })
+      expect(screen.queryByText('Ad Hoc Task')).not.toBeInTheDocument()
+      fireEvent.change(input, { target: { value: '' } })
+      expect(screen.getByText('Daily Standup')).toBeInTheDocument()
+      expect(screen.getByText('Ad Hoc Task')).toBeInTheDocument()
+    })
+  })
+
   describe('duplicate task', () => {
     it('renders a Duplicate button for a task with a workflowId', () => {
       render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
