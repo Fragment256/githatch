@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-07-25
+
+- Action: nothing-actionable
+- Summary: CI green on main (only in-flight run was this sprint invocation itself). No open PRs, no open issues, ROADMAP Backlog empty, both Paused items still correctly blocked on human action. All 7 `docs/specs/` entries carry `status: done` and map to completed ROADMAP Done rows. This is the third consecutive dry day (after 07-23, 07-24), matching this project's own precedent (07-01, 07-15) for going beyond static queue checks — so did a real investigation rather than logging a third bare entry. Traced the recurring `act()` warnings (flagged 07-23/07-24) to their actual root cause: `ActivityPanel`, `TaskHistory`, and `TaskRow`'s initial-mount effect in `TaskList.tsx` all fire async fetches (`getWorkflowRuns`, `getRecentCommits`/`getRecentPRs`) with no unmount guard, so a fetch resolving after the owning view unmounts (e.g. switching tabs away from Activity before it loads) calls `setState` on an unmounted component — a real but low-impact issue (console-only no-op, not user-visible; the polling interval in `TaskRow` already clears correctly on unmount via its `return () => clearInterval(id)`). Also checked `handleDuplicateTask` in `App.tsx` for the same class of bug as the 07-15 slug-collision fix — confirmed the duplicate flow correctly re-enters the new-task form with `existingSlugs` validation, no gap there. Reviewed `TaskList`'s filter/failure-banner interaction (banner count survives filtering since `lastRuns` is keyed by slug and not cleared on filter) — correct. Found no new user-facing bug or feature gap. Ran the full local baseline: `pnpm install --frozen-lockfile` (corepack quirk, same as prior runs), `format`/`lint`/`type-check` clean, `test` (381/381, no drift), `test:e2e` (13/13 Playwright, no drift), and `build` (clean, same bundle shape). Leaving the `act()`-warning fix deferred per the same reasoning as 07-23/07-24: it's a benign console warning with no reproducible user-facing effect, and doesn't meet any of the stated override conditions for standalone hygiene work (not a coverage gap, not a security issue, hasn't caused a production bug) — will fix opportunistically the next time those three files are touched for a feature.
+- Rationale: Decision tree exhausted through all four steps with nothing actionable at any of them; per this project's own precedent, a 3-day dry streak warrants investigating the codebase directly rather than re-logging, but the investigation surfaced only the already-known, already-deliberately-deferred warning (now with its root cause identified) rather than a new bug or gap meeting the bar for standalone work — so the disciplined call is to log and stop, not manufacture scope to look busy.
+- PR: n/a
+- ROADMAP updated: no
+
 ## 2026-07-24
 
 - Action: nothing-actionable
