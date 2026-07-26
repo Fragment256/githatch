@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-07-26
+
+- Action: roadmap
+- Summary: CI green on main (only in-flight run was this sprint invocation itself). No open PRs, no open issues, ROADMAP Backlog empty, both Paused items still correctly blocked on human action — re-verified the `workflows` permission block directly by pushing a probe commit to a throwaway branch touching `ci.yml`; GitHub still rejects it ("refusing to allow a GitHub App to create or update workflow ... without `workflows` permission"), confirming that item is still genuinely blocked, then cleaned up the test branch (deleted locally, never reached the remote). This is day 4 of a dry queue (07-23 through 07-25 were also dry; 07-25 already did a deep investigation and found nothing new), so rather than re-run yesterday's exact checks, dispatched a fresh Explore pass over `src/components/`, `src/hooks/`, `src/lib/`, and `specs/githatch-v0.md`. It surfaced a real correctness bug: `cronLabel.ts`'s `nextCronRun`/`describeCron`/`isValidCron` used `parseInt(hour, 10)`/`parseInt(minute, 10)` without validating the field was a plain integer, so `parseInt('9,17', 10) === 9` let a custom cron like `0 9,17 * * *` (9 AM and 5 PM) pass validation and get described as "Daily at 9 AM UTC" — silently hiding the 5 PM run from the TaskForm's schedule preview, description, and next-run indicator (the GitHub Actions cron itself would still fire correctly at both times; only Githatch's own UI misrepresented it). Fixed via TDD: wrote 3 failing tests first (confirmed RED) across all three functions for `0 9,17 * * *` / `0,30 9 * * *`, then required the hour/minute fields to fully match `^\d+$` before parsing (confirmed GREEN). Full local baseline clean: `pnpm install --frozen-lockfile`, `format`, `lint`, `type-check`, `test` (384/384, up from 381), `build` — no drift. PR #41 raised.
+- Rationale: Per this project's own precedent (07-01, 07-17), a multi-day dry streak with the decision tree exhausted warrants investigating the codebase directly for a real, scoped bug rather than re-logging or repeating a just-completed investigation verbatim; a correctness bug in the one custom-schedule field the presets don't cover meets the bar for standalone work, unlike the previously-deferred cosmetic `act()` warnings.
+- PR: #41
+- ROADMAP updated: no
+
 ## 2026-07-25
 
 - Action: nothing-actionable
