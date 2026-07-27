@@ -32,10 +32,10 @@ export function nextCronRun(expr: string, from: Date = new Date()): Date | null 
     return t
   }
 
+  if (!/^\d+$/.test(hour) || !/^\d+$/.test(minute)) return null
   const h = parseInt(hour, 10)
   const m = parseInt(minute, 10)
-  if (isNaN(h) || isNaN(m) || h < 0 || h > 23 || m < 0 || m > 59 || dom !== '*' || month !== '*')
-    return null
+  if (h > 23 || m > 59 || dom !== '*' || month !== '*') return null
 
   for (let d = 0; d <= 7; d++) {
     const c = new Date(from)
@@ -102,9 +102,9 @@ export function describeCron(expr: string): string {
     return `Every ${n} hour${n === 1 ? '' : 's'}`
   }
 
+  if (!/^\d+$/.test(hour) || !/^\d+$/.test(minute) || dom !== '*' || month !== '*') return expr
   const h = parseInt(hour, 10)
   const m = parseInt(minute, 10)
-  if (isNaN(h) || isNaN(m) || dom !== '*' || month !== '*') return expr
 
   const time = formatTime(h, m)
 

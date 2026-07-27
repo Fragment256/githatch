@@ -49,6 +49,12 @@ describe('describeCron', () => {
   it('returns the raw expression when fields are invalid', () => {
     expect(describeCron('abc def * * *')).toBe('abc def * * *')
   })
+
+  it('returns the raw expression for comma-separated hour/minute lists instead of describing only the first value', () => {
+    // '0 9,17 * * *' means 9 AM and 5 PM — describing it as "Daily at 9 AM UTC" would hide the 5 PM run
+    expect(describeCron('0 9,17 * * *')).toBe('0 9,17 * * *')
+    expect(describeCron('0,30 9 * * *')).toBe('0,30 9 * * *')
+  })
 })
 
 describe('nextCronRun', () => {
@@ -59,6 +65,13 @@ describe('nextCronRun', () => {
     expect(nextCronRun('0 9 1 * *', REF)).toBeNull()
     expect(nextCronRun('not a cron', REF)).toBeNull()
     expect(nextCronRun('* * * * * *', REF)).toBeNull()
+  })
+
+  it('returns null for comma-separated hour/minute lists instead of silently using only the first value', () => {
+    // parseInt('9,17', 10) === 9, so without explicit rejection this would silently compute
+    // only the 9 AM occurrence and hide the 5 PM one
+    expect(nextCronRun('0 9,17 * * *', REF)).toBeNull()
+    expect(nextCronRun('0,30 9 * * *', REF)).toBeNull()
   })
 
   it('computes next fire for every-N-minutes pattern', () => {
@@ -153,6 +166,11 @@ describe('isValidCron', () => {
     expect(isValidCron('99 99 * * *')).toBe(false)
     expect(isValidCron('not a cron')).toBe(false)
     expect(isValidCron('0 9 1 * *')).toBe(false)
+  })
+
+  it('returns false for comma-separated hour/minute lists (not supported by the preview/description logic)', () => {
+    expect(isValidCron('0 9,17 * * *')).toBe(false)
+    expect(isValidCron('0,30 9 * * *')).toBe(false)
   })
 })
 
