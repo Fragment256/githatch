@@ -55,6 +55,16 @@ describe('describeCron', () => {
     expect(describeCron('0 9,17 * * *')).toBe('0 9,17 * * *')
     expect(describeCron('0,30 9 * * *')).toBe('0,30 9 * * *')
   })
+
+  it('describes comma-separated day-of-week lists', () => {
+    expect(describeCron('0 9 * * 1,3,5')).toBe('Every Monday, Wednesday, Friday at 9 AM UTC')
+    expect(describeCron('0 9 * * 0,6')).toBe('Every Sunday, Saturday at 9 AM UTC')
+  })
+
+  it('returns the raw expression for invalid day-of-week lists', () => {
+    expect(describeCron('0 9 * * 1,8')).toBe('0 9 * * 1,8')
+    expect(describeCron('0 9 * * 1,')).toBe('0 9 * * 1,')
+  })
 })
 
 describe('nextCronRun', () => {
@@ -130,6 +140,20 @@ describe('nextCronRun', () => {
       new Date('2026-01-19T09:00:00Z'),
     )
   })
+
+  it('computes next fire for comma-separated day-of-week list', () => {
+    // REF is Wednesday 2026-01-14 14:23. Next of {Mon, Wed, Fri} 9am strictly after now is Friday
+    expect(nextCronRun('0 9 * * 1,3,5', REF)).toEqual(new Date('2026-01-16T09:00:00Z'))
+    // From Sunday 2026-01-18 08:00, next of {Mon, Wed, Fri} 9am is Monday 2026-01-19
+    expect(nextCronRun('0 9 * * 1,3,5', new Date('2026-01-18T08:00:00Z'))).toEqual(
+      new Date('2026-01-19T09:00:00Z'),
+    )
+  })
+
+  it('returns null for invalid day-of-week lists', () => {
+    expect(nextCronRun('0 9 * * 1,8', REF)).toBeNull()
+    expect(nextCronRun('0 9 * * 1,', REF)).toBeNull()
+  })
 })
 
 describe('nextCronRuns', () => {
@@ -171,6 +195,16 @@ describe('isValidCron', () => {
   it('returns false for comma-separated hour/minute lists (not supported by the preview/description logic)', () => {
     expect(isValidCron('0 9,17 * * *')).toBe(false)
     expect(isValidCron('0,30 9 * * *')).toBe(false)
+  })
+
+  it('returns true for comma-separated day-of-week lists', () => {
+    expect(isValidCron('0 9 * * 1,3,5')).toBe(true)
+    expect(isValidCron('0 9 * * 0,6')).toBe(true)
+  })
+
+  it('returns false for invalid day-of-week lists', () => {
+    expect(isValidCron('0 9 * * 1,8')).toBe(false)
+    expect(isValidCron('0 9 * * 1,')).toBe(false)
   })
 })
 

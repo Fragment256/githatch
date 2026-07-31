@@ -1,5 +1,19 @@
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
+// Parses a comma-separated day-of-week list (e.g. '1,3,5') into deduped day numbers,
+// or null if any token isn't a valid 0-6 digit.
+function parseDayList(dow: string): number[] | null {
+  const tokens = dow.split(',')
+  const days: number[] = []
+  for (const t of tokens) {
+    if (!/^\d+$/.test(t)) return null
+    const n = parseInt(t, 10)
+    if (n > 6) return null
+    if (!days.includes(n)) days.push(n)
+  }
+  return days
+}
+
 export function nextCronRun(expr: string, from: Date = new Date()): Date | null {
   const parts = expr.trim().split(/\s+/)
   if (parts.length !== 5) return null
@@ -37,6 +51,9 @@ export function nextCronRun(expr: string, from: Date = new Date()): Date | null 
   const m = parseInt(minute, 10)
   if (h > 23 || m > 59 || dom !== '*' || month !== '*') return null
 
+  const dowList = dow.includes(',') ? parseDayList(dow) : null
+  if (dow.includes(',') && !dowList) return null
+
   for (let d = 0; d <= 7; d++) {
     const c = new Date(from)
     c.setUTCDate(c.getUTCDate() + d)
@@ -46,6 +63,8 @@ export function nextCronRun(expr: string, from: Date = new Date()): Date | null 
     if (dow === '1-5') {
       const day = c.getUTCDay()
       if (day >= 1 && day <= 5) return c
+    } else if (dowList) {
+      if (dowList.includes(c.getUTCDay())) return c
     } else if (/^\d+$/.test(dow)) {
       if (c.getUTCDay() === parseInt(dow, 10)) return c
     }
@@ -111,6 +130,10 @@ export function describeCron(expr: string): string {
   if (dow === '1-5') return `Weekdays at ${time} UTC`
   if (/^\d+$/.test(dow)) return `Every ${DAYS[+dow] ?? dow} at ${time} UTC`
   if (dow === '*') return `Daily at ${time} UTC`
+  if (dow.includes(',')) {
+    const days = parseDayList(dow)
+    if (days) return `Every ${days.map((d) => DAYS[d]).join(', ')} at ${time} UTC`
+  }
 
   return expr
 }
