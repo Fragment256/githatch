@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-07-31
+
+- Action: issues
+- Summary: CI green on main (only in-flight run was this sprint invocation itself). No open PRs, no open issues, ROADMAP Backlog empty, both Paused items still correctly blocked on human action. All 7 `docs/specs/` entries carry `status: done`. This was day 4 of an extended dry streak (07-28 through 07-30 dry, with 07-30 already doing a deep investigation), matching this project's own precedent (e.g. 07-26 following 07-25's investigation) for dispatching a fresh Explore pass rather than re-logging a bare entry — deliberately avoiding the exact checks already run on 07-30 (spec spot-checks, TODO/FIXME grep). The fresh pass covered: edge cases in the two most recently shipped features (task search/filter, searchable repo picker — both correct, only a cosmetic missing `aria-activedescendant` noted and not pursued), error handling in `github.ts` (consistent, no unhandled rejections), and `src/lib/*.ts` schedule/YAML logic. It surfaced a real, user-facing bug: `cronLabel.ts`'s day-of-week matching in `nextCronRun`/`describeCron` only recognized `*`, `1-5`, or a single digit, so a valid GitHub Actions cron like `0 9 * * 1,3,5` (Mon/Wed/Fri) failed `isValidCron` and hard-blocked task creation in `TaskForm` — worse than the already-fixed 07-26 hour/minute comma-list bug (PR #41), since there `isValidCron` correctly rejects to avoid silent misrepresentation, but here there's no preset workaround at all, so the user simply cannot create the task. Fixed via TDD: added failing tests first across `describeCron`/`nextCronRun`/`isValidCron` for valid and invalid day-of-week lists (confirmed RED), then added a `parseDayList` helper and wired it into all three functions so comma lists are parsed, validated, and described (e.g. "Every Monday, Wednesday, Friday at 9 AM UTC"), confirmed GREEN. Full local baseline clean: `pnpm install --frozen-lockfile`, `format`, `lint`, `type-check`, `test` (390/390, up from 384), `build` (clean, same bundle shape). PR #42 raised.
+- Rationale: Decision tree exhausted through all four steps (CI, PRs, issues, roadmap/specs) with nothing actionable at any of them; per this project's own precedent, a multi-day dry streak warrants a fresh, non-redundant codebase investigation over re-logging, and this one surfaced a genuine functional block (not a cosmetic nit) directly against the README's "under 2 minutes" bar for task creation — squarely feature/UX priority, the top of the stated priority order.
+- PR: #42
+- ROADMAP updated: no
+
 ## 2026-07-30
 
 - Action: nothing-actionable
