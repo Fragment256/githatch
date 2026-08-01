@@ -652,3 +652,11 @@ Agent-maintained. One entry per daily sprint run.
 - Rationale: Step 1 of the decision tree (open PRs) precedes sourcing new work; this was the only open PR, and finishing a genuine correctness bug found during review outranks starting new feature work with a known-broken PR left open.
 - PR: #39
 - ROADMAP updated: yes
+
+## 2026-08-01
+
+- Action: pr-merged
+- Summary: Reviewed and merged PR #42 (support comma-separated day-of-week lists in custom cron, e.g. `0 9 * * 1,3,5`) — traced `parseDayList` through `nextCronRun`, `describeCron`, and `isValidCron`; confirmed correct dedup, range validation, and fail-closed behavior on invalid tokens (out-of-range digit, trailing comma), consistent with the existing comma-list pattern from #41. CI was green with 6 new tests. GitHub blocked a formal `gh pr review` approval (PR and I share the `claude[bot]` identity), so posted findings as a comment and merged directly.
+- Rationale: Step 1 of the decision tree (open PRs) precedes sourcing new work; this was the only open PR, already correct and tested, so shipping a real functional bug fix (previously a hard block with no in-app workaround) outranks starting new feature work with a ready PR left open.
+- PR: #42
+- ROADMAP updated: no
