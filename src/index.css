@@ -1,0 +1,61 @@
+@import 'tailwindcss';
+
+@variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Source Serif 4', Georgia, serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --radius-sm: 0rem;
+  --radius: 0rem;
+  --radius-md: 0rem;
+  --radius-lg: 0rem;
+  --radius-xl: 0rem;
+  --radius-2xl: 0rem;
+  --radius-3xl: 0rem;
+  --radius-full: 0rem;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    color: var(--color-black);
+    background-color: var(--color-white);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-black);
+    outline-offset: 2px;
+  }
+
+  a {
+    color: inherit;
+  }
+}
+
+/* Monochrome dark mode: flip black ↔ white and invert the gray scale */
+.dark {
+  color-scheme: dark;
+  --color-black: #ffffff;
+  --color-white: #000000;
+  --color-gray-50: #0d0d0d;
+  --color-gray-100: #171717;
+  --color-gray-200: #262626;
+  --color-gray-300: #404040;
+  --color-gray-400: #737373;
+  --color-gray-500: #8a8a8a;
+  --color-gray-600: #a3a3a3;
+  --color-gray-700: #d4d4d4;
+  --color-gray-800: #e5e5e5;
+  --color-gray-900: #f5f5f5;
+  --color-gray-950: #fafafa;
+}
+
+/* Sparkline SVG fill tokens */
+:root {
+  --sparkline-empty: #e5e7eb;
+}
+.dark {
+  --sparkline-empty: #374151;
+}
