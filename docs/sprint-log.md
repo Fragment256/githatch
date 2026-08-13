@@ -702,3 +702,13 @@ Agent-maintained. One entry per daily sprint run.
 - Rationale: Feature/correctness work outranks documentation or standalone test-coverage work per the stated priority order; with the structured queue empty, reviewing the app directly for a genuine gap (per precedent from 2026-07-17, 2026-08-01) surfaced a real data-integrity bug rather than inventing arbitrary work — a silent stale-overwrite is worse than a UX polish item because it corrupts what the user sees with no indication anything went wrong.
 - PR: #43
 - ROADMAP updated: no
+
+---
+
+## 2026-08-13
+
+- Action: issues
+- Summary: CI green on main, no open PRs. Two open issues (#44, #46) are both prior-incident reports explicitly requiring human judgment (secret rotation, account audit, force-push decision on severed history) — correctly left untouched, no code action to take there. Instead picked up the one concrete, safe, mechanical action still outstanding from that incident: #45's merged fix and #46 both flagged unpinned GitHub Actions (`@v4`, `@v1` floating tags) as a follow-up hardening step, never filed as its own issue. Resolved each tag to its current commit SHA and pinned all `uses:` lines across `ci.yml`, `deploy.yml`, and both `githatch-*.yml` workflows; verified locally (`format`, `lint`, `type-check`, `test` — 396/396 passing). Push was rejected: the bot's GitHub App lacks the `workflows` permission to update `.github/workflows/*.yml` (same root cause as the existing Paused roadmap item that already blocks PR #36). Filed #47 with the full ready-to-apply diff and a freshness caveat (re-resolve SHAs if this sits a while before a human applies it), and cross-referenced it from the existing Paused roadmap item.
+- Rationale: with the two open issues both explicitly gated on human-only actions, the highest-value work I could safely complete myself was closing out the one still-open, mechanical piece of the incident follow-up (Actions pinning) — a concrete, identified hardening gap directly tied to the real incident, not a speculative audit.
+- PR: n/a (blocked by workflow-file push restriction; diff and rationale filed as #47 instead)
+- ROADMAP updated: yes
