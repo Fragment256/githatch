@@ -4,6 +4,26 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-08-14
+
+- Action: nothing-actionable
+- Summary: CI green on main (only in-flight run was this sprint invocation itself). No open PRs. All three open issues are prior-incident/hardening reports explicitly gated on human-only actions: #44 (main's git history severed to a single orphan commit at `30def86` on 2026-08-06 — re-verified today via `git fetch --unshallow`, still unrecovered; fixing requires a force-push on shared history, a destructive call left to a human) needs a human force-push decision; #46 (the credential-stealing `eslint.config.js` payload, already removed by #45) needs a human to rotate `CLAUDE_CODE_OAUTH_TOKEN` and audit account activity; #47 (Actions pinned-SHA hardening, diff ready) is blocked on the same missing bot `workflows` permission that already blocks the Paused roadmap item and PR #36 — none have been actioned by a human since filing. Re-verified `eslint.config.js` is clean (matches #45's fix, no re-injection). ROADMAP Backlog is empty and both Paused items remain correctly blocked. All 7 `docs/specs/` entries carry `status: done`. Also fixed a doc-hygiene issue while in this file: the 2026-08-13 entry had been appended to the end of the file (after the oldest entry, 2026-08-02) instead of the top, breaking the newest-first convention every other entry follows — moved it back into correct chronological order.
+- Rationale: Decision tree exhausted through all steps (CI, PRs, issues, roadmap, specs) with nothing safely actionable — every open issue explicitly requires a human due to destructive-action or credential-rotation risk, so manufacturing scope around them would violate the "don't take risky actions without confirmation" operating rule; the log-ordering fix was a trivial, safe correction encountered while updating this same file, not a separate initiative.
+- PR: n/a
+- ROADMAP updated: no
+
+---
+
+## 2026-08-13
+
+- Action: issues
+- Summary: CI green on main, no open PRs. Two open issues (#44, #46) are both prior-incident reports explicitly requiring human judgment (secret rotation, account audit, force-push decision on severed history) — correctly left untouched, no code action to take there. Instead picked up the one concrete, safe, mechanical action still outstanding from that incident: #45's merged fix and #46 both flagged unpinned GitHub Actions (`@v4`, `@v1` floating tags) as a follow-up hardening step, never filed as its own issue. Resolved each tag to its current commit SHA and pinned all `uses:` lines across `ci.yml`, `deploy.yml`, and both `githatch-*.yml` workflows; verified locally (`format`, `lint`, `type-check`, `test` — 396/396 passing). Push was rejected: the bot's GitHub App lacks the `workflows` permission to update `.github/workflows/*.yml` (same root cause as the existing Paused roadmap item that already blocks PR #36). Filed #47 with the full ready-to-apply diff and a freshness caveat (re-resolve SHAs if this sits a while before a human applies it), and cross-referenced it from the existing Paused roadmap item.
+- Rationale: with the two open issues both explicitly gated on human-only actions, the highest-value work I could safely complete myself was closing out the one still-open, mechanical piece of the incident follow-up (Actions pinning) — a concrete, identified hardening gap directly tied to the real incident, not a speculative audit.
+- PR: n/a (blocked by workflow-file push restriction; diff and rationale filed as #47 instead)
+- ROADMAP updated: yes
+
+---
+
 ## 2026-08-11
 
 - Action: issues
@@ -702,13 +722,3 @@ Agent-maintained. One entry per daily sprint run.
 - Rationale: Feature/correctness work outranks documentation or standalone test-coverage work per the stated priority order; with the structured queue empty, reviewing the app directly for a genuine gap (per precedent from 2026-07-17, 2026-08-01) surfaced a real data-integrity bug rather than inventing arbitrary work — a silent stale-overwrite is worse than a UX polish item because it corrupts what the user sees with no indication anything went wrong.
 - PR: #43
 - ROADMAP updated: no
-
----
-
-## 2026-08-13
-
-- Action: issues
-- Summary: CI green on main, no open PRs. Two open issues (#44, #46) are both prior-incident reports explicitly requiring human judgment (secret rotation, account audit, force-push decision on severed history) — correctly left untouched, no code action to take there. Instead picked up the one concrete, safe, mechanical action still outstanding from that incident: #45's merged fix and #46 both flagged unpinned GitHub Actions (`@v4`, `@v1` floating tags) as a follow-up hardening step, never filed as its own issue. Resolved each tag to its current commit SHA and pinned all `uses:` lines across `ci.yml`, `deploy.yml`, and both `githatch-*.yml` workflows; verified locally (`format`, `lint`, `type-check`, `test` — 396/396 passing). Push was rejected: the bot's GitHub App lacks the `workflows` permission to update `.github/workflows/*.yml` (same root cause as the existing Paused roadmap item that already blocks PR #36). Filed #47 with the full ready-to-apply diff and a freshness caveat (re-resolve SHAs if this sits a while before a human applies it), and cross-referenced it from the existing Paused roadmap item.
-- Rationale: with the two open issues both explicitly gated on human-only actions, the highest-value work I could safely complete myself was closing out the one still-open, mechanical piece of the incident follow-up (Actions pinning) — a concrete, identified hardening gap directly tied to the real incident, not a speculative audit.
-- PR: n/a (blocked by workflow-file push restriction; diff and rationale filed as #47 instead)
-- ROADMAP updated: yes
