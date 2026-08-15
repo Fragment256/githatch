@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-08-15
+
+- Action: issues
+- Summary: CI green on main, no open PRs. Re-verified #47 (Actions pinning, filed 2026-08-13): re-resolved all six tag→SHA pins fresh, confirmed the push is still rejected with the identical `workflows`-permission error (only `claude-code-action@v1`'s SHA had moved since the 08-13 diff), and posted an updated comment on the issue rather than re-filing — still correctly blocked, no human action taken yet. #44 and #46 remain untouched, both still explicitly gated on human-only actions (force-push decision, secret rotation/audit). While scoping #47 noticed the same floating-tag gap exists one level deeper and is actually fixable by me: `yamlGenerator.ts` hardcodes `actions/checkout@v4`, `anthropics/claude-code-action@v1`, and `openai/codex-action@v1` into every workflow it generates for a user's _own_ task — unlike this repo's static workflow files, that code lives in `src/`, not `.github/workflows/`, so it isn't blocked by the missing bot permission. Filed #48 to scope it separately (generated-output pinning needs its own SHA-refresh story, since a stale pin fails silently rather than loud), then implemented it via TDD: added a RED test per provider (`claude_oauth`, `codex`, `synthetic`) asserting the generated YAML matches `uses: <action>@<40-char-sha> # v<N>`, confirmed failing, then added three named SHA constants and wired them into `buildAgentStep`/`generateWorkflowYaml` (GREEN, 399/399 tests passing, 3 new). `pnpm format && pnpm lint && pnpm type-check && pnpm test` all clean. PR #49 raised, pushed without issue since it doesn't touch `.github/workflows/`.
+- Rationale: #44/#46 explicitly require human judgment so manufacturing scope around them would be unsafe; #47 remains a documented dead-end pending a permission grant; #48 was the one genuinely actionable, TDD-able piece of work surfaced this run, and it closes a real gap (every user-generated task workflow, not just this repo's own CI) — concrete security hardening tied to the same incident chain (#45/#46/#47), not a speculative audit.
+- PR: #49
+- ROADMAP updated: no
+
+---
+
 ## 2026-08-14
 
 - Action: nothing-actionable
