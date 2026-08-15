@@ -69,6 +69,14 @@ describe('generateWorkflowYaml — Claude OAuth provider', () => {
     expect(yaml).toContain("Summarise this week's activity")
   })
 
+  it('pins checkout and claude-code-action to commit SHAs, not floating tags', () => {
+    const yaml = generateWorkflowYaml(base)
+    expect(yaml).toMatch(/uses: actions\/checkout@[0-9a-f]{40} # v\d+/)
+    expect(yaml).toMatch(/uses: anthropics\/claude-code-action@[0-9a-f]{40} # v\d+/)
+    expect(yaml).not.toContain('actions/checkout@v4\n')
+    expect(yaml).not.toContain('anthropics/claude-code-action@v1\n')
+  })
+
   it('sets output destination to issue comment', () => {
     const yaml = generateWorkflowYaml(base)
     expect(yaml).toContain('42')
@@ -338,6 +346,11 @@ describe('generateWorkflowYaml — Codex provider', () => {
     expect(generateWorkflowYaml(base)).toContain('# githatch:provider=codex')
   })
 
+  it('pins codex-action to a commit SHA, not a floating tag', () => {
+    const yaml = generateWorkflowYaml(base)
+    expect(yaml).toMatch(/uses: openai\/codex-action@[0-9a-f]{40} # v\d+/)
+  })
+
   it('round-trips provider via taskConfigFromYaml', () => {
     const yaml = generateWorkflowYaml(base)
     const parsed = taskConfigFromYaml(base.name, base.schedule, yaml)
@@ -380,6 +393,11 @@ describe('generateWorkflowYaml — Synthetic provider', () => {
 
   it('embeds provider comment for round-trip', () => {
     expect(generateWorkflowYaml(base)).toContain('# githatch:provider=synthetic')
+  })
+
+  it('pins codex-action to a commit SHA, not a floating tag', () => {
+    const yaml = generateWorkflowYaml(base)
+    expect(yaml).toMatch(/uses: openai\/codex-action@[0-9a-f]{40} # v\d+/)
   })
 
   it('round-trips provider via taskConfigFromYaml', () => {
