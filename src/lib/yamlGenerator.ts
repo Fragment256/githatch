@@ -1,3 +1,7 @@
+const ACTIONS_CHECKOUT_REF = '11d5960a326750d5838078e36cf38b85af677262' // v4
+const CLAUDE_CODE_ACTION_REF = '9d7150bc8a3dae8149739a88019d192b579ad90c' // v1
+const CODEX_ACTION_REF = '52fe01ec70a42f454c9d2ebd47598f9fd6893d56' // v1
+
 export type Provider = 'claude_oauth' | 'codex' | 'synthetic'
 
 export type OutputDestination =
@@ -150,7 +154,7 @@ function buildAgentStep(config: TaskConfig, promptYaml: string, allowedTools: st
   if (config.provider === 'codex') {
     const modelLine = config.model ? `\n          model: ${config.model}` : ''
     return `      - name: Run Codex agent
-        uses: openai/codex-action@v1
+        uses: openai/codex-action@${CODEX_ACTION_REF} # v1
         with:
           openai-api-key: \${{ secrets.OPENAI_API_KEY }}${modelLine}
           sandbox: danger-full-access
@@ -160,7 +164,7 @@ function buildAgentStep(config: TaskConfig, promptYaml: string, allowedTools: st
   if (config.provider === 'synthetic') {
     const syntheticModel = config.model || 'kimi-k2.6'
     return `      - name: Run Synthetic agent
-        uses: openai/codex-action@v1
+        uses: openai/codex-action@${CODEX_ACTION_REF} # v1
         env:
           OPENAI_BASE_URL: https://api.synthetic.new/openai/v1
         with:
@@ -172,7 +176,7 @@ function buildAgentStep(config: TaskConfig, promptYaml: string, allowedTools: st
 
   const modelFlag = config.model ? ` --model ${config.model}` : ''
   return `      - name: Run Claude agent
-        uses: anthropics/claude-code-action@v1
+        uses: anthropics/claude-code-action@${CLAUDE_CODE_ACTION_REF} # v1
         with:
           claude_code_oauth_token: \${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: --allowedTools "${allowedTools}"${modelFlag}
@@ -230,7 +234,7 @@ jobs:
   run:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@${ACTIONS_CHECKOUT_REF} # v4
 
 ${agentStep}
 `
