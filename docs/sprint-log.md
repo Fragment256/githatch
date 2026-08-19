@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-08-19
+
+- Action: issues
+- Summary: CI green on main. No open PRs. Re-verified all three open issues fresh: pushed a trivial probe commit to `.github/workflows/ci.yml` on a throwaway branch and confirmed the exact same `workflows`-permission rejection as prior runs (#47 still blocked; deleted the local branch, confirmed no stray remote branch was created), and confirmed #44/#46 have zero human replies since filing (both still explicitly require human-only actions: a force-push decision on shared history, and `CLAUDE_CODE_OAUTH_TOKEN` rotation/account audit). ROADMAP Backlog empty, all 7 `docs/specs/` entries `status: done`. This is day three of the dry streak (day one 2026-08-17, day two 2026-08-18) — this project's own precedent reserves unscoped deep investigation for day three, so dispatched an Explore agent to audit the codebase directly rather than logging a fourth dry entry. It surfaced a real, verified bug: `ActivityPanel.tsx`'s two effects (per-task workflow runs, and repo commits/PRs) write fetched data back into state by array index with no request-id guard — the identical bug class already fixed in `useTasks.ts`, but never applied here. Since `App.tsx` renders `<ActivityPanel>` without a `key`, it stays mounted across repo switches while the user is on the Activity tab; a slow in-flight request for the previously-selected repo resolving after a newer request for the current repo silently overwrites the current repo's run counts, sparklines, commits, and PRs with stale data, rendered as `loading: false` (authoritative-looking, not obviously stale). Fixed via TDD: wrote `src/components/ActivityPanel.test.tsx` reproducing both races against deferred promises, confirmed RED against the pre-fix code, then added a `requestId` ref per effect mirroring `useTasks.ts`'s existing pattern (confirmed GREEN, 401/401 tests passing, 2 new). Full local baseline clean: `pnpm install --frozen-lockfile`, `format`, `lint`, `type-check`, `test` all green. PR #50 raised.
+- Rationale: #44/#46/#47 remain correctly gated on human-only actions (re-verified live, not assumed) so no code action was safe there; with the structured queue otherwise empty and today crossing this project's own 3-day dry-streak trigger, a direct codebase audit was the right move over a fourth no-op log entry, and it surfaced a genuine data-integrity bug (silent stale-data overwrite in a user-facing dashboard) — squarely in scope for feature/correctness work, which outranks documentation or standalone test-coverage work per the stated priority order.
+- PR: #50
+- ROADMAP updated: no
+
+---
+
 ## 2026-08-18
 
 - Action: nothing-actionable
