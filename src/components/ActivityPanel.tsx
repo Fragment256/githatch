@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { GithatchTask, WorkflowRun } from '@/lib/workflows'
 import { getWorkflowRuns } from '@/lib/workflows'
 import { getRecentCommits, getRecentPRs } from '@/lib/github'
@@ -63,8 +63,11 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
   const [commits, setCommits] = useState<CommitSummary[] | null>(null)
   const [prs, setPRs] = useState<PRSummary[] | null>(null)
   const [repoLoading, setRepoLoading] = useState(true)
+  const taskRequestId = useRef(0)
+  const repoRequestId = useRef(0)
 
   useEffect(() => {
+    const id = ++taskRequestId.current
     setTaskActivity(tasks.map((task) => ({ task, runs: [], loading: true, error: null })))
 
     tasks.forEach((task, idx) => {
@@ -80,12 +83,14 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
         defaultBranch,
         perPage: 100,
       })
-        .then((runs) =>
+        .then((runs) => {
+          if (id !== taskRequestId.current) return
           setTaskActivity((prev) =>
             prev.map((a, i) => (i === idx ? { ...a, runs, loading: false } : a)),
-          ),
-        )
-        .catch((err: unknown) =>
+          )
+        })
+        .catch((err: unknown) => {
+          if (id !== taskRequestId.current) return
           setTaskActivity((prev) =>
             prev.map((a, i) =>
               i === idx
@@ -96,27 +101,33 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
                   }
                 : a,
             ),
-          ),
-        )
+          )
+        })
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, owner, repo])
 
   useEffect(() => {
+    const id = ++repoRequestId.current
     setRepoLoading(true)
     Promise.all([
       getRecentCommits({ token, owner, repo, days: 30 }),
       getRecentPRs({ token, owner, repo }),
     ])
       .then(([c, p]) => {
+        if (id !== repoRequestId.current) return
         setCommits(c)
         setPRs(p)
       })
       .catch(() => {
+        if (id !== repoRequestId.current) return
         setCommits([])
         setPRs([])
       })
-      .finally(() => setRepoLoading(false))
+      .finally(() => {
+        if (id !== repoRequestId.current) return
+        setRepoLoading(false)
+      })
   }, [token, owner, repo])
 
   const DAYS = 14
