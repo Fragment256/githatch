@@ -18,6 +18,9 @@
     "prepare": "husky"
   },
   "lint-staged": {
+    "*.{js,mjs,cjs,ts,tsx}": [
+      "node scripts/scan-suspicious-patterns.mjs"
+    ],
     "*.{ts,tsx}": [
       "prettier --write",
       "eslint --fix"
