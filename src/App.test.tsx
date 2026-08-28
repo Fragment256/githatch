@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import App from './App'
 
@@ -53,6 +53,15 @@ const ACTIVE_REPO = {
   id: 1,
   name: 'my-repo',
   full_name: 'testuser/my-repo',
+  private: false,
+  permissions: { push: true, pull: true, admin: false },
+  default_branch: 'main',
+}
+
+const OTHER_REPO = {
+  id: 2,
+  name: 'other-repo',
+  full_name: 'testuser/other-repo',
   private: false,
   permissions: { push: true, pull: true, admin: false },
   default_branch: 'main',
@@ -276,6 +285,31 @@ describe('App — view navigation', () => {
     fireEvent.click(screen.getByRole('button', { name: /logout/i }))
     expect(logout).toHaveBeenCalledOnce()
     expect(mockSetActiveRepo).toHaveBeenCalledWith(null)
+  })
+
+  it('ignores a stale secret-status response that resolves after the repo changes', async () => {
+    let resolveStale: (names: string[]) => void = () => {}
+    const stale = new Promise<string[]>((resolve) => {
+      resolveStale = resolve
+    })
+    vi.mocked(github.listRepoSecrets).mockReturnValueOnce(stale)
+    vi.mocked(github.listRepoSecrets).mockResolvedValueOnce(['CLAUDE_CODE_OAUTH_TOKEN'])
+
+    mockUseRepo.mockReturnValue({ ...defaultRepoState, activeRepo: ACTIVE_REPO })
+    const { rerender } = render(<App />, { wrapper })
+
+    mockUseRepo.mockReturnValue({ ...defaultRepoState, activeRepo: OTHER_REPO })
+    rerender(<App />)
+
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: /set up token/i })).not.toBeInTheDocument(),
+    )
+
+    await act(async () => {
+      resolveStale([])
+    })
+
+    expect(screen.queryByRole('button', { name: /set up token/i })).not.toBeInTheDocument()
   })
 })
 
