@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react'
+import { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import { GITHUB_CLIENT_ID } from '@/lib/config'
 import { useAuth } from '@/hooks/useAuth'
 import { useRepo } from '@/hooks/useRepo'
@@ -59,14 +59,21 @@ export default function App() {
     }
   }, [activeRepo, token, loadTasks])
 
+  const secretStatusRequestId = useRef(0)
+
   useEffect(() => {
     if (!token || !owner || !repo) return
+    const id = ++secretStatusRequestId.current
     setSecretStatus('loading')
     listRepoSecrets({ token, owner, repo })
-      .then((names) =>
-        setSecretStatus(names.includes('CLAUDE_CODE_OAUTH_TOKEN') ? 'present' : 'absent'),
-      )
-      .catch(() => setSecretStatus('unknown'))
+      .then((names) => {
+        if (id !== secretStatusRequestId.current) return
+        setSecretStatus(names.includes('CLAUDE_CODE_OAUTH_TOKEN') ? 'present' : 'absent')
+      })
+      .catch(() => {
+        if (id !== secretStatusRequestId.current) return
+        setSecretStatus('unknown')
+      })
   }, [token, owner, repo])
 
   async function handleDuplicateTask(task: GithatchTask) {
