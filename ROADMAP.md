@@ -23,7 +23,7 @@ _(none)_
 Items deliberately on hold — not prioritised but not abandoned.
 
 - [ ] **GitHub App registration** — Register a GitHub App (see `specs/githatch-v0.md` issue #9). Update `VITE_GITHUB_CLIENT_ID`. Verify CORS on the token endpoint. If CORS fails, implement device flow fallback. This unblocks external users. _Paused: currently a personal tool; revisit when opening to external users._
-- [ ] **Grant `workflows` permission to the bot's GitHub App installation** — needed so the agent can update `.github/workflows/*.yml` directly. Blocked PR #36 from wiring the Playwright E2E suite into CI (see PR body for the exact diff to apply). Also blocked #47 (pin GitHub Actions to commit SHAs — security hardening follow-up from #45/#46, diff ready in the issue body). _Paused: requires a human with repo admin access; not something the agent can self-grant._
+- [ ] **Grant `workflows` permission to the bot's GitHub App installation** — needed so the agent can update `.github/workflows/*.yml` directly. Blocked PR #36 from wiring the Playwright E2E suite into CI (see PR body for the exact diff to apply). _Paused: requires a human with repo admin access; not something the agent can self-grant. Note: #47 (Actions pinning) was completed directly by Luke on 2026-08-31._
 
 ---
 
@@ -65,3 +65,9 @@ Items deliberately on hold — not prioritised but not abandoned.
 | Failure summary banner in task list (aggregate view above cards)         | #37 | 2026-07-11 |
 | Searchable repo picker (combobox filter for 100+ repo lists)             | #39 | 2026-07-18 |
 | Task search/filter in TaskList                                           | #40 | 2026-07-20 |
+| Remove malicious obfuscated payload from eslint.config.js (incident #46) | #45 | 2026-08-11 |
+| Pin generated workflow action SHAs in YAML generator                     | #49 | 2026-08-16 |
+| Guard ActivityPanel against stale repo-switch responses                  | #50 | 2026-08-20 |
+| Pre-commit scan for obfuscated-payload patterns                          | #51 | 2026-08-25 |
+| Guard secret-status effect against stale repo-switch responses           | #52 | 2026-08-29 |
+| Pin all static GitHub Actions workflows to commit SHAs (closes #47)      | —   | 2026-08-31 |
