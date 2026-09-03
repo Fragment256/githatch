@@ -23,7 +23,7 @@ _(none)_
 Items deliberately on hold — not prioritised but not abandoned.
 
 - [ ] **GitHub App registration** — Register a GitHub App (see `specs/githatch-v0.md` issue #9). Update `VITE_GITHUB_CLIENT_ID`. Verify CORS on the token endpoint. If CORS fails, implement device flow fallback. This unblocks external users. _Paused: currently a personal tool; revisit when opening to external users._
-- [ ] **Grant `workflows` permission to the bot's GitHub App installation** — needed so the agent can update `.github/workflows/*.yml` directly. Blocked PR #36 from wiring the Playwright E2E suite into CI (see PR body for the exact diff to apply). _Paused: requires a human with repo admin access; not something the agent can self-grant. Note: #47 (Actions pinning) was completed directly by Luke on 2026-08-31._
+- [ ] **Grant `workflows` permission to the bot's GitHub App installation** — needed so the agent can update `.github/workflows/*.yml` directly. Blocked PR #36 from wiring the Playwright E2E suite into CI (see PR body for the exact diff to apply). Also blocks #54 (add post-run verification step to catch silent sprint no-ops — ready-to-apply diff in the issue). _Paused: requires a human with repo admin access; not something the agent can self-grant. Note: #47 (Actions pinning) was completed directly by Luke on 2026-08-31._
 
 ---
 
