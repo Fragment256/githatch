@@ -20,6 +20,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Run Claude agent
+        id: claude
         uses: anthropics/claude-code-action@833fb0f8c9f6686b33d963a8bae0a94f4936ab2a # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -147,3 +148,14 @@ jobs:
             - ROADMAP updated: yes/no
 
             pnpm install --frozen-lockfile && pnpm format && git add docs/sprint-log.md ROADMAP.md && git commit -m "chore: sprint log YYYY-MM-DD" && git push
+
+      - name: Verify sprint left a durable trace
+        if: steps.claude.conclusion == 'success'
+        run: |
+          git fetch origin main --quiet
+          REMOTE_SHA=$(git rev-parse origin/main)
+          if [ "$REMOTE_SHA" = "${{ github.sha }}" ]; then
+            echo "::error::Sprint run completed without pushing any commit to main — the REPORT step (docs/sprint-log.md entry + commit + push) did not happen, or git push failed silently. See README 'REPORT (always run last)' contract and issue #54."
+            exit 1
+          fi
+          echo "main advanced from ${{ github.sha }} to $REMOTE_SHA"
