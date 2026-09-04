@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-04 (sprint 2)
+
+- Action: bug-fix
+- Summary: PR #55 (saveError fix) was already merged on main. Stepped through the decision tree: no new open PRs, same two blocked issues (#44, #46), ROADMAP Backlog empty. Since the `RunHistoryPanel` race condition was explicitly deferred from yesterday's sprint and the queue was otherwise dry, proceeded to fix it. The bug: `handleViewOutput` used a single `loadingOutput` state and a single `viewingOutput` state across all runs in the history list — if the user clicked View output on run A then run B before A resolved, A's `finally` block would prematurely clear B's loading indicator and A's `.then` block would overwrite B's output with A's stale result. Fix: added `outputRequestId` ref (monotonic counter, matching the existing `useTasks.ts` and `ActivityPanel` pattern); each call to `handleViewOutput` captures its own `id = ++outputRequestId.current`; `.then`/`.catch`/`.finally` callbacks guard on `id === outputRequestId.current` before applying state changes. 2 new regression tests added: (1) confirms stale output is discarded and loading indicator preserved when second click fires before first resolves (RED pre-fix, GREEN post-fix); (2) confirms single-click happy path still works (GREEN throughout). 415/415 tests, format/lint/type-check clean. PR #56 raised.
+- Rationale: The race condition was the only queued item from yesterday's sprint; fixing it keeps the one-item-per-sprint convention and ships a real correctness fix (rapid clicking a "View output" button is a normal interaction). Consistency with the existing stale-request guard pattern (`useTasks.ts`) makes the change easy to audit.
+- PR: #56
+- ROADMAP updated: no
+
 ## 2026-09-04
 
 - Action: issues
