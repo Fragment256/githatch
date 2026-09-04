@@ -60,6 +60,7 @@ export default function App() {
   }, [activeRepo, token, loadTasks])
 
   const secretStatusRequestId = useRef(0)
+  const editLoadRequestId = useRef(0)
 
   useEffect(() => {
     if (!token || !owner || !repo) return
@@ -78,22 +79,27 @@ export default function App() {
 
   async function handleDuplicateTask(task: GithatchTask) {
     if (!token) return
+    const id = ++editLoadRequestId.current
     try {
       const yaml = await fetchFileContent({ token, owner, repo, path: task.path })
+      if (id !== editLoadRequestId.current) return
       const config = taskConfigFromYaml(task.displayName, task.schedule || undefined, yaml)
       setDuplicatingConfig({ ...config, name: `${config.name} Copy` })
       setSelectedTemplate(null)
       setSaveError(null)
       setView('new-task')
     } catch (err) {
+      if (id !== editLoadRequestId.current) return
       setSaveError(err instanceof Error ? err.message : 'Failed to load task')
     }
   }
 
   async function handleEditTask(task: GithatchTask) {
     if (!token) return
+    const id = ++editLoadRequestId.current
     try {
       const yaml = await fetchFileContent({ token, owner, repo, path: task.path })
+      if (id !== editLoadRequestId.current) return
       const config = taskConfigFromYaml(task.displayName, task.schedule || undefined, yaml)
       setEditingTask(task)
       setEditingConfig(config)
@@ -101,6 +107,7 @@ export default function App() {
       setSaveError(null)
       setView('edit-task')
     } catch (err) {
+      if (id !== editLoadRequestId.current) return
       setSaveError(err instanceof Error ? err.message : 'Failed to load task')
     }
   }
@@ -378,6 +385,7 @@ export default function App() {
                 setView('tasks')
                 setSelectedTemplate(null)
                 setDuplicatingConfig(null)
+                setSaveError(null)
               }}
               className="mb-4 font-mono text-xs tracking-widest text-gray-500 uppercase hover:text-black"
             >
@@ -421,6 +429,7 @@ export default function App() {
                 setEditingTask(null)
                 setEditingConfig(null)
                 setEditingOriginalYaml(null)
+                setSaveError(null)
               }}
               className="mb-4 font-mono text-xs tracking-widest text-gray-500 uppercase hover:text-black"
             >

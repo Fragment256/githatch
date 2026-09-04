@@ -175,7 +175,7 @@ export async function listRepoSecrets(params: {
   repo: string
 }): Promise<string[]> {
   const { token, owner, repo } = params
-  const res = await fetch(`${API}/repos/${owner}/${repo}/actions/secrets`, {
+  const res = await fetch(`${API}/repos/${owner}/${repo}/actions/secrets?per_page=100`, {
     headers: authHeaders(token),
   })
   if (!res.ok) throw new Error(`Failed to list secrets: ${res.status}`)

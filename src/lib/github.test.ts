@@ -208,6 +208,17 @@ describe('listRepoSecrets', () => {
     expect(names).toEqual(['GH_TOKEN', 'CLAUDE_CODE_OAUTH_TOKEN'])
   })
 
+  it('requests per_page=100 to avoid the 30-secret default truncation', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ total_count: 0, secrets: [] }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    await listRepoSecrets({ token: 'gho_test', owner: 'alice', repo: 'my-repo' })
+    const url = fetchMock.mock.calls[0][0] as string
+    expect(url).toContain('per_page=100')
+  })
+
   it('returns empty array when no secrets exist', async () => {
     vi.stubGlobal(
       'fetch',

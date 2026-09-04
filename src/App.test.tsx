@@ -387,4 +387,86 @@ describe('App — task form submission', () => {
     expect(await screen.findByText('Network error')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /duplicate/i })).toBeInTheDocument()
   })
+
+  it('discards a stale handleEditTask response that resolves after a second edit click', async () => {
+    const taskA: GithatchTask = {
+      slug: 'task-a',
+      displayName: 'Task A',
+      schedule: '0 9 * * *',
+      workflowId: 1,
+      path: '.github/workflows/githatch-task-a.yml',
+      enabled: true,
+      outputDestination: { type: 'new_issue' },
+      prompt: 'Do A.',
+    }
+    const taskB: GithatchTask = {
+      slug: 'task-b',
+      displayName: 'Task B',
+      schedule: '0 10 * * *',
+      workflowId: 2,
+      path: '.github/workflows/githatch-task-b.yml',
+      enabled: true,
+      outputDestination: { type: 'new_issue' },
+      prompt: 'Do B.',
+    }
+    mockUseTasks.mockReturnValue({ ...defaultTasksState, tasks: [taskA, taskB] })
+
+    let resolveStale: (yaml: string) => void = () => {}
+    const staleYaml =
+      'name: Task A\non:\n  schedule:\n    - cron: "0 9 * * *"\n  workflow_dispatch:\njobs:\n  run:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: anthropics/claude-code-action@v1\n        with:\n          prompt: |\n            Do A.\n'
+    const freshYaml =
+      'name: Task B\non:\n  schedule:\n    - cron: "0 10 * * *"\n  workflow_dispatch:\njobs:\n  run:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: anthropics/claude-code-action@v1\n        with:\n          prompt: |\n            Do B.\n'
+    vi.mocked(github.fetchFileContent)
+      .mockReturnValueOnce(
+        new Promise<string>((resolve) => {
+          resolveStale = resolve
+        }),
+      )
+      .mockResolvedValueOnce(freshYaml)
+
+    render(<App />, { wrapper })
+
+    const editBtns = await screen.findAllByRole('button', { name: /edit/i })
+    fireEvent.click(editBtns[0]) // click Edit on Task A — slow fetch
+    fireEvent.click(editBtns[1]) // click Edit on Task B — fast fetch
+
+    // Task B's fetch resolves immediately; editor opens for Task B
+    await waitFor(() => expect(screen.getByRole('button', { name: /← back/i })).toBeInTheDocument())
+
+    // Now resolve the stale Task A fetch — should be discarded
+    await act(async () => {
+      resolveStale(staleYaml)
+    })
+
+    // Editor is still showing (Task B's view) — not replaced by Task A
+    expect(screen.getByRole('button', { name: /← back/i })).toBeInTheDocument()
+  })
+
+  it('clears saveError when navigating Back from new-task view', async () => {
+    const task: GithatchTask = {
+      slug: 'daily-digest',
+      displayName: 'Daily Digest',
+      schedule: '0 9 * * *',
+      workflowId: 1,
+      path: '.github/workflows/githatch-daily-digest.yml',
+      enabled: true,
+      outputDestination: { type: 'new_issue' },
+      prompt: 'Summarize.',
+    }
+    mockUseTasks.mockReturnValue({ ...defaultTasksState, tasks: [task] })
+    vi.mocked(github.fetchFileContent).mockRejectedValue(new Error('Load failed'))
+
+    render(<App />, { wrapper })
+    // Trigger a load error (shows saveError in tasks view)
+    const duplicateBtn = await screen.findByRole('button', { name: /duplicate/i })
+    fireEvent.click(duplicateBtn)
+    expect(await screen.findByText('Load failed')).toBeInTheDocument()
+
+    // Navigate to new-task and back
+    fireEvent.click(screen.getAllByRole('button', { name: /\+ new task/i })[0])
+    fireEvent.click(screen.getByRole('button', { name: /← back/i }))
+
+    // saveError should be gone
+    expect(screen.queryByText('Load failed')).not.toBeInTheDocument()
+  })
 })
