@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ToolsPanel } from './ToolsPanel'
+import * as tools from '@/lib/tools'
 
 const defaultProps = { token: 'gho_test', owner: 'testuser', repo: 'my-repo' }
 
@@ -65,5 +66,41 @@ describe('ToolsPanel', () => {
     await screen.findByRole('button', { name: 'Install' })
     const link = screen.getByRole('link', { name: /Open repo secrets/ })
     expect((link as HTMLAnchorElement).href).toContain('testuser/my-repo/settings/secrets')
+  })
+
+  it('discards stale checkToolInstalled response when repo changes', async () => {
+    let staleResolve!: (result: boolean) => void
+    vi.spyOn(tools, 'checkToolInstalled')
+      .mockImplementationOnce(
+        () =>
+          new Promise<boolean>((resolve) => {
+            staleResolve = resolve
+          }),
+      )
+      .mockResolvedValue(false)
+
+    const { rerender } = render(<ToolsPanel token="gho_test" owner="testuser" repo="repo-a" />)
+
+    // Switch repo before repo-a's check resolves
+    rerender(<ToolsPanel token="gho_test" owner="testuser" repo="repo-b" />)
+
+    // Wait for repo-b's result (not installed → Install button)
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Install' })).toBeDefined())
+
+    // Resolve stale repo-a response as "installed"
+    await act(async () => {
+      staleResolve(true)
+    })
+
+    // Stale result must be discarded — still "Install", not "Reinstall"/"Installed"
+    expect(screen.queryByText('Installed')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Install' })).toBeDefined()
+  })
+
+  it('Reinstall button is enabled when tool is already installed', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }))
+    render(<ToolsPanel {...defaultProps} />)
+    const btn = await screen.findByRole('button', { name: 'Reinstall' })
+    expect((btn as HTMLButtonElement).disabled).toBe(false)
   })
 })

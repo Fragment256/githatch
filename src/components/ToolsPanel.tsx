@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { TOOLS, checkToolInstalled, installTool, type Tool } from '@/lib/tools'
 
 interface Props {
@@ -22,10 +22,19 @@ function ToolCard({
   const [installing, setInstalling] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const requestIdRef = useRef(0)
+
   useEffect(() => {
+    const id = ++requestIdRef.current
     checkToolInstalled({ token, owner, repo, fileName: tool.workflowFileName })
-      .then(setInstalled)
-      .catch(() => setInstalled(false))
+      .then((result) => {
+        if (id !== requestIdRef.current) return
+        setInstalled(result)
+      })
+      .catch(() => {
+        if (id !== requestIdRef.current) return
+        setInstalled(false)
+      })
   }, [token, owner, repo, tool.workflowFileName])
 
   const handleInstall = async () => {
@@ -58,7 +67,7 @@ function ToolCard({
         {installed !== null && (
           <button
             onClick={handleInstall}
-            disabled={installing || installed === true}
+            disabled={installing}
             className="shrink-0 border-2 border-black bg-black px-3 py-1.5 font-mono text-xs tracking-widest text-white uppercase transition-colors duration-100 hover:bg-white hover:text-black disabled:opacity-50"
           >
             {installing ? 'Installing…' : installed ? 'Reinstall' : 'Install'}
