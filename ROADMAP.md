@@ -77,3 +77,4 @@ Items deliberately on hold — not prioritised but not abandoned.
 | Guard SecretsView against stale checkSecretExists responses               | #57 | 2026-09-04 |
 | Guard ToolCard against stale checkToolInstalled responses; fix Reinstall  | —   | 2026-09-04 |
 | Fix ActivityPanel task effect missing deps; sparklines never load async   | —   | 2026-09-04 |
+| Guard AgentConfig against stale fetchRepoAgentConfig responses            | —   | 2026-09-04 |
