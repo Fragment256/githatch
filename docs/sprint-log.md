@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-04
+
+- Action: issues
+- Summary: CI green on main (latest Deploy to GitHub Pages run succeeded on current HEAD). No open PRs. Re-verified both open issues fresh: #44 (severed git history) and #46 (credential-stealing payload incident) both still OPEN with unchanged comment counts, and `gh api repos/Fragment256/githatch --jq '.permissions'` still shows `push: false` for the bot, confirming both remain correctly gated on human-only actions (force-push decision on shared history, secret rotation/account audit) — neither attempted. ROADMAP Backlog empty (only the two human-blocked Paused items); all 7 `docs/specs/` entries `status: done`. Given the queue has now been effectively dry since 2026-08-29 (PR #52) — well past this project's own "day 3 of a dry streak" precedent that has reliably surfaced real bugs before (PRs #43, #50, #52) — dispatched an Explore agent for an unscoped audit instead of logging another no-op. It found two CONFIRMED bugs: (1) `TaskList.tsx`'s `RunHistoryPanel` shares non-keyed `viewingOutput`/`loadingOutput` state across all runs in the history list, so clicking "View output" on two different runs before the first resolves can silently drop the second click's result; (2) `App.tsx`'s `handleEditTask`/`handleDuplicateTask` set `saveError` on `fetchFileContent` failure but never change `view`, and `saveError` was only rendered in the `new-task`/`edit-task` views (entered exclusively on the success path) — so a failed Edit/Duplicate click produced **zero** user-visible feedback, the most severe finding since it looks like the app silently ignored the click entirely. Fixed the latter via TDD: added two regression tests in `App.test.tsx` mocking `fetchFileContent` to reject and asserting the error text appears while the Edit/Duplicate button remains visible (confirmed RED against pre-fix code), then rendered the existing `saveError` banner in the `tasks` view too, mirroring its existing style in `new-task`/`edit-task` (confirmed GREEN, 413/413 tests, 2 new). Left the `RunHistoryPanel` race for a future sprint — kept this PR to the single higher-severity fix per the one-item-per-sprint convention. Full local baseline clean: `pnpm install --frozen-lockfile`, `format:check`, `lint`, `type-check` all green. PR #55 raised.
+- Rationale: Priority order ranks feature/UX correctness above documentation or standalone test-coverage work, and a fully silent failure on a common action (Edit/Duplicate) is worse than a display glitch reachable only via fast double-clicking — consistent with precedent (2026-08-02, 2026-08-28, 2026-09-03) of using an empty structured queue to surface a real, evidence-backed gap rather than manufacturing scope or logging a bare no-op.
+- PR: #55
+- ROADMAP updated: no
+
 ## 2026-09-03
 
 - Action: issues
