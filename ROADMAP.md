@@ -76,3 +76,4 @@ Items deliberately on hold — not prioritised but not abandoned.
 | Discard stale output in RunHistoryPanel on rapid View clicks (closes #56) | #56 | 2026-09-04 |
 | Guard SecretsView against stale checkSecretExists responses               | #57 | 2026-09-04 |
 | Guard ToolCard against stale checkToolInstalled responses; fix Reinstall  | —   | 2026-09-04 |
+| Fix ActivityPanel task effect missing deps; sparklines never load async   | —   | 2026-09-04 |
