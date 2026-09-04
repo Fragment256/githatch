@@ -986,4 +986,96 @@ describe('TaskList', () => {
       expect(screen.getByText('Success')).toBeInTheDocument()
     })
   })
+
+  describe('TaskRow last-run fetch race condition', () => {
+    const STALE_RUN: WorkflowRun = {
+      id: 10,
+      status: 'completed',
+      conclusion: 'success',
+      createdAt: '2024-01-01T09:00:00Z',
+      htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/10',
+    }
+    const CURRENT_RUN: WorkflowRun = {
+      id: 11,
+      status: 'completed',
+      conclusion: 'failure',
+      createdAt: '2024-01-02T09:00:00Z',
+      htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/11',
+    }
+
+    it('discards stale last-run when StrictMode fires initial fetch twice', async () => {
+      let resolveFirst!: (v: WorkflowRun[]) => void
+      let resolveSecond!: (v: WorkflowRun[]) => void
+      const p1 = new Promise<WorkflowRun[]>((r) => {
+        resolveFirst = r
+      })
+      const p2 = new Promise<WorkflowRun[]>((r) => {
+        resolveSecond = r
+      })
+
+      // StrictMode fires TaskRow's initial useEffect twice: p1 (stale success) and p2 (current failure).
+      vi.spyOn(workflows, 'getWorkflowRuns')
+        .mockImplementationOnce(() => p1)
+        .mockImplementationOnce(() => p2)
+
+      render(
+        <StrictMode>
+          <TaskList {...BASE_PROPS} tasks={[TASK]} />
+        </StrictMode>,
+      )
+
+      // Resolve p2 first (current — failure → "Failed" badge)
+      await act(async () => {
+        resolveSecond([CURRENT_RUN])
+      })
+      await waitFor(() => expect(screen.getByText('Failed')).toBeInTheDocument())
+
+      // Resolve p1 (stale — success → no badge — must not overwrite current failure)
+      await act(async () => {
+        resolveFirst([STALE_RUN])
+      })
+
+      expect(screen.getByText('Failed')).toBeInTheDocument()
+    })
+
+    it('re-fetches last run when repo changes while workflowId stays the same', async () => {
+      const firstRun: WorkflowRun = {
+        id: 1,
+        status: 'completed',
+        conclusion: 'success',
+        createdAt: '2024-01-01T09:00:00Z',
+        htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/1',
+      }
+      const secondRun: WorkflowRun = {
+        id: 2,
+        status: 'completed',
+        conclusion: 'failure',
+        createdAt: '2024-01-02T09:00:00Z',
+        htmlUrl: 'https://github.com/otheruser/other-repo/actions/runs/2',
+      }
+
+      vi.spyOn(workflows, 'getWorkflowRuns')
+        .mockResolvedValueOnce([firstRun])
+        .mockResolvedValueOnce([secondRun])
+
+      const { rerender } = render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+
+      await waitFor(() =>
+        expect(workflows.getWorkflowRuns).toHaveBeenCalledWith(
+          expect.objectContaining({ owner: 'testuser', repo: 'my-repo' }),
+        ),
+      )
+      // firstRun is success — no badge shown
+      expect(screen.queryByText('Failed')).not.toBeInTheDocument()
+
+      // Switch repo; workflowId (42) stays the same
+      rerender(<TaskList {...BASE_PROPS} owner="otheruser" repo="other-repo" tasks={[TASK]} />)
+
+      // Effect must re-fire with new owner/repo and surface the failure from the new repo
+      await waitFor(() => expect(screen.getByText('Failed')).toBeInTheDocument())
+      expect(workflows.getWorkflowRuns).toHaveBeenCalledWith(
+        expect.objectContaining({ owner: 'otheruser', repo: 'other-repo' }),
+      )
+    })
+  })
 })

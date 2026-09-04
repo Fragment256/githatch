@@ -325,6 +325,7 @@ function TaskRow({
   const [polling, setPolling] = useState(false)
   const [triggeredOutput, setTriggeredOutput] = useState<RunOutput | null>(null)
   const prevRunIdRef = useRef<number | null>(null)
+  const fetchLastRunRequestId = useRef(0)
   const outputDestRef = useRef(task.outputDestination)
   outputDestRef.current = task.outputDestination
   const onLastRunChangeRef = useRef(onLastRunChange)
@@ -332,15 +333,16 @@ function TaskRow({
 
   useEffect(() => {
     if (!task.workflowId) return
+    const id = ++fetchLastRunRequestId.current
     getWorkflowRuns({ token, owner, repo, workflowId: task.workflowId, defaultBranch, perPage: 1 })
       .then((runs) => {
+        if (id !== fetchLastRunRequestId.current) return
         const run = runs[0] ?? null
         setLastRun(run)
         onLastRunChangeRef.current(task.slug, run)
       })
       .catch(() => {})
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [task.workflowId])
+  }, [task.workflowId, token, owner, repo, defaultBranch])
 
   useEffect(() => {
     if (!polling || !task.workflowId) return
