@@ -284,6 +284,12 @@ export default function App() {
               </div>
             </div>
 
+            {view === 'tasks' && saveError && (
+              <div className="border-2 border-black bg-white px-4 py-3 text-sm text-black">
+                {saveError}
+              </div>
+            )}
+
             {view === 'tasks' && activeRepo && (
               <GettingStarted
                 repoFullName={activeRepo.full_name}
