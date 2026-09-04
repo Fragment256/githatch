@@ -831,4 +831,97 @@ describe('TaskList', () => {
       expect(screen.queryByText('Sprint Report')).not.toBeInTheDocument()
     })
   })
+
+  describe('RunHistoryPanel output race condition', () => {
+    const TWO_RUNS = [
+      {
+        id: 1,
+        status: 'completed',
+        conclusion: 'success',
+        createdAt: '2024-01-01T09:00:00Z',
+        htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/1',
+      },
+      {
+        id: 2,
+        status: 'completed',
+        conclusion: 'success',
+        createdAt: '2024-01-01T10:00:00Z',
+        htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/2',
+      },
+    ]
+
+    it('discards stale output when a second click fires before the first resolves', async () => {
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(TWO_RUNS)
+
+      let resolveRun1!: (v: { type: 'issue'; title: string; htmlUrl: string } | null) => void
+      let resolveRun2!: (v: { type: 'issue'; title: string; htmlUrl: string } | null) => void
+      const p1 = new Promise<{ type: 'issue'; title: string; htmlUrl: string } | null>((r) => {
+        resolveRun1 = r
+      })
+      const p2 = new Promise<{ type: 'issue'; title: string; htmlUrl: string } | null>((r) => {
+        resolveRun2 = r
+      })
+
+      vi.spyOn(workflows, 'fetchRunOutput')
+        .mockImplementationOnce(() => p1)
+        .mockImplementationOnce(() => p2)
+
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+
+      fireEvent.click(screen.getAllByRole('button', { name: /^history$/i })[0])
+      await waitFor(() =>
+        expect(screen.getAllByRole('button', { name: /view output/i })).toHaveLength(2),
+      )
+
+      // Click View output for run 1 (slow fetch)
+      fireEvent.click(screen.getAllByRole('button', { name: /view output/i })[0])
+      // Click View output for run 2 immediately — supersedes run 1
+      fireEvent.click(screen.getByRole('button', { name: /view output/i }))
+
+      // Resolve run 1 (stale — run 2 was requested more recently)
+      await act(async () => {
+        resolveRun1({
+          type: 'issue',
+          title: 'Run 1 output',
+          htmlUrl: 'https://github.com/testuser/my-repo/issues/1',
+        })
+      })
+
+      // Stale result must be discarded
+      expect(screen.queryByText('Run 1 output')).not.toBeInTheDocument()
+      // Run 2 must still show Loading… — loadingOutput must not be cleared prematurely
+      expect(screen.getByRole('button', { name: /loading/i })).toBeInTheDocument()
+
+      // Resolve run 2 (current request)
+      await act(async () => {
+        resolveRun2({
+          type: 'issue',
+          title: 'Run 2 output',
+          htmlUrl: 'https://github.com/testuser/my-repo/issues/2',
+        })
+      })
+
+      await waitFor(() => expect(screen.getByText('Run 2 output')).toBeInTheDocument())
+      expect(screen.queryByText('Run 1 output')).not.toBeInTheDocument()
+    })
+
+    it('shows output correctly when single View output click resolves normally', async () => {
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(TWO_RUNS)
+
+      vi.spyOn(workflows, 'fetchRunOutput').mockResolvedValue({
+        type: 'issue',
+        title: 'Run 1 output',
+        htmlUrl: 'https://github.com/testuser/my-repo/issues/1',
+      })
+
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      fireEvent.click(screen.getAllByRole('button', { name: /^history$/i })[0])
+      await waitFor(() =>
+        expect(screen.getAllByRole('button', { name: /view output/i })).toHaveLength(2),
+      )
+
+      fireEvent.click(screen.getAllByRole('button', { name: /view output/i })[0])
+      await waitFor(() => expect(screen.getByText('Run 1 output')).toBeInTheDocument())
+    })
+  })
 })
