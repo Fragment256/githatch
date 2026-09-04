@@ -72,3 +72,5 @@ Items deliberately on hold — not prioritised but not abandoned.
 | Guard secret-status effect against stale repo-switch responses            | #52 | 2026-08-29 |
 | Pin all static GitHub Actions workflows to commit SHAs (closes #47)       | —   | 2026-08-31 |
 | Add post-run verification step to catch silent sprint no-ops (closes #54) | —   | 2026-09-03 |
+| Surface edit/duplicate errors in task list view (closes #55)              | #55 | 2026-09-04 |
+| Discard stale output in RunHistoryPanel on rapid View clicks (closes #56) | #56 | 2026-09-04 |
