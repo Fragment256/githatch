@@ -148,6 +148,7 @@ function RunHistoryPanel({
   )
   const [loadingOutput, setLoadingOutput] = useState<number | null>(null)
   const [outputErrors, setOutputErrors] = useState<Record<number, string>>({})
+  const outputRequestId = useRef(0)
 
   const fetchRuns = () => {
     if (!task.workflowId) return
@@ -177,6 +178,7 @@ function RunHistoryPanel({
       setViewingOutput(null)
       return
     }
+    const id = ++outputRequestId.current
     setLoadingOutput(run.id)
     setOutputErrors((prev) => ({ ...prev, [run.id]: '' }))
     try {
@@ -188,18 +190,22 @@ function RunHistoryPanel({
         outputDestination: task.outputDestination,
         defaultBranch,
       })
+      if (id !== outputRequestId.current) return
       if (!output) {
         setOutputErrors((prev) => ({ ...prev, [run.id]: 'No output found for this run.' }))
       } else {
         setViewingOutput({ runId: run.id, output })
       }
     } catch (err) {
+      if (id !== outputRequestId.current) return
       setOutputErrors((prev) => ({
         ...prev,
         [run.id]: err instanceof Error ? err.message : 'Failed to load output',
       }))
     } finally {
-      setLoadingOutput(null)
+      if (id === outputRequestId.current) {
+        setLoadingOutput(null)
+      }
     }
   }
 
