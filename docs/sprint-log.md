@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-04 (sprint 3)
+
+- Action: bug-fix
+- Summary: CI green on main (PR #56 merged, ROADMAP updated, da1e516 HEAD). No open PRs. Decision tree: no open PRs, same two blocked issues (#44, #46), ROADMAP Backlog empty — third consecutive sprint-day with dry structured queue. Dispatched an Explore agent for an unscoped audit (past the 3-day threshold). It found 10 potential issues; highest severity: `SecretsView`'s `useEffect` fires 3 parallel `checkSecretExists` calls with no monotonic request-id guard — structurally identical to the stale-response bug fixed in PR #52 for `App.tsx`. Switching repos quickly could let slow in-flight responses from the previous repo overwrite the secrets status panel (showing the wrong "Set"/"Not set" state after repo switch). Fixed via TDD: added one regression test to `SecretsView.test.tsx` (renders repo A with 3 stale pending promises, re-renders with repo B resolving immediately to "Not set", resolves stale promises with `true`, asserts status remains "Not set" — confirmed RED against pre-fix code); added `requestIdRef` guard matching the PR #52 / PR #50 / PR #43 pattern (confirmed GREEN, 416/416 tests). PR #57 raised.
+- Rationale: The stale-request guard pattern has been applied to every other async effect in the app (useTasks.ts, ActivityPanel, App.tsx secret-status) — SecretsView was the remaining unguarded case displaying per-repo state. Correctness before cosmetics; the fix is minimal and follows a well-established project pattern.
+- PR: #57
+- ROADMAP updated: no
+
 ## 2026-09-04 (sprint 2)
 
 - Action: bug-fix
