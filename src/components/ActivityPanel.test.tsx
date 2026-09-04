@@ -75,6 +75,34 @@ describe('ActivityPanel', () => {
     expect(screen.getByText(/0 runs/)).toBeInTheDocument()
   })
 
+  it('fetches workflow runs when tasks arrive after initial empty render', async () => {
+    const task = makeTask('task-a', 1)
+    mockGetWorkflowRuns.mockResolvedValue([
+      {
+        id: 1,
+        status: 'completed',
+        conclusion: 'success',
+        createdAt: new Date().toISOString(),
+        htmlUrl: '',
+      },
+    ])
+    mockGetRecentCommits.mockResolvedValue([])
+    mockGetRecentPRs.mockResolvedValue([])
+
+    const { rerender } = render(
+      <ActivityPanel tasks={[]} token="t" owner="o" repo="r" defaultBranch="main" />,
+    )
+    // No task rows on initial render with empty tasks
+    expect(screen.queryByText('task-a')).not.toBeInTheDocument()
+
+    // Tasks arrive via props (simulating async load)
+    rerender(<ActivityPanel tasks={[task]} token="t" owner="o" repo="r" defaultBranch="main" />)
+
+    // Effect should re-run and populate the task activity row
+    await waitFor(() => expect(screen.getByText('task-a')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText(/1 run/)).toBeInTheDocument())
+  })
+
   it('ignores a stale commit response that resolves after the repo changes', async () => {
     let resolveStaleCommits: (c: CommitSummary[]) => void = () => {}
     const staleCommits = new Promise<CommitSummary[]>((resolve) => {

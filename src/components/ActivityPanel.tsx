@@ -104,8 +104,7 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
           )
         })
     })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, owner, repo])
+  }, [token, owner, repo, tasks, defaultBranch])
 
   useEffect(() => {
     const id = ++repoRequestId.current
