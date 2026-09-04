@@ -1,7 +1,8 @@
+import { StrictMode } from 'react'
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { TaskList } from './TaskList'
-import type { GithatchTask } from '@/lib/workflows'
+import type { GithatchTask, WorkflowRun } from '@/lib/workflows'
 import * as workflows from '@/lib/workflows'
 import * as github from '@/lib/github'
 
@@ -922,6 +923,67 @@ describe('TaskList', () => {
 
       fireEvent.click(screen.getAllByRole('button', { name: /view output/i })[0])
       await waitFor(() => expect(screen.getByText('Run 1 output')).toBeInTheDocument())
+    })
+  })
+
+  describe('RunHistoryPanel fetchRuns race condition', () => {
+    const STALE_RUN: WorkflowRun = {
+      id: 1,
+      status: 'completed',
+      conclusion: 'failure',
+      createdAt: '2024-01-01T09:00:00Z',
+      htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/1',
+    }
+    const CURRENT_RUN: WorkflowRun = {
+      id: 2,
+      status: 'completed',
+      conclusion: 'success',
+      createdAt: '2024-01-02T09:00:00Z',
+      htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/2',
+    }
+
+    it('discards stale run list when StrictMode effect fires fetchRuns twice concurrently', async () => {
+      let resolveFirst!: (v: WorkflowRun[]) => void
+      let resolveSecond!: (v: WorkflowRun[]) => void
+      const p1 = new Promise<WorkflowRun[]>((r) => {
+        resolveFirst = r
+      })
+      const p2 = new Promise<WorkflowRun[]>((r) => {
+        resolveSecond = r
+      })
+
+      // StrictMode doubles all effects. TaskRow.useEffect fires twice (calls 1+2) on initial
+      // render; RunHistoryPanel.fetchRuns fires twice (calls 3+4) after History is clicked.
+      vi.spyOn(workflows, 'getWorkflowRuns')
+        .mockResolvedValueOnce([]) // TaskRow StrictMode effect — call 1
+        .mockResolvedValueOnce([]) // TaskRow StrictMode effect — call 2
+        .mockImplementationOnce(() => p1) // RunHistoryPanel first effect (stale)
+        .mockImplementationOnce(() => p2) // RunHistoryPanel second effect (current)
+
+      render(
+        <StrictMode>
+          <TaskList {...BASE_PROPS} tasks={[TASK]} />
+        </StrictMode>,
+      )
+
+      // Open panel — StrictMode fires useEffect twice (p1 and p2 both in-flight)
+      fireEvent.click(screen.getAllByRole('button', { name: /^history$/i })[0])
+
+      // Resolve p2 first (the current/second request — "Success" run)
+      await act(async () => {
+        resolveSecond([CURRENT_RUN])
+      })
+
+      await waitFor(() => expect(screen.getByText('Success')).toBeInTheDocument())
+
+      // Resolve p1 (stale — should be discarded)
+      await act(async () => {
+        resolveFirst([STALE_RUN])
+      })
+
+      // Stale "failure" conclusion must not overwrite the current "Success"
+      expect(screen.queryByText('failure')).not.toBeInTheDocument()
+      expect(screen.getByText('Success')).toBeInTheDocument()
     })
   })
 })

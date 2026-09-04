@@ -149,17 +149,24 @@ function RunHistoryPanel({
   const [loadingOutput, setLoadingOutput] = useState<number | null>(null)
   const [outputErrors, setOutputErrors] = useState<Record<number, string>>({})
   const outputRequestId = useRef(0)
+  const fetchRunsRequestId = useRef(0)
 
   const fetchRuns = () => {
     if (!task.workflowId) return
+    const id = ++fetchRunsRequestId.current
     setLoadingRuns(true)
     setRunsError(null)
     getWorkflowRuns({ token, owner, repo, workflowId: task.workflowId, defaultBranch })
-      .then(setRuns)
-      .catch((err: unknown) =>
-        setRunsError(err instanceof Error ? err.message : 'Failed to load runs'),
-      )
-      .finally(() => setLoadingRuns(false))
+      .then((result) => {
+        if (id === fetchRunsRequestId.current) setRuns(result)
+      })
+      .catch((err: unknown) => {
+        if (id === fetchRunsRequestId.current)
+          setRunsError(err instanceof Error ? err.message : 'Failed to load runs')
+      })
+      .finally(() => {
+        if (id === fetchRunsRequestId.current) setLoadingRuns(false)
+      })
   }
 
   useEffect(() => {
