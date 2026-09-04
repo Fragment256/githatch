@@ -80,3 +80,6 @@ Items deliberately on hold — not prioritised but not abandoned.
 | Guard AgentConfig against stale fetchRepoAgentConfig responses                          | —   | 2026-09-04 |
 | Guard RunHistoryPanel fetchRuns against stale StrictMode double-effect                  | —   | 2026-09-04 |
 | Guard TaskRow initial last-run fetch; add missing effect deps (token/owner/repo/branch) | —   | 2026-09-04 |
+| Fix listRepoSecrets truncation at 30 secrets; add per_page=100                          | —   | 2026-09-04 |
+| Guard handleEditTask/handleDuplicateTask against stale double-click race                | —   | 2026-09-04 |
+| Clear saveError on Back navigation from new-task and edit-task views                    | —   | 2026-09-04 |
