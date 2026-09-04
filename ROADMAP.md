@@ -83,3 +83,5 @@ Items deliberately on hold — not prioritised but not abandoned.
 | Fix listRepoSecrets truncation at 30 secrets; add per_page=100                          | —   | 2026-09-04 |
 | Guard handleEditTask/handleDuplicateTask against stale double-click race                | —   | 2026-09-04 |
 | Clear saveError on Back navigation from new-task and edit-task views                    | —   | 2026-09-04 |
+| Guard TokenSetup checkSecretExists against stale mid-flight secretName changes          | —   | 2026-09-04 |
+| RepoPicker: guard ArrowDown against -1 highlightedIndex when filtered list is empty     | —   | 2026-09-04 |
