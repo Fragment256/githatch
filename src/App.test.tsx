@@ -347,4 +347,44 @@ describe('App — task form submission', () => {
     fireEvent.click(editBtn)
     await waitFor(() => expect(screen.getByRole('button', { name: /← back/i })).toBeInTheDocument())
   })
+
+  it('shows an error in the tasks view when loading a task to edit fails', async () => {
+    const task: GithatchTask = {
+      slug: 'daily-digest',
+      displayName: 'Daily Digest',
+      schedule: '0 9 * * *',
+      workflowId: 1,
+      path: '.github/workflows/githatch-daily-digest.yml',
+      enabled: true,
+      outputDestination: { type: 'new_issue' },
+      prompt: 'Summarize.',
+    }
+    mockUseTasks.mockReturnValue({ ...defaultTasksState, tasks: [task] })
+    vi.mocked(github.fetchFileContent).mockRejectedValue(new Error('404 Not Found'))
+    render(<App />, { wrapper })
+    const editBtn = await screen.findByRole('button', { name: /edit/i })
+    fireEvent.click(editBtn)
+    expect(await screen.findByText('404 Not Found')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument()
+  })
+
+  it('shows an error in the tasks view when loading a task to duplicate fails', async () => {
+    const task: GithatchTask = {
+      slug: 'daily-digest',
+      displayName: 'Daily Digest',
+      schedule: '0 9 * * *',
+      workflowId: 1,
+      path: '.github/workflows/githatch-daily-digest.yml',
+      enabled: true,
+      outputDestination: { type: 'new_issue' },
+      prompt: 'Summarize.',
+    }
+    mockUseTasks.mockReturnValue({ ...defaultTasksState, tasks: [task] })
+    vi.mocked(github.fetchFileContent).mockRejectedValue(new Error('Network error'))
+    render(<App />, { wrapper })
+    const duplicateBtn = await screen.findByRole('button', { name: /duplicate/i })
+    fireEvent.click(duplicateBtn)
+    expect(await screen.findByText('Network error')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /duplicate/i })).toBeInTheDocument()
+  })
 })
