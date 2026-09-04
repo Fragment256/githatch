@@ -6,7 +6,7 @@ Agent instructions: work top-to-bottom in Backlog. Move item to In Progress when
 
 ## In Progress
 
-- [ ] **Guard SecretsView against stale checkSecretExists responses** — PR #57 open, CI pending.
+_(none)_
 
 ---
 
@@ -74,3 +74,4 @@ Items deliberately on hold — not prioritised but not abandoned.
 | Add post-run verification step to catch silent sprint no-ops (closes #54) | —   | 2026-09-03 |
 | Surface edit/duplicate errors in task list view (closes #55)              | #55 | 2026-09-04 |
 | Discard stale output in RunHistoryPanel on rapid View clicks (closes #56) | #56 | 2026-09-04 |
+| Guard SecretsView against stale checkSecretExists responses               | #57 | 2026-09-04 |
