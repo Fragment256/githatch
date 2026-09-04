@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { AgentConfig } from './AgentConfig'
 import * as github from '@/lib/github'
@@ -92,6 +92,58 @@ describe('AgentConfig', () => {
     fireEvent.click(btn) // close
     fireEvent.click(btn) // reopen
     expect(spy).toHaveBeenCalledOnce()
+  })
+
+  it('ignores stale fetch response when repo changes mid-flight', async () => {
+    let resolveStale!: (v: Awaited<ReturnType<typeof github.fetchRepoAgentConfig>>) => void
+    const repoBConfig = {
+      hasClaude: false,
+      hasSettings: false,
+      skills: ['repo-b-skill'],
+      agents: [],
+      hasAgentsMd: false,
+      hasCodexConfig: false,
+      hasCodexHooks: false,
+    }
+    // First call (repo-a): paused so we can resolve it as stale later.
+    // All subsequent calls (repo-b, and any re-fetch after accordion re-opens): resolve immediately.
+    vi.spyOn(github, 'fetchRepoAgentConfig')
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveStale = resolve
+          }),
+      )
+      .mockResolvedValue(repoBConfig)
+
+    const { rerender } = render(<AgentConfig {...BASE_PROPS} repo="repo-a" />)
+
+    // open for repo-a — fetch starts, paused
+    fireEvent.click(screen.getByRole('button', { name: /agent config/i }))
+
+    // switch repo before fetch resolves
+    rerender(<AgentConfig {...BASE_PROPS} repo="repo-b" />)
+
+    // open for repo-b — fetch resolves immediately with repo-b data
+    fireEvent.click(screen.getByRole('button', { name: /agent config/i }))
+    await waitFor(() => expect(screen.getByText('repo-b-skill')).toBeInTheDocument())
+
+    // resolve stale repo-a response
+    await act(async () => {
+      resolveStale({
+        hasClaude: true,
+        hasSettings: true,
+        skills: ['repo-a-skill'],
+        agents: [],
+        hasAgentsMd: false,
+        hasCodexConfig: false,
+        hasCodexHooks: false,
+      })
+    })
+
+    // stale data must not overwrite repo-b's result
+    expect(screen.queryByText('repo-a-skill')).toBeNull()
+    expect(screen.getByText('repo-b-skill')).toBeInTheDocument()
   })
 
   it('resets and re-fetches when repo changes', async () => {

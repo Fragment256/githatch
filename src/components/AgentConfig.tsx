@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { fetchRepoAgentConfig, type RepoAgentConfig } from '@/lib/github'
 
 interface Props {
@@ -83,6 +83,7 @@ export function AgentConfig({ token, owner, repo }: Props) {
   const [config, setConfig] = useState<RepoAgentConfig | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const requestIdRef = useRef(0)
 
   useEffect(() => {
     setConfig(null)
@@ -91,14 +92,22 @@ export function AgentConfig({ token, owner, repo }: Props) {
 
   useEffect(() => {
     if (!open || config !== null) return
+    const id = (requestIdRef.current += 1)
     setLoading(true)
     setError(null)
     fetchRepoAgentConfig({ token, owner, repo })
-      .then(setConfig)
-      .catch((err: unknown) =>
-        setError(err instanceof Error ? err.message : 'Failed to load config'),
-      )
-      .finally(() => setLoading(false))
+      .then((result) => {
+        if (id !== requestIdRef.current) return
+        setConfig(result)
+      })
+      .catch((err: unknown) => {
+        if (id !== requestIdRef.current) return
+        setError(err instanceof Error ? err.message : 'Failed to load config')
+      })
+      .finally(() => {
+        if (id !== requestIdRef.current) return
+        setLoading(false)
+      })
   }, [open, config, token, owner, repo])
 
   return (
