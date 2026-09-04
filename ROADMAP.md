@@ -6,7 +6,7 @@ Agent instructions: work top-to-bottom in Backlog. Move item to In Progress when
 
 ## In Progress
 
-_(none)_
+- [ ] **Guard SecretsView against stale checkSecretExists responses** — PR #57 open, CI pending.
 
 ---
 
