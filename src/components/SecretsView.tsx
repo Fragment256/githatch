@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { checkSecretExists } from '@/lib/secrets'
 import { TokenSetup } from './TokenSetup'
 
@@ -30,11 +30,20 @@ export function SecretsView({ token, owner, repo, onDone }: Props) {
     SYNTHETIC_API_KEY: 'checking',
   })
 
+  const requestIdRef = useRef(0)
+
   useEffect(() => {
+    const id = ++requestIdRef.current
     SECRETS.forEach(({ name }) => {
       checkSecretExists({ token, owner, repo, secretName: name })
-        .then((exists) => setStatuses((s) => ({ ...s, [name]: exists ? 'set' : 'unset' })))
-        .catch(() => setStatuses((s) => ({ ...s, [name]: 'unset' })))
+        .then((exists) => {
+          if (id !== requestIdRef.current) return
+          setStatuses((s) => ({ ...s, [name]: exists ? 'set' : 'unset' }))
+        })
+        .catch(() => {
+          if (id !== requestIdRef.current) return
+          setStatuses((s) => ({ ...s, [name]: 'unset' }))
+        })
     })
   }, [token, owner, repo])
 

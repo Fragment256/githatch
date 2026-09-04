@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { SecretsView } from './SecretsView'
 import * as secrets from '@/lib/secrets'
@@ -77,6 +77,47 @@ describe('SecretsView', () => {
     await waitFor(() => {
       expect(screen.getAllByRole('button', { name: /update/i }).length).toBeGreaterThan(0)
     })
+  })
+
+  it('ignores stale checkSecretExists responses after repo changes', async () => {
+    const staleResolvers: Array<(exists: boolean) => void> = []
+    vi.spyOn(secrets, 'checkSecretExists')
+      .mockImplementationOnce(
+        () =>
+          new Promise<boolean>((resolve) => {
+            staleResolvers.push(resolve)
+          }),
+      )
+      .mockImplementationOnce(
+        () =>
+          new Promise<boolean>((resolve) => {
+            staleResolvers.push(resolve)
+          }),
+      )
+      .mockImplementationOnce(
+        () =>
+          new Promise<boolean>((resolve) => {
+            staleResolvers.push(resolve)
+          }),
+      )
+      .mockResolvedValue(false)
+
+    const { rerender } = render(<SecretsView {...BASE_PROPS} />)
+
+    // Switch repo — triggers a second effect invocation
+    rerender(<SecretsView {...BASE_PROPS} repo="other-repo" />)
+
+    // Wait for the new repo's results to settle (all "Not set")
+    await waitFor(() => expect(screen.getAllByText('Not set').length).toBe(3))
+
+    // Resolve the stale first-repo promises with true (would show "Set" without the guard)
+    await act(async () => {
+      staleResolvers.forEach((resolve) => resolve(true))
+    })
+
+    // Stale responses must be discarded — still "Not set", no "Update" buttons
+    expect(screen.getAllByText('Not set').length).toBe(3)
+    expect(screen.queryAllByRole('button', { name: /update/i }).length).toBe(0)
   })
 
   it('returns to secrets list after TokenSetup onDone is called', async () => {
