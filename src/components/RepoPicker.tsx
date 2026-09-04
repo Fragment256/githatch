@@ -43,7 +43,9 @@ export function RepoPicker({ repos, activeRepo, loading, error, onSelect }: Prop
     if (e.key === 'ArrowDown') {
       e.preventDefault()
       setOpen(true)
-      setHighlightedIndex((i) => Math.min(i + 1, filtered.length - 1))
+      if (filtered.length > 0) {
+        setHighlightedIndex((i) => Math.min(i + 1, filtered.length - 1))
+      }
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
       setHighlightedIndex((i) => Math.max(i - 1, 0))

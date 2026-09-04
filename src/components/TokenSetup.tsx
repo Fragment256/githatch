@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { checkSecretExists, putRepoSecret } from '@/lib/secrets'
 
 interface SecretConfig {
@@ -80,13 +80,21 @@ export function TokenSetup({ token, owner, repo, secretName, onDone }: Props) {
   const [phase, setPhase] = useState<Phase>('checking')
   const [value, setValue] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const requestIdRef = useRef(0)
 
   const config = SECRET_CONFIGS[secretName] ?? FALLBACK_CONFIG
 
   useEffect(() => {
+    const reqId = ++requestIdRef.current
     checkSecretExists({ token, owner, repo, secretName })
-      .then((exists) => setPhase(exists ? 'not-needed' : 'setup'))
-      .catch(() => setPhase('setup'))
+      .then((exists) => {
+        if (reqId !== requestIdRef.current) return
+        setPhase(exists ? 'not-needed' : 'setup')
+      })
+      .catch(() => {
+        if (reqId !== requestIdRef.current) return
+        setPhase('setup')
+      })
   }, [token, owner, repo, secretName])
 
   const handleSave = async (e: React.FormEvent) => {

@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { TokenSetup } from './TokenSetup'
 import * as secrets from '@/lib/secrets'
@@ -127,6 +127,34 @@ describe('TokenSetup — CLAUDE_CODE_OAUTH_TOKEN', () => {
     fireEvent.click(screen.getByRole('button', { name: /save to repo/i }))
     await waitFor(() => screen.getByText(/token stored successfully/i))
     expect(putSpy).toHaveBeenCalledTimes(2)
+  })
+
+  it('stale checkSecretExists response is ignored when secretName changes mid-flight', async () => {
+    let resolveFirst!: (v: boolean) => void
+    const firstCheck = new Promise<boolean>((r) => {
+      resolveFirst = r
+    })
+
+    vi.spyOn(secrets, 'checkSecretExists')
+      .mockReturnValueOnce(firstCheck)
+      .mockResolvedValueOnce(false)
+
+    const { rerender } = render(<TokenSetup {...BASE_PROPS} secretName="CLAUDE_CODE_OAUTH_TOKEN" />)
+    // Re-render with a new secretName while the first check is still in flight
+    rerender(<TokenSetup {...BASE_PROPS} secretName="OPENAI_API_KEY" />)
+
+    // Second check resolves → should show setup form for OPENAI_API_KEY
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /save to repo/i })).toBeInTheDocument(),
+    )
+
+    // Resolve stale first check as "exists" — must NOT flip state to not-needed
+    await act(async () => {
+      resolveFirst(true)
+    })
+
+    expect(screen.getByRole('button', { name: /save to repo/i })).toBeInTheDocument()
+    expect(screen.queryByText(/already set on this repo/i)).not.toBeInTheDocument()
   })
 })
 

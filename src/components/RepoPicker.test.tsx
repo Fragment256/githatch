@@ -188,6 +188,27 @@ describe('RepoPicker', () => {
     expect(input).toHaveValue('octocat/hello-world')
   })
 
+  it('ArrowDown on an empty filtered list does not set highlightedIndex to -1', () => {
+    render(
+      <RepoPicker
+        repos={repos}
+        activeRepo={null}
+        loading={false}
+        error={null}
+        onSelect={mockOnSelect}
+      />,
+    )
+    const input = screen.getByRole('combobox')
+    fireEvent.focus(input)
+    // Filter to empty results
+    fireEvent.change(input, { target: { value: 'zzz-no-match' } })
+    expect(screen.getByText(/no repositories match/i)).toBeInTheDocument()
+    // ArrowDown should not crash; Enter should not call onSelect
+    fireEvent.keyDown(input, { key: 'ArrowDown' })
+    fireEvent.keyDown(input, { key: 'Enter' })
+    expect(mockOnSelect).not.toHaveBeenCalled()
+  })
+
   it('reverts stale query text when blurring without a selection', () => {
     render(
       <RepoPicker
