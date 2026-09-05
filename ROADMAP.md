@@ -85,3 +85,4 @@ Items deliberately on hold — not prioritised but not abandoned.
 | Clear saveError on Back navigation from new-task and edit-task views                    | —   | 2026-09-04 |
 | Guard TokenSetup checkSecretExists against stale mid-flight secretName changes          | —   | 2026-09-04 |
 | RepoPicker: guard ArrowDown against -1 highlightedIndex when filtered list is empty     | —   | 2026-09-04 |
+| Fix TaskRow last-run effect missing task.slug dep; enforce zero-warning lint            | #58 | 2026-09-05 |

@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-05
+
+- Action: bug-fix
+- Summary: CI green on main (PR #58's own checks pass, f3c54a3 HEAD after merge). No open PRs. Both open issues (#44 severed git history, #46 credential-stealing payload incident) re-verified still OPEN with unchanged comment counts (1 each) and `gh api repos/Fragment256/githatch --jq '.permissions'` still shows `push: false`, so both remain correctly gated on human-only actions, untouched. ROADMAP Backlog empty (only the two human-blocked Paused items); all 7 `docs/specs/` entries confirmed `status: done`. Today is day one of a fresh dry streak (2026-09-04 had three actionable sprints, last PR #57 merged that day), so per this project's own precedent an unscoped Explore audit wasn't warranted yet — but the mandatory local baseline itself (`pnpm lint`) surfaced a real, concrete finding: a fresh `react-hooks/exhaustive-deps` warning in `TaskRow`'s last-run effect (`TaskList.tsx`), introduced the day before by `a0063ee` (human commit) when it removed an `eslint-disable-next-line` and added the other missing deps but missed `task.slug`. Not exploitable today (the row is keyed by `task.slug`, so any slug change remounts the component rather than leaving a stale closure), but genuine drift against the effect's own dependency contract, inconsistent with the sibling polling effect two lines below that already lists `task.slug`, and — critically — invisible to CI since `pnpm lint` (`eslint .`) exits 0 on warnings, meaning it could sit unnoticed indefinitely. Fixed the dep array and switched `lint` to `eslint . --max-warnings=0` so this class of regression fails CI outright instead of merging silently. No new test needed (no behavior change: the component being keyed by the value added to deps means this can't be exercised as a live bug). Full local baseline clean: `pnpm install --frozen-lockfile`, `format:check`, `lint` (0 warnings, was 1), `type-check`, `test` (428/428). PR #58 raised, CI green, merged directly (self-approval blocked by GitHub since PR and session share the `claude[bot]` identity — same pattern as every prior self-merge in this log).
+- Rationale: Developer experience/build/automation work (rank 2) outranks documentation or standalone test-coverage work per the stated priority order, and this was a concrete finding from the mandatory baseline gate itself rather than manufactured scope — fixing a live, unnoticed lint regression and closing the exact gap that let it merge silently is more valuable than an early unscoped audit (reserved for day three of a dry streak per precedent) or a bare no-op log on day one.
+- PR: #58
+- ROADMAP updated: yes
+
+---
+
 ## 2026-09-04 (sprint 3)
 
 - Action: bug-fix
