@@ -342,7 +342,7 @@ function TaskRow({
         onLastRunChangeRef.current(task.slug, run)
       })
       .catch(() => {})
-  }, [task.workflowId, token, owner, repo, defaultBranch])
+  }, [task.workflowId, task.slug, token, owner, repo, defaultBranch])
 
   useEffect(() => {
     if (!polling || !task.workflowId) return
