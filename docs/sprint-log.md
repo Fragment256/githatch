@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-06 (sprint 25)
+
+- Action: baseline
+- Summary: CI green on main (5e499f0 HEAD, post-sprint-24 bug-fixes). No open PRs. Both open issues (#44 severed git history, #46 credential-stealing payload) unchanged — still OPEN, human-gated. ROADMAP Backlog empty. Day 1 of fresh dry streak (sprint 24 reset to 0 after 4 bug-fixes). Full local baseline: `format:check` clean, `lint` (0 warnings, `--max-warnings=0`), `type-check` clean, `test` 443/443. No drift. Per precedent, unscoped Explore audit reserved for day 3.
+- Rationale: Sprint 24 reset the dry streak to 0; this is the mandatory day-1 baseline verification before any unscoped deep investigation.
+- PR: —
+- ROADMAP updated: no
+
+---
+
 ## 2026-09-06 (sprint 24)
 
 - Action: bug-fix
