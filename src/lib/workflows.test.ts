@@ -921,6 +921,40 @@ describe('fetchRunOutput', () => {
     expect(url).toContain('per_page=100')
   })
 
+  it('uses direction=desc for new_issue output type lookup', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve([]) })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await fetchRunOutput({
+      token: 'gho_test',
+      owner: 'testuser',
+      repo: 'my-repo',
+      run: baseRun,
+      outputDestination: { type: 'new_issue' },
+    })
+
+    const url = fetchMock.mock.calls[0][0] as string
+    expect(url).toContain('direction=desc')
+    expect(url).not.toContain('direction=asc')
+  })
+
+  it('uses direction=desc for pull_request output type lookup', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve([]) })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await fetchRunOutput({
+      token: 'gho_test',
+      owner: 'testuser',
+      repo: 'my-repo',
+      run: baseRun,
+      outputDestination: { type: 'pull_request' },
+    })
+
+    const url = fetchMock.mock.calls[0][0] as string
+    expect(url).toContain('direction=desc')
+    expect(url).not.toContain('direction=asc')
+  })
+
   it('ignores pre-existing PRs updated after run start for pull_request type', async () => {
     const stalePr = {
       number: 3,

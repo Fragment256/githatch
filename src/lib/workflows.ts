@@ -259,7 +259,7 @@ export async function fetchRunOutput(params: {
 
   if (outputDestination.type === 'pull_request') {
     const res = await fetch(
-      `${API}/repos/${owner}/${repo}/issues?creator=github-actions%5Bbot%5D&since=${encodeURIComponent(run.createdAt)}&per_page=100&sort=created&direction=asc&state=all`,
+      `${API}/repos/${owner}/${repo}/issues?creator=github-actions%5Bbot%5D&since=${encodeURIComponent(run.createdAt)}&per_page=100&sort=created&direction=desc&state=all`,
       { headers },
     )
     if (!res.ok) return null
@@ -287,7 +287,7 @@ export async function fetchRunOutput(params: {
 
   if (outputDestination.type === 'new_issue') {
     const res = await fetch(
-      `${API}/repos/${owner}/${repo}/issues?creator=github-actions%5Bbot%5D&since=${encodeURIComponent(run.createdAt)}&per_page=100&sort=created&direction=asc&state=all`,
+      `${API}/repos/${owner}/${repo}/issues?creator=github-actions%5Bbot%5D&since=${encodeURIComponent(run.createdAt)}&per_page=100&sort=created&direction=desc&state=all`,
       { headers },
     )
     if (!res.ok) return null
