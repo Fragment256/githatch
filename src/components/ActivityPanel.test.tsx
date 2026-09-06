@@ -12,11 +12,13 @@ vi.mock('@/lib/workflows', () => ({
 vi.mock('@/lib/github', () => ({
   getRecentCommits: vi.fn(),
   getRecentPRs: vi.fn(),
+  getPRCounts: vi.fn(),
 }))
 
 const mockGetWorkflowRuns = vi.mocked(workflows.getWorkflowRuns)
 const mockGetRecentCommits = vi.mocked(github.getRecentCommits)
 const mockGetRecentPRs = vi.mocked(github.getRecentPRs)
+const mockGetPRCounts = vi.mocked(github.getPRCounts)
 
 function makeTask(slug: string, workflowId: number): GithatchTask {
   return {
@@ -45,6 +47,7 @@ describe('ActivityPanel', () => {
     mockGetWorkflowRuns.mockResolvedValueOnce([])
     mockGetRecentCommits.mockResolvedValue([])
     mockGetRecentPRs.mockResolvedValue([])
+    mockGetPRCounts.mockResolvedValue({ open: 0, merged: 0 })
 
     const taskA = makeTask('task-a', 1)
     const taskB = makeTask('task-b', 2)
@@ -88,6 +91,7 @@ describe('ActivityPanel', () => {
     ])
     mockGetRecentCommits.mockResolvedValue([])
     mockGetRecentPRs.mockResolvedValue([])
+    mockGetPRCounts.mockResolvedValue({ open: 0, merged: 0 })
 
     const { rerender } = render(
       <ActivityPanel tasks={[]} token="t" owner="o" repo="r" defaultBranch="main" />,
@@ -111,6 +115,7 @@ describe('ActivityPanel', () => {
     mockGetRecentCommits.mockReturnValueOnce(staleCommits)
     mockGetRecentCommits.mockResolvedValueOnce([])
     mockGetRecentPRs.mockResolvedValue([])
+    mockGetPRCounts.mockResolvedValue({ open: 0, merged: 0 })
     mockGetWorkflowRuns.mockResolvedValue([])
 
     const { rerender } = render(

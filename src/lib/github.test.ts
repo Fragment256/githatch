@@ -8,6 +8,7 @@ import {
   fetchRepoAgentConfig,
   getRecentCommits,
   getRecentPRs,
+  getPRCounts,
   type GitHubRepo,
 } from './github'
 
@@ -455,5 +456,85 @@ describe('getRecentPRs', () => {
   it('throws on non-ok response', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 403 }))
     await expect(getRecentPRs(params)).rejects.toThrow()
+  })
+})
+
+describe('getPRCounts', () => {
+  const params = { token: 'gho_test', owner: 'testuser', repo: 'my-repo' }
+
+  beforeEach(() => vi.restoreAllMocks())
+
+  it('uses Link header last-page to return exact open PR count for large repos', async () => {
+    const fetchMock = vi
+      .fn()
+      // open PRs call: Link header says page 80 = last → 80 open PRs
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: {
+          get: (h: string) =>
+            h === 'Link'
+              ? '<https://api.github.com/repos/testuser/my-repo/pulls?state=open&per_page=1&page=2>; rel="next", <https://api.github.com/repos/testuser/my-repo/pulls?state=open&per_page=1&page=80>; rel="last"'
+              : null,
+        },
+        json: () => Promise.resolve([{ number: 1 }]),
+      })
+      // merged PRs search call: total_count = 200
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve({ total_count: 200 }),
+      })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const counts = await getPRCounts(params)
+    expect(counts.open).toBe(80)
+    expect(counts.merged).toBe(200)
+  })
+
+  it('returns open=1 when there is exactly one open PR (no Link header)', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve([{ number: 1 }]),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve({ total_count: 0 }),
+      })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const counts = await getPRCounts(params)
+    expect(counts.open).toBe(1)
+    expect(counts.merged).toBe(0)
+  })
+
+  it('returns open=0 when there are no open PRs', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve([]),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve({ total_count: 5 }),
+      })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const counts = await getPRCounts(params)
+    expect(counts.open).toBe(0)
+  })
+
+  it('throws when open PR fetch fails', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: false, status: 403, headers: { get: () => null } }),
+    )
+    await expect(getPRCounts(params)).rejects.toThrow('403')
   })
 })

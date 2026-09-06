@@ -66,6 +66,30 @@ describe('checkToolInstalled', () => {
       '/repos/testuser/my-repo/contents/.github/workflows/githatch-tool-send-gmail.yml',
     )
   })
+
+  it('throws on 403 instead of silently returning false', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 403 }))
+    await expect(
+      checkToolInstalled({
+        token: 'gho_test',
+        owner: 'testuser',
+        repo: 'my-repo',
+        fileName: 'githatch-tool-send-gmail.yml',
+      }),
+    ).rejects.toThrow('403')
+  })
+
+  it('throws on 500 instead of silently returning false', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 500 }))
+    await expect(
+      checkToolInstalled({
+        token: 'gho_test',
+        owner: 'testuser',
+        repo: 'my-repo',
+        fileName: 'githatch-tool-send-gmail.yml',
+      }),
+    ).rejects.toThrow('500')
+  })
 })
 
 describe('installTool', () => {

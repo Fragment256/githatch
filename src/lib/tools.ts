@@ -91,7 +91,9 @@ export async function checkToolInstalled(
   const res = await fetch(`${API}/repos/${owner}/${repo}/contents/.github/workflows/${fileName}`, {
     headers: authHeaders(token),
   })
-  return res.ok
+  if (res.ok) return true
+  if (res.status === 404) return false
+  throw new Error(`Failed to check tool: ${res.status}`)
 }
 
 export async function installTool(params: ToolParams & { tool: Tool }): Promise<void> {

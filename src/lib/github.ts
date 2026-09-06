@@ -27,6 +27,12 @@ function parseNextUrl(linkHeader: string | null): string | null {
   return match ? match[1] : null
 }
 
+function parseLinkLastPage(linkHeader: string | null): number | null {
+  if (!linkHeader) return null
+  const match = linkHeader.match(/<[^>]+[&?]page=(\d+)[^>]*>;\s*rel="last"/)
+  return match ? parseInt(match[1], 10) : null
+}
+
 export interface UpsertWorkflowParams {
   token: string
   owner: string
@@ -291,4 +297,36 @@ export async function getRecentPRs(params: {
     updatedAt: pr.updated_at,
     htmlUrl: pr.html_url,
   }))
+}
+
+export interface PRCounts {
+  open: number
+  merged: number
+}
+
+export async function getPRCounts(params: {
+  token: string
+  owner: string
+  repo: string
+}): Promise<PRCounts> {
+  const { token, owner, repo } = params
+  const headers = authHeaders(token)
+
+  // per_page=1 trick: Link "last" page number = exact total
+  const openRes = await fetch(`${API}/repos/${owner}/${repo}/pulls?state=open&per_page=1`, {
+    headers,
+  })
+  if (!openRes.ok) throw new Error(`Failed to fetch open PR count: ${openRes.status}`)
+  const openData = (await openRes.json()) as unknown[]
+  const open = parseLinkLastPage(openRes.headers.get('Link')) ?? openData.length
+
+  // Search API gives exact merged count in total_count
+  const mergedRes = await fetch(
+    `${API}/search/issues?q=repo:${owner}/${repo}+is:pr+is:merged&per_page=1`,
+    { headers },
+  )
+  if (!mergedRes.ok) throw new Error(`Failed to fetch merged PR count: ${mergedRes.status}`)
+  const mergedData = (await mergedRes.json()) as { total_count: number }
+
+  return { open, merged: mergedData.total_count }
 }

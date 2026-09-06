@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import type { GithatchTask, WorkflowRun } from '@/lib/workflows'
 import { getWorkflowRuns } from '@/lib/workflows'
-import { getRecentCommits, getRecentPRs } from '@/lib/github'
-import type { CommitSummary, PRSummary } from '@/lib/github'
+import { getRecentCommits, getRecentPRs, getPRCounts } from '@/lib/github'
+import type { CommitSummary, PRCounts, PRSummary } from '@/lib/github'
 
 interface Props {
   tasks: GithatchTask[]
@@ -62,6 +62,7 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
   )
   const [commits, setCommits] = useState<CommitSummary[] | null>(null)
   const [prs, setPRs] = useState<PRSummary[] | null>(null)
+  const [prCounts, setPRCounts] = useState<PRCounts | null>(null)
   const [repoLoading, setRepoLoading] = useState(true)
   const taskRequestId = useRef(0)
   const repoRequestId = useRef(0)
@@ -112,16 +113,19 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
     Promise.all([
       getRecentCommits({ token, owner, repo, days: 30 }),
       getRecentPRs({ token, owner, repo }),
+      getPRCounts({ token, owner, repo }),
     ])
-      .then(([c, p]) => {
+      .then(([c, p, counts]) => {
         if (id !== repoRequestId.current) return
         setCommits(c)
         setPRs(p)
+        setPRCounts(counts)
       })
       .catch(() => {
         if (id !== repoRequestId.current) return
         setCommits([])
         setPRs([])
+        setPRCounts({ open: 0, merged: 0 })
       })
       .finally(() => {
         if (id !== repoRequestId.current) return
@@ -136,8 +140,8 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
       s + a.runs.filter((r) => Date.now() - new Date(r.createdAt).getTime() < 7 * 86400_000).length,
     0,
   )
-  const openPRs = prs?.filter((p) => p.state === 'open').length ?? '…'
-  const mergedPRs = prs?.filter((p) => p.merged).length ?? '…'
+  const openPRs = prCounts?.open ?? '…'
+  const mergedPRs = prCounts?.merged ?? '…'
 
   return (
     <div className="w-full space-y-8">
