@@ -12,6 +12,7 @@ vi.mock('@/lib/config', () => ({
 }))
 vi.mock('@/lib/github', () => ({
   upsertWorkflowFile: vi.fn(),
+  deleteWorkflowFile: vi.fn(),
   fetchFileContent: vi.fn(),
   listRepoSecrets: vi.fn().mockResolvedValue([]),
   getRecentCommits: vi.fn().mockResolvedValue([]),

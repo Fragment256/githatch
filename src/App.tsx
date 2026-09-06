@@ -19,7 +19,12 @@ import { ErrorBoundary } from '@/components/ErrorBoundary'
 const SecretsView = lazy(() =>
   import('@/components/SecretsView').then((m) => ({ default: m.SecretsView })),
 )
-import { upsertWorkflowFile, fetchFileContent, listRepoSecrets } from '@/lib/github'
+import {
+  upsertWorkflowFile,
+  deleteWorkflowFile,
+  fetchFileContent,
+  listRepoSecrets,
+} from '@/lib/github'
 import { GettingStarted, type SecretStatus } from '@/components/GettingStarted'
 import { slugify, taskConfigFromYaml, type TaskConfig } from '@/lib/yamlGenerator'
 import { TemplatePicker } from '@/components/TemplatePicker'
@@ -112,12 +117,15 @@ export default function App() {
     }
   }
 
-  async function handleEditFormSubmit(yaml: string) {
+  async function handleEditFormSubmit(yaml: string, newSlug: string) {
     if (!token || !activeRepo || !editingTask) return
     setSaving(true)
     setSaveError(null)
     try {
-      await upsertWorkflowFile({ token, owner, repo, slug: editingTask.slug, yaml })
+      await upsertWorkflowFile({ token, owner, repo, slug: newSlug, yaml })
+      if (newSlug !== editingTask.slug) {
+        await deleteWorkflowFile({ token, owner, repo, path: editingTask.path })
+      }
       setEditingTask(null)
       setEditingConfig(null)
       setView('tasks')
@@ -147,6 +155,7 @@ export default function App() {
         prompt: config.prompt,
       })
       setDuplicatingConfig(null)
+      setSelectedTemplate(null)
       setView('tasks')
       loadTasks()
     } catch (err) {
@@ -452,6 +461,7 @@ export default function App() {
                 loading={saving}
                 initialConfig={editingConfig}
                 originalYaml={editingOriginalYaml ?? undefined}
+                existingSlugs={tasks.filter((t) => t.slug !== editingTask?.slug).map((t) => t.slug)}
               />
             </ErrorBoundary>
           </div>

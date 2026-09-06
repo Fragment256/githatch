@@ -134,7 +134,7 @@ export function patchScheduleInYaml(yaml: string, schedule: string | undefined):
   const onBlock = schedule
     ? `on:\n  schedule:\n    - cron: '${schedule}'\n  workflow_dispatch:`
     : `on:\n  workflow_dispatch:`
-  return yaml.replace(/\non:[\s\S]*?\n\npermissions:/, `\n${onBlock}\n\npermissions:`)
+  return yaml.replace(/\non:[\s\S]*?\n+permissions:/, `\n${onBlock}\n\npermissions:`)
 }
 
 export async function updateWorkflowSchedule(params: {
@@ -249,7 +249,10 @@ export async function fetchRunOutput(params: {
       created_at: string
       pull_request?: object
     }>
-    const pr = items.find((item) => !!item.pull_request)
+    // `since` filters by updated_at, not created_at — exclude pre-existing items that were recently updated
+    const pr = items
+      .filter((i) => i.created_at >= run.createdAt)
+      .find((item) => !!item.pull_request)
     if (!pr) return null
     return {
       type: 'pr',
@@ -274,7 +277,8 @@ export async function fetchRunOutput(params: {
       created_at: string
       pull_request?: object
     }>
-    const issue = items.find((i) => !i.pull_request)
+    // `since` filters by updated_at, not created_at — exclude pre-existing items that were recently updated
+    const issue = items.filter((i) => i.created_at >= run.createdAt).find((i) => !i.pull_request)
     if (!issue) return null
     return {
       type: 'issue',

@@ -337,6 +337,18 @@ describe('patchScheduleInYaml', () => {
     expect(result).toContain("cron: '0 8 * * *'")
     expect(result).not.toContain("cron: '0 9 * * 1'")
   })
+
+  it('patches correctly when permissions: follows a single blank line instead of two', () => {
+    // Manually edited YAML with one newline before permissions: — regex must not no-op
+    const oneNewlineYaml =
+      `# Githatch — Test\nname: githatch-test\n\non:\n  workflow_dispatch:\n\npermissions:\n  contents: write\n`.replace(
+        '\n\npermissions:',
+        '\npermissions:',
+      )
+    const result = patchScheduleInYaml(oneNewlineYaml, '0 8 * * *')
+    expect(result).toContain("cron: '0 8 * * *'")
+    expect(result).toContain('permissions:')
+  })
 })
 
 describe('updateWorkflowSchedule', () => {
@@ -680,6 +692,75 @@ describe('fetchRunOutput', () => {
     })
 
     expect(result!.htmlUrl).toBe('https://github.com/testuser/my-repo/tree/main/reports')
+  })
+
+  it('ignores pre-existing issues updated after run start for new_issue type (since filters by updated_at)', async () => {
+    // Pre-existing issue: created_at BEFORE the run but updated_at after (would match `since` filter)
+    const staleIssue = {
+      number: 5,
+      title: 'Old issue updated after run',
+      body: 'Stale',
+      html_url: 'https://github.com/testuser/my-repo/issues/5',
+      created_at: '2024-01-01T08:00:00Z', // before run.createdAt (09:00)
+    }
+    const freshIssue = {
+      number: 42,
+      title: 'New issue from this run',
+      body: 'Fresh',
+      html_url: 'https://github.com/testuser/my-repo/issues/42',
+      created_at: '2024-01-01T09:10:00Z', // after run.createdAt
+    }
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValue({ ok: true, json: () => Promise.resolve([staleIssue, freshIssue]) }),
+    )
+
+    const result = await fetchRunOutput({
+      token: 'gho_test',
+      owner: 'testuser',
+      repo: 'my-repo',
+      run: baseRun,
+      outputDestination: { type: 'new_issue' },
+    })
+
+    expect(result).not.toBeNull()
+    expect(result!.title).toBe('New issue from this run')
+  })
+
+  it('ignores pre-existing PRs updated after run start for pull_request type', async () => {
+    const stalePr = {
+      number: 3,
+      title: 'Old PR',
+      body: 'Stale',
+      html_url: 'https://github.com/testuser/my-repo/pull/3',
+      created_at: '2024-01-01T08:00:00Z', // before run.createdAt
+      pull_request: {},
+    }
+    const freshPr = {
+      number: 10,
+      title: 'New PR from this run',
+      body: 'Fresh',
+      html_url: 'https://github.com/testuser/my-repo/pull/10',
+      created_at: '2024-01-01T09:05:00Z', // after run.createdAt
+      pull_request: {},
+    }
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve([stalePr, freshPr]) }),
+    )
+
+    const result = await fetchRunOutput({
+      token: 'gho_test',
+      owner: 'testuser',
+      repo: 'my-repo',
+      run: baseRun,
+      outputDestination: { type: 'pull_request' },
+    })
+
+    expect(result).not.toBeNull()
+    expect(result!.title).toBe('#10 New PR from this run')
   })
 })
 
