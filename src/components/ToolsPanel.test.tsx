@@ -103,4 +103,12 @@ describe('ToolsPanel', () => {
     const btn = await screen.findByRole('button', { name: 'Reinstall' })
     expect((btn as HTMLButtonElement).disabled).toBe(false)
   })
+
+  it('shows check error and hides Install button when checkToolInstalled throws (e.g. 403)', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 403 }))
+    render(<ToolsPanel {...defaultProps} />)
+    await waitFor(() => screen.getByText(/403/))
+    expect(screen.queryByRole('button', { name: 'Install' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Reinstall' })).toBeNull()
+  })
 })

@@ -21,19 +21,21 @@ function ToolCard({
   const [installed, setInstalled] = useState<boolean | null>(null)
   const [installing, setInstalling] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [checkError, setCheckError] = useState<string | null>(null)
 
   const requestIdRef = useRef(0)
 
   useEffect(() => {
     const id = ++requestIdRef.current
+    setCheckError(null)
     checkToolInstalled({ token, owner, repo, fileName: tool.workflowFileName })
       .then((result) => {
         if (id !== requestIdRef.current) return
         setInstalled(result)
       })
-      .catch(() => {
+      .catch((err: unknown) => {
         if (id !== requestIdRef.current) return
-        setInstalled(false)
+        setCheckError(err instanceof Error ? err.message : 'Failed to check install status')
       })
   }, [token, owner, repo, tool.workflowFileName])
 
@@ -75,6 +77,7 @@ function ToolCard({
         )}
       </div>
 
+      {checkError && <p className="mb-3 text-xs text-red-600">{checkError}</p>}
       {error && <p className="mb-3 text-xs text-red-600">{error}</p>}
 
       <div className="mt-4 space-y-4 border-t border-black/10 pt-4">
