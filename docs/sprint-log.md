@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-06 (sprint 15)
+
+- Action: bug-fix
+- Summary: CI green on main (0c2bb1c HEAD, post-sprint-14 baseline). No open PRs. Both open issues (#44 severed git history, #46 credential-stealing payload) unchanged — still OPEN, human-gated. ROADMAP Backlog empty. Day 3 of dry streak — unscoped Explore audit ran per precedent. Explore agent surfaced 7 potential bugs; 2 confirmed real (HIGH + MEDIUM). Fixed both via TDD: (1) `listGithatchTasks` in `workflows.ts` — per-file content fetch returned `null` on any non-ok status; Promise.all resolved normally and `filter(t => t !== null)` silently dropped the task. User saw N-1 tasks in the list with no error message — looked like a deleted task. Fix: throw on non-404 errors (`Failed to fetch workflow file ${file.name}: ${status}`); 404 still returns null (race: file deleted between directory listing and fetch). 2 regression tests (RED→GREEN). (2) `parseOutputDestination` in `yamlGenerator.ts` — when `output_type=issue_comment` had no `issue=#N` (manually edited YAML), `n || 1` silently defaulted to issue #1. Fix: `if (!n) return { type: 'new_issue' }` — safe fallback instead of posting to a wrong issue. 1 regression test (RED→GREEN). Full baseline: `format:check` clean, `lint` 0 warnings, `type-check` clean, `test` 435/435 (up from 432). Commit `6cf5ef8` pushed to main. Dry streak resets to 0.
+- Rationale: Day 3 audit found 2 genuine correctness bugs: (1) silent task loss on transient API errors — user-visible with no workaround; (2) wrong issue targeted by malformed YAML annotation. Both HIGH/MEDIUM severity. Fix applied via TDD. Dry streak resets to 0.
+- PR: —
+- ROADMAP updated: no
+
+---
+
 ## 2026-09-06 (sprint 14)
 
 - Action: baseline
