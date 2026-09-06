@@ -1270,3 +1270,13 @@ Agent-maintained. One entry per daily sprint run.
 - Rationale: Day 2 of streak; precedent reserves unscoped Explore audit for day 3 (sprint 30). Logging verified-clean baseline.
 - PR: n/a
 - ROADMAP updated: no
+
+---
+
+## 2026-09-06 (sprint 42)
+
+- Action: correctness-bugs-fixed
+- Summary: Day 3 of dry streak — unscoped Explore audit ran per precedent. Full baseline first: format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 463/463. Explore surfaced 4 findings; all confirmed real bugs, all fixed. (1) MEDIUM: `TaskRow.handleTrigger` omitted `setTriggeredOutput(null)` on re-trigger — stale run-1 output card persisted while run 2 was in flight; if run 2 produced no output the stale card remained indefinitely. Fix: `setTriggeredOutput(null)` at top of handleTrigger. (2) MEDIUM: `TaskList` failure banner denominator used `currentLastRuns` (all tasks) even when a filter was active — banner could report failures from tasks not visible in the filtered view. Fix: compute `filteredLastRuns` from `filteredTasks` slugs; use that for both failedCount and denominator. (3) LOW-MEDIUM: `deleteWorkflowFile` GET non-2xx always threw "Workflow file not found: {status}" regardless of HTTP status — 403/500 read as "not found". Fix: distinguish 404 vs other statuses in error message. (4) LOW/forward-looking: `listRepoSecrets` fetched only one page (per_page=100) with no pagination loop — silent false negative if total_count > 100. Fix: add while-loop matching `fetchAllActionWorkflows` pattern. 4 regression tests added. 467/467 passing. Dry streak resets to 0.
+- Rationale: Day-3 dry streak unscoped audit is established precedent. All 4 bugs confirmed against actual source before fixing; no speculative changes.
+- PR: n/a (direct push to main)
+- ROADMAP updated: no
