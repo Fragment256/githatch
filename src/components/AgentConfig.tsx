@@ -86,6 +86,7 @@ export function AgentConfig({ token, owner, repo }: Props) {
   const requestIdRef = useRef(0)
 
   useEffect(() => {
+    requestIdRef.current += 1
     setConfig(null)
     setOpen(false)
   }, [owner, repo])

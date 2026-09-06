@@ -146,6 +146,56 @@ describe('AgentConfig', () => {
     expect(screen.getByText('repo-b-skill')).toBeInTheDocument()
   })
 
+  it('ignores stale response when accordion was closed before repo switch', async () => {
+    let resolveStale!: (v: Awaited<ReturnType<typeof github.fetchRepoAgentConfig>>) => void
+    const repoBConfig = {
+      hasClaude: false,
+      hasSettings: false,
+      skills: ['repo-b-skill'],
+      agents: [],
+      hasAgentsMd: false,
+      hasCodexConfig: false,
+      hasCodexHooks: false,
+    }
+    vi.spyOn(github, 'fetchRepoAgentConfig')
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveStale = resolve
+          }),
+      )
+      .mockResolvedValue(repoBConfig)
+
+    const { rerender } = render(<AgentConfig {...BASE_PROPS} repo="repo-a" />)
+
+    // open accordion — fetch starts, paused
+    fireEvent.click(screen.getByRole('button', { name: /agent config/i }))
+
+    // close accordion while repo-a fetch is still in-flight
+    fireEvent.click(screen.getByRole('button', { name: /agent config/i }))
+
+    // switch repos while accordion is closed and fetch is still in-flight
+    rerender(<AgentConfig {...BASE_PROPS} repo="repo-b" />)
+
+    // stale repo-a response arrives before user opens accordion in repo-b
+    await act(async () => {
+      resolveStale({
+        hasClaude: true,
+        hasSettings: true,
+        skills: ['repo-a-skill'],
+        agents: [],
+        hasAgentsMd: false,
+        hasCodexConfig: false,
+        hasCodexHooks: false,
+      })
+    })
+
+    // open accordion in repo-b — must trigger fresh fetch, not show stale repo-a data
+    fireEvent.click(screen.getByRole('button', { name: /agent config/i }))
+    await waitFor(() => expect(screen.getByText('repo-b-skill')).toBeInTheDocument())
+    expect(screen.queryByText('repo-a-skill')).toBeNull()
+  })
+
   it('resets and re-fetches when repo changes', async () => {
     const spy = vi.spyOn(github, 'fetchRepoAgentConfig').mockResolvedValue({
       hasClaude: false,

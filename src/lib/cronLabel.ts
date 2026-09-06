@@ -85,8 +85,42 @@ export function nextCronRuns(expr: string, count: number, from: Date = new Date(
   return results
 }
 
+function isValidCronField(field: string, min: number, max: number): boolean {
+  if (field === '*') return true
+  if (field.startsWith('*/')) {
+    const n = parseInt(field.slice(2), 10)
+    return !isNaN(n) && n >= 1
+  }
+  const rangeParts = field.split('-')
+  if (rangeParts.length === 2 && rangeParts.every((p) => /^\d+$/.test(p))) {
+    const [a, b] = rangeParts.map(Number)
+    return a >= min && b <= max && a <= b
+  }
+  if (field.includes(',')) {
+    return field
+      .split(',')
+      .every((t) => /^\d+$/.test(t) && parseInt(t, 10) >= min && parseInt(t, 10) <= max)
+  }
+  if (/^\d+$/.test(field)) {
+    const n = parseInt(field, 10)
+    return n >= min && n <= max
+  }
+  return false
+}
+
 export function isValidCron(expr: string): boolean {
-  return nextCronRun(expr, new Date(0)) !== null
+  const parts = expr.trim().split(/\s+/)
+  if (parts.length !== 5) return false
+  const [minute, hour, dom, month, dow] = parts
+  // Reject comma-separated minute/hour: UI can't preview next-fire time for multi-value fields
+  if (minute.includes(',') || hour.includes(',')) return false
+  return (
+    isValidCronField(minute, 0, 59) &&
+    isValidCronField(hour, 0, 23) &&
+    isValidCronField(dom, 1, 31) &&
+    isValidCronField(month, 1, 12) &&
+    isValidCronField(dow, 0, 7)
+  )
 }
 
 export function formatRelativeTime(future: Date, from: Date = new Date()): string {

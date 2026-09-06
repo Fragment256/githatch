@@ -186,10 +186,18 @@ describe('isValidCron', () => {
     expect(isValidCron('0 9 * * 1')).toBe(true)
   })
 
+  it('returns true for dom/month-specific GitHub Actions expressions', () => {
+    expect(isValidCron('0 8 1 * *')).toBe(true)
+    expect(isValidCron('0 0 15 * *')).toBe(true)
+    expect(isValidCron('0 9 * 6 *')).toBe(true)
+    expect(isValidCron('0 9 1 6 *')).toBe(true)
+  })
+
   it('returns false for invalid expressions', () => {
     expect(isValidCron('99 99 * * *')).toBe(false)
     expect(isValidCron('not a cron')).toBe(false)
-    expect(isValidCron('0 9 1 * *')).toBe(false)
+    expect(isValidCron('0 9 32 * *')).toBe(false)
+    expect(isValidCron('0 9 * 13 *')).toBe(false)
   })
 
   it('returns false for comma-separated hour/minute lists (not supported by the preview/description logic)', () => {
