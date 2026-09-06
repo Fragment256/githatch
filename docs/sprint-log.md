@@ -1390,3 +1390,13 @@ Agent-maintained. One entry per daily sprint run.
 - Rationale: Day 2 of streak; precedent reserves unscoped Explore audit for day 3 (sprint 54). Logging verified-clean baseline.
 - PR: n/a
 - ROADMAP updated: no
+
+---
+
+## 2026-09-06 (sprint 54)
+
+- Action: correctness-bugs-fixed
+- Summary: Day 3 of dry streak — unscoped Explore audit ran per precedent. Full baseline first: format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 479/479. Explore surfaced 3 confirmed bugs fixed via TDD. (1) MEDIUM: `fetchRunOutput` issue_comment branch fetched comments with default `direction=asc` — GitHub Issues comments `since` filters by `updated_at`; on busy issues with >100 old comments recently edited, the bot's new comment lands on page 2+ and "View output" never appears. Fix: add `&direction=desc` (same fix applied to new_issue/pull_request in sprint 51; issue_comment branch was missed). (2) MEDIUM: `getRecentCommits` fetched `per_page=100` but never followed Link-header pagination — ActivityPanel commit count/list silently truncated on repos with >100 commits in 30 days. Fix: paginate via Link headers (same pattern as `listPushableRepos`). (3) MEDIUM: `ToolCard` did not reset `installed` to `null` when repo changed before the new check resolved — stale "Reinstall" button stayed visible for the new repo during the check window; a click would install on the wrong repo. Fix: `setInstalled(null)` at start of useEffect. 3 regression tests added (RED→GREEN). 482/482 passing (up from 479). Dry streak resets to 0.
+- Rationale: Day-3 dry streak unscoped audit is established precedent (sprints 10, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51 all found real bugs). Bugs confirmed against actual source before fixing; no speculative changes.
+- PR: n/a (direct push to main)
+- ROADMAP updated: no
