@@ -443,6 +443,31 @@ describe('App — task form submission', () => {
     expect(screen.getByRole('button', { name: /← back/i })).toBeInTheDocument()
   })
 
+  it('clears saveError immediately when navigating to new-task view', async () => {
+    const task: GithatchTask = {
+      slug: 'daily-digest',
+      displayName: 'Daily Digest',
+      schedule: '0 9 * * *',
+      workflowId: 1,
+      path: '.github/workflows/githatch-daily-digest.yml',
+      enabled: true,
+      outputDestination: { type: 'new_issue' },
+      prompt: 'Summarize.',
+    }
+    mockUseTasks.mockReturnValue({ ...defaultTasksState, tasks: [task] })
+    vi.mocked(github.fetchFileContent).mockRejectedValue(new Error('Load failed'))
+
+    render(<App />, { wrapper })
+    // Trigger a load error (shows saveError in tasks view)
+    const duplicateBtn = await screen.findByRole('button', { name: /duplicate/i })
+    fireEvent.click(duplicateBtn)
+    expect(await screen.findByText('Load failed')).toBeInTheDocument()
+
+    // Navigate to new-task — saveError should be cleared immediately, not carried into new-task form
+    fireEvent.click(screen.getAllByRole('button', { name: /\+ new task/i })[0])
+    expect(screen.queryByText('Load failed')).not.toBeInTheDocument()
+  })
+
   it('clears saveError when navigating Back from new-task view', async () => {
     const task: GithatchTask = {
       slug: 'daily-digest',

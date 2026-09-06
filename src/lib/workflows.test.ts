@@ -602,6 +602,67 @@ describe('fetchRunOutput', () => {
     expect(result!.body).toBe('Bot comment body')
   })
 
+  it('ignores pre-run bot comments for issue_comment output type (created_at filter)', async () => {
+    // Pre-run bot comment (created before run.createdAt=09:00:00Z) plus a post-run one
+    const comments = [
+      {
+        id: 9,
+        body: 'Stale bot comment',
+        html_url: 'https://github.com/testuser/my-repo/issues/5#issuecomment-9',
+        created_at: '2024-01-01T08:55:00Z',
+        user: { login: 'github-actions[bot]' },
+      },
+      {
+        id: 10,
+        body: 'Fresh bot comment',
+        html_url: 'https://github.com/testuser/my-repo/issues/5#issuecomment-10',
+        created_at: '2024-01-01T09:05:00Z',
+        user: { login: 'github-actions[bot]' },
+      },
+    ]
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(comments) }),
+    )
+
+    const result = await fetchRunOutput({
+      token: 'gho_test',
+      owner: 'testuser',
+      repo: 'my-repo',
+      run: baseRun,
+      outputDestination: { type: 'issue_comment', issueNumber: 5 },
+    })
+
+    expect(result).not.toBeNull()
+    expect(result!.body).toBe('Fresh bot comment')
+  })
+
+  it('returns null when only a pre-run bot comment exists for issue_comment', async () => {
+    const comments = [
+      {
+        id: 9,
+        body: 'Stale bot comment',
+        html_url: 'https://github.com/testuser/my-repo/issues/5#issuecomment-9',
+        created_at: '2024-01-01T08:55:00Z',
+        user: { login: 'github-actions[bot]' },
+      },
+    ]
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(comments) }),
+    )
+
+    const result = await fetchRunOutput({
+      token: 'gho_test',
+      owner: 'testuser',
+      repo: 'my-repo',
+      run: baseRun,
+      outputDestination: { type: 'issue_comment', issueNumber: 5 },
+    })
+
+    expect(result).toBeNull()
+  })
+
   it('returns null for agent_managed output type', async () => {
     const result = await fetchRunOutput({
       token: 'gho_test',

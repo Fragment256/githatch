@@ -175,6 +175,23 @@ describe('nextCronRun', () => {
     // REF is Wednesday 2026-01-14; next Sunday is 2026-01-18
     expect(nextCronRun('0 9 * * 7', REF)).toEqual(new Date('2026-01-18T09:00:00Z'))
   })
+
+  it('computes next fire for arbitrary DOW range expressions (not just 1-5)', () => {
+    // REF is Wednesday 2026-01-14T14:23Z (day=3)
+    // 1-3 = Mon-Wed; Wed 09:00 already passed, next Mon-Wed is next Mon 2026-01-19
+    expect(nextCronRun('0 9 * * 1-3', REF)).toEqual(new Date('2026-01-19T09:00:00Z'))
+    // 2-4 = Tue-Thu; next Thu 2026-01-15
+    expect(nextCronRun('0 9 * * 2-4', REF)).toEqual(new Date('2026-01-15T09:00:00Z'))
+    // 0-2 = Sun-Tue; next Sun 2026-01-18
+    expect(nextCronRun('0 9 * * 0-2', REF)).toEqual(new Date('2026-01-18T09:00:00Z'))
+  })
+
+  it('computes next fire for comma-list DOW containing 7 (Sunday alias)', () => {
+    // REF is Wednesday; next Sunday is 2026-01-18
+    expect(nextCronRun('0 9 * * 0,7', REF)).toEqual(new Date('2026-01-18T09:00:00Z'))
+    // 1,7 = Mon + Sun; next Sun comes before Mon from Wed
+    expect(nextCronRun('0 9 * * 1,7', REF)).toEqual(new Date('2026-01-18T09:00:00Z'))
+  })
 })
 
 describe('nextCronRuns', () => {

@@ -683,7 +683,7 @@ export function TaskList({
       </div>
       {failedCount > 0 && (
         <div className="mb-3 border-2 border-black bg-black px-4 py-2 font-mono text-xs tracking-widest text-white uppercase">
-          {failedCount} of {tasks.length} tasks failed last run
+          {failedCount} of {Object.keys(lastRuns).length} tasks failed last run
         </div>
       )}
       {filteredTasks.length === 0 ? (

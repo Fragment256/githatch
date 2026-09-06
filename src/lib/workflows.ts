@@ -303,7 +303,10 @@ export async function fetchRunOutput(params: {
       created_at: string
       user: { login: string }
     }>
-    const botComment = comments.find((c) => c.user.login === 'github-actions[bot]')
+    // `since` filters by updated_at, not created_at — exclude pre-existing comments recently touched
+    const botComment = comments
+      .filter((c) => c.created_at >= run.createdAt)
+      .find((c) => c.user.login === 'github-actions[bot]')
     if (!botComment) return null
     return {
       type: 'comment',

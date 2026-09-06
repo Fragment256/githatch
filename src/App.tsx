@@ -297,7 +297,10 @@ export default function App() {
                 </div>
                 {view === 'tasks' && (
                   <button
-                    onClick={() => setView('new-task')}
+                    onClick={() => {
+                      setSaveError(null)
+                      setView('new-task')
+                    }}
                     className="border-2 border-black bg-black px-3 py-1.5 font-mono text-xs tracking-widest text-white uppercase transition-colors duration-100 hover:bg-white hover:text-black"
                   >
                     + New task
@@ -319,7 +322,10 @@ export default function App() {
                 secretStatus={secretStatus}
                 hasTasks={tasks.length > 0}
                 onSetupToken={() => setView('token-setup')}
-                onNewTask={() => setView('new-task')}
+                onNewTask={() => {
+                  setSaveError(null)
+                  setView('new-task')
+                }}
               />
             )}
 

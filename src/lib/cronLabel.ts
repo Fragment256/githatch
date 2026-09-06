@@ -1,15 +1,16 @@
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
-// Parses a comma-separated day-of-week list (e.g. '1,3,5') into deduped day numbers,
-// or null if any token isn't a valid 0-6 digit.
+// Parses a comma-separated day-of-week list (e.g. '1,3,5') into deduped 0-6 day numbers,
+// or null if any token isn't a valid 0-7 digit. DOW=7 is normalized to 0 (Sunday alias).
 function parseDayList(dow: string): number[] | null {
   const tokens = dow.split(',')
   const days: number[] = []
   for (const t of tokens) {
     if (!/^\d+$/.test(t)) return null
     const n = parseInt(t, 10)
-    if (n > 6) return null
-    if (!days.includes(n)) days.push(n)
+    if (n > 7) return null
+    const normalized = n === 7 ? 0 : n
+    if (!days.includes(normalized)) days.push(normalized)
   }
   return days
 }
@@ -71,9 +72,10 @@ export function nextCronRun(expr: string, from: Date = new Date()): Date | null 
     c.setUTCHours(h, m, 0, 0)
     if (c.getTime() <= from.getTime()) continue
     if (dow === '*') return c
-    if (dow === '1-5') {
+    if (/^\d+-\d+$/.test(dow)) {
+      const [a, b] = dow.split('-').map(Number)
       const day = c.getUTCDay()
-      if (day >= 1 && day <= 5) return c
+      if (day >= a && day <= b) return c
     } else if (dowList) {
       if (dowList.includes(c.getUTCDay())) return c
     } else if (/^\d+$/.test(dow)) {
