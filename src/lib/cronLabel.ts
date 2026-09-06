@@ -47,7 +47,13 @@ export function nextCronRun(expr: string, from: Date = new Date()): Date | null 
     if (t.getUTCMinutes() === 0 && t.getUTCHours() % n === 0) return t
     const curHour = t.getUTCHours()
     const remainder = curHour % n
-    t.setUTCHours(curHour + (remainder === 0 ? n : n - remainder), 0, 0, 0)
+    const target = curHour + (remainder === 0 ? n : n - remainder)
+    if (target >= 24) {
+      t.setUTCDate(t.getUTCDate() + 1)
+      t.setUTCHours(0, 0, 0, 0)
+    } else {
+      t.setUTCHours(target, 0, 0, 0)
+    }
     return t
   }
 
@@ -71,7 +77,8 @@ export function nextCronRun(expr: string, from: Date = new Date()): Date | null 
     } else if (dowList) {
       if (dowList.includes(c.getUTCDay())) return c
     } else if (/^\d+$/.test(dow)) {
-      if (c.getUTCDay() === parseInt(dow, 10)) return c
+      const dowNum = parseInt(dow, 10)
+      if (c.getUTCDay() === (dowNum === 7 ? 0 : dowNum)) return c
     }
   }
 
@@ -167,7 +174,7 @@ export function describeCron(expr: string): string {
   const time = formatTime(h, m)
 
   if (dow === '1-5') return `Weekdays at ${time} UTC`
-  if (/^\d+$/.test(dow)) return `Every ${DAYS[+dow] ?? dow} at ${time} UTC`
+  if (/^\d+$/.test(dow)) return `Every ${DAYS[+dow % 7] ?? dow} at ${time} UTC`
   if (dow === '*') return `Daily at ${time} UTC`
   if (dow.includes(',')) {
     const days = parseDayList(dow)

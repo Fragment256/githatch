@@ -34,6 +34,11 @@ export function SecretsView({ token, owner, repo, onDone }: Props) {
 
   useEffect(() => {
     const id = ++requestIdRef.current
+    setStatuses({
+      CLAUDE_CODE_OAUTH_TOKEN: 'checking',
+      OPENAI_API_KEY: 'checking',
+      SYNTHETIC_API_KEY: 'checking',
+    })
     SECRETS.forEach(({ name }) => {
       checkSecretExists({ token, owner, repo, secretName: name })
         .then((exists) => {

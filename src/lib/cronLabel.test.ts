@@ -37,6 +37,8 @@ describe('describeCron', () => {
     expect(describeCron('0 9 * * 0')).toBe('Every Sunday at 9 AM UTC')
     expect(describeCron('0 9 * * 6')).toBe('Every Saturday at 9 AM UTC')
     expect(describeCron('0 20 * * 5')).toBe('Every Friday at 8 PM UTC')
+    // DOW=7 is a GitHub Actions alias for Sunday
+    expect(describeCron('0 9 * * 7')).toBe('Every Sunday at 9 AM UTC')
   })
 
   it('returns the raw expression for unrecognized patterns', () => {
@@ -156,6 +158,22 @@ describe('nextCronRun', () => {
   it('returns null for invalid day-of-week lists', () => {
     expect(nextCronRun('0 9 * * 1,8', REF)).toBeNull()
     expect(nextCronRun('0 9 * * 1,', REF)).toBeNull()
+  })
+
+  it('handles */N hours cross-midnight rollover correctly when target hour >= 24', () => {
+    // */5 fires at 0,5,10,15,20. From 22:30 next is midnight next day, NOT 01:00 (JS Date wrap artifact)
+    expect(nextCronRun('0 */5 * * *', new Date('2026-01-14T22:30:00Z'))).toEqual(
+      new Date('2026-01-15T00:00:00Z'),
+    )
+    // */7 fires at 0,7,14,21. From 22:00 next is midnight next day
+    expect(nextCronRun('0 */7 * * *', new Date('2026-01-14T22:00:00Z'))).toEqual(
+      new Date('2026-01-15T00:00:00Z'),
+    )
+  })
+
+  it('handles DOW=7 as a Sunday alias (GitHub Actions convention)', () => {
+    // REF is Wednesday 2026-01-14; next Sunday is 2026-01-18
+    expect(nextCronRun('0 9 * * 7', REF)).toEqual(new Date('2026-01-18T09:00:00Z'))
   })
 })
 

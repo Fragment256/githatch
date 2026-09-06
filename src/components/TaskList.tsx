@@ -321,6 +321,9 @@ function TaskRow({
   const [toggling, setToggling] = useState(false)
   const [toggleError, setToggleError] = useState<string | null>(null)
   const [enabled, setEnabled] = useState(task.enabled)
+  useEffect(() => {
+    setEnabled(task.enabled)
+  }, [task.enabled])
   const [lastRun, setLastRun] = useState<WorkflowRun | null>(null)
   const [polling, setPolling] = useState(false)
   const [triggeredOutput, setTriggeredOutput] = useState<RunOutput | null>(null)

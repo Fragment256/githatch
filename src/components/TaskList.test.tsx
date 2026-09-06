@@ -1078,4 +1078,19 @@ describe('TaskList', () => {
       )
     })
   })
+
+  it('syncs enabled state when task.enabled prop changes on re-render', async () => {
+    const enabledTask: GithatchTask = { ...TASK, enabled: true }
+    const { rerender } = render(<TaskList {...BASE_PROPS} tasks={[enabledTask]} />)
+    expect(screen.getByRole('button', { name: /pause task/i })).toBeInTheDocument()
+
+    // Parent refreshes and the task is now disabled (e.g. user disabled it on GitHub)
+    const disabledTask: GithatchTask = { ...TASK, enabled: false }
+    rerender(<TaskList {...BASE_PROPS} tasks={[disabledTask]} />)
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /resume task/i })).toBeInTheDocument(),
+    )
+    expect(screen.queryByRole('button', { name: /pause task/i })).not.toBeInTheDocument()
+  })
 })

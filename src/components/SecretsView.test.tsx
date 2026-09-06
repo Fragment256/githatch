@@ -120,6 +120,27 @@ describe('SecretsView', () => {
     expect(screen.queryAllByRole('button', { name: /update/i }).length).toBe(0)
   })
 
+  it('resets statuses to checking immediately when repo changes', async () => {
+    vi.spyOn(secrets, 'checkSecretExists')
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(true)
+      .mockImplementation(() => new Promise(() => {})) // second repo hangs
+
+    const { rerender } = render(<SecretsView {...BASE_PROPS} />)
+
+    // First repo settles: all Set
+    await waitFor(() => expect(screen.getAllByText('Set').length).toBe(3))
+
+    // Switch repo — statuses should immediately reset to '…' (checking), not keep showing Set
+    rerender(<SecretsView {...BASE_PROPS} repo="other-repo" />)
+
+    // Status indicator spans should be '…' (checking), not 'Set'
+    expect(screen.getAllByText('…').length).toBe(3)
+    // No green "Set" status spans visible (buttons revert to "Set" label, but those are role=button)
+    expect(screen.queryAllByRole('button', { name: /update/i }).length).toBe(0)
+  })
+
   it('returns to secrets list after TokenSetup onDone is called', async () => {
     vi.spyOn(secrets, 'checkSecretExists').mockResolvedValue(false)
     vi.spyOn(secrets, 'putRepoSecret').mockResolvedValue(undefined)
