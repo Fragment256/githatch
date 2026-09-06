@@ -1110,3 +1110,13 @@ Agent-maintained. One entry per daily sprint run.
 - Rationale: Day-3 dry streak unscoped audit is established precedent (sprints 10, 12, 15, 18, 21, 24 all found real bugs). All 4 bugs confirmed against actual code before fixing; no speculative changes.
 - PR: n/a (direct push to main, no reviewable changes, CI owns safety gate)
 - ROADMAP updated: no
+
+---
+
+## 2026-09-06 (sprint 28)
+
+- Action: baseline
+- Summary: Day 1 of fresh dry streak (sprint 27 reset to 0 — 4 bugs fixed). Full baseline: format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 446/446. No drift.
+- Rationale: Sprint 27 was an actionable day (4 bugs fixed); today is day 1 of fresh streak. Precedent reserves unscoped audit for day 3. Logging verified-clean baseline.
+- PR: n/a
+- ROADMAP updated: no
