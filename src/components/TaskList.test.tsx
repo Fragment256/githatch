@@ -412,6 +412,47 @@ describe('TaskList', () => {
         'https://github.com/testuser/my-repo/actions/runs/11',
       )
     })
+
+    it('banner counts only filtered tasks — hides when failing tasks are filtered out', async () => {
+      const okTask: GithatchTask = {
+        ...TASK,
+        slug: 'ok-task',
+        displayName: 'Ok Task',
+        workflowId: 99,
+      }
+      vi.spyOn(workflows, 'getWorkflowRuns').mockImplementation(({ workflowId }) => {
+        if (workflowId === TASK.workflowId) {
+          return Promise.resolve([
+            {
+              id: 1,
+              status: 'completed',
+              conclusion: 'failure',
+              createdAt: '2024-01-01T09:00:00Z',
+              htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/1',
+            },
+          ])
+        }
+        return Promise.resolve([
+          {
+            id: 2,
+            status: 'completed',
+            conclusion: 'success',
+            createdAt: '2024-01-01T09:00:00Z',
+            htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/2',
+          },
+        ])
+      })
+      render(<TaskList {...BASE_PROPS} tasks={[TASK, okTask]} />)
+      // Unfiltered: banner shows "1 of 2 tasks failed"
+      await waitFor(() =>
+        expect(screen.getByText(/1 of 2 tasks failed last run/i)).toBeInTheDocument(),
+      )
+      // Filter to show only the ok task — banner must disappear
+      fireEvent.change(screen.getByRole('textbox', { name: /filter/i }), {
+        target: { value: 'Ok Task' },
+      })
+      expect(screen.queryByText(/tasks failed last run/i)).not.toBeInTheDocument()
+    })
   })
 
   describe('task filter', () => {
@@ -871,6 +912,62 @@ describe('TaskList', () => {
       await waitFor(() => expect(screen.getByText('Sprint Report')).toBeInTheDocument())
       fireEvent.click(screen.getByRole('button', { name: /^close$/i }))
       expect(screen.queryByText('Sprint Report')).not.toBeInTheDocument()
+    })
+
+    it('clears stale output from run 1 immediately when run 2 is triggered', async () => {
+      vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
+      const runsMock = vi.spyOn(workflows, 'getWorkflowRuns')
+      runsMock.mockResolvedValue([])
+      const fetchOutput = vi
+        .spyOn(workflows, 'fetchRunOutput')
+        .mockResolvedValueOnce({
+          type: 'issue',
+          title: 'Run 1 Output',
+          body: 'First run result',
+          htmlUrl: 'https://github.com/testuser/my-repo/issues/1',
+          createdAt: new Date().toISOString(),
+        })
+        .mockResolvedValue(null)
+
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      await act(async () => {
+        await Promise.resolve()
+      })
+
+      runsMock.mockResolvedValue([
+        {
+          id: 100,
+          status: 'completed',
+          conclusion: 'success',
+          createdAt: new Date().toISOString(),
+          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/100',
+        },
+      ])
+
+      // Trigger run 1 and wait for its output to appear
+      fireEvent.click(screen.getByRole('button', { name: /run now/i }))
+      await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
+      await act(async () => {
+        vi.advanceTimersByTime(8000)
+        await Promise.resolve()
+      })
+      await waitFor(() => expect(screen.getByText('Run 1 Output')).toBeInTheDocument())
+
+      // The 3s setTriggered(false) setTimeout is a real timer — not yet fired at this point.
+      // Button shows "Triggered!" (triggered=true) but is enabled (polling=false, triggering=false).
+      // Clicking it must clear triggeredOutput immediately before the new trigger resolves.
+      runsMock.mockResolvedValue([
+        {
+          id: 101,
+          status: 'in_progress',
+          conclusion: null,
+          createdAt: new Date().toISOString(),
+          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/101',
+        },
+      ])
+      fireEvent.click(screen.getByRole('button', { name: /triggered!/i }))
+      expect(screen.queryByText('Run 1 Output')).not.toBeInTheDocument()
+      expect(fetchOutput).toHaveBeenCalledOnce()
     })
   })
 

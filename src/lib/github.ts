@@ -85,7 +85,12 @@ export async function deleteWorkflowFile(params: {
   const url = `${API}/repos/${owner}/${repo}/contents/${path}`
 
   const getRes = await fetch(url, { headers })
-  if (!getRes.ok) throw new Error(`Workflow file not found: ${getRes.status}`)
+  if (!getRes.ok)
+    throw new Error(
+      getRes.status === 404
+        ? 'Workflow file not found'
+        : `Failed to fetch workflow file for deletion: ${getRes.status}`,
+    )
   const { sha } = (await getRes.json()) as { sha: string }
 
   const deleteRes = await fetch(url, {
@@ -177,12 +182,20 @@ export async function listRepoSecrets(params: {
   repo: string
 }): Promise<string[]> {
   const { token, owner, repo } = params
-  const res = await fetch(`${API}/repos/${owner}/${repo}/actions/secrets?per_page=100`, {
-    headers: authHeaders(token),
-  })
-  if (!res.ok) throw new Error(`Failed to list secrets: ${res.status}`)
-  const data = (await res.json()) as { secrets: Array<{ name: string }> }
-  return data.secrets.map((s) => s.name)
+  const all: string[] = []
+  let page = 1
+  while (true) {
+    const res = await fetch(
+      `${API}/repos/${owner}/${repo}/actions/secrets?per_page=100&page=${page}`,
+      { headers: authHeaders(token) },
+    )
+    if (!res.ok) throw new Error(`Failed to list secrets: ${res.status}`)
+    const data = (await res.json()) as { secrets: Array<{ name: string }>; total_count: number }
+    all.push(...data.secrets.map((s) => s.name))
+    if (all.length >= data.total_count || data.secrets.length < 100) break
+    page++
+  }
+  return all
 }
 
 export async function listPushableRepos(token: string): Promise<GitHubRepo[]> {

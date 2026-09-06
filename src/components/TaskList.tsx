@@ -402,6 +402,7 @@ function TaskRow({
     if (!task.workflowId) return
     setTriggering(true)
     setTriggerError(null)
+    setTriggeredOutput(null)
     try {
       prevRunIdRef.current = lastRun?.id ?? null
       await triggerWorkflow({ token, owner, repo, workflowId: task.workflowId, defaultBranch })
@@ -654,10 +655,14 @@ export function TaskList({
   const currentLastRuns = Object.fromEntries(
     Object.entries(lastRuns).filter(([slug]) => taskSlugs.has(slug)),
   )
-  const failedCount = Object.values(currentLastRuns).filter(hasFailed).length
   const filteredTasks = tasks.filter((task) =>
     task.displayName.toLowerCase().includes(filterQuery.trim().toLowerCase()),
   )
+  const filteredSlugs = new Set(filteredTasks.map((t) => t.slug))
+  const filteredLastRuns = Object.fromEntries(
+    Object.entries(currentLastRuns).filter(([slug]) => filteredSlugs.has(slug)),
+  )
+  const failedCount = Object.values(filteredLastRuns).filter(hasFailed).length
 
   return (
     <div className="w-full">
@@ -687,7 +692,7 @@ export function TaskList({
       </div>
       {failedCount > 0 && (
         <div className="mb-3 border-2 border-black bg-black px-4 py-2 font-mono text-xs tracking-widest text-white uppercase">
-          {failedCount} of {Object.keys(currentLastRuns).length} tasks failed last run
+          {failedCount} of {Object.keys(filteredLastRuns).length} tasks failed last run
         </div>
       )}
       {filteredTasks.length === 0 ? (

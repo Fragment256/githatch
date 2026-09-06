@@ -192,6 +192,12 @@ describe('deleteWorkflowFile', () => {
     vi.stubGlobal('fetch', fetchMock)
     await expect(deleteWorkflowFile(params)).rejects.toThrow()
   })
+
+  it('throws a permission/server error message (not "not found") when GET returns 403', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 403 }))
+    await expect(deleteWorkflowFile(params)).rejects.toThrow(/failed to fetch workflow file/i)
+    await expect(deleteWorkflowFile(params)).rejects.not.toThrow(/not found/i)
+  })
 })
 
 describe('listRepoSecrets', () => {
@@ -244,6 +250,30 @@ describe('listRepoSecrets', () => {
     await expect(
       listRepoSecrets({ token: 'gho_test', owner: 'alice', repo: 'my-repo' }),
     ).rejects.toThrow()
+  })
+
+  it('paginates across multiple pages until total_count is satisfied', async () => {
+    const page1 = Array.from({ length: 100 }, (_, i) => ({
+      name: `SECRET_${String(i).padStart(3, '0')}`,
+    }))
+    const page2 = [{ name: 'CLAUDE_CODE_OAUTH_TOKEN' }]
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ total_count: 101, secrets: page1 }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ total_count: 101, secrets: page2 }),
+      })
+    vi.stubGlobal('fetch', fetchMock)
+    const names = await listRepoSecrets({ token: 'gho_test', owner: 'alice', repo: 'my-repo' })
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(names).toHaveLength(101)
+    expect(names).toContain('CLAUDE_CODE_OAUTH_TOKEN')
+    const url2 = fetchMock.mock.calls[1][0] as string
+    expect(url2).toContain('page=2')
   })
 })
 
