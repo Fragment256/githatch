@@ -459,6 +459,42 @@ describe('fetchRunOutput', () => {
     expect(result).toBeNull()
   })
 
+  it('skips PRs and returns the first real issue for new_issue when response contains both', async () => {
+    const items = [
+      {
+        number: 10,
+        title: 'chore: automated PR',
+        body: 'PR body',
+        html_url: 'https://github.com/testuser/my-repo/pull/10',
+        created_at: '2024-01-01T09:05:00Z',
+        pull_request: { url: 'https://api.github.com/repos/testuser/my-repo/pulls/10' },
+      },
+      {
+        number: 11,
+        title: 'Daily report 2024-01-01',
+        body: 'Issue body',
+        html_url: 'https://github.com/testuser/my-repo/issues/11',
+        created_at: '2024-01-01T09:10:00Z',
+      },
+    ]
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(items) }),
+    )
+
+    const result = await fetchRunOutput({
+      token: 'gho_test',
+      owner: 'testuser',
+      repo: 'my-repo',
+      run: baseRun,
+      outputDestination: { type: 'new_issue' },
+    })
+
+    expect(result).not.toBeNull()
+    expect(result!.type).toBe('issue')
+    expect(result!.title).toBe('Daily report 2024-01-01')
+  })
+
   it('returns the bot comment for issue_comment output type', async () => {
     const comments = [
       {

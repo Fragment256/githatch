@@ -51,6 +51,8 @@ export async function upsertWorkflowFile({
   if (getResponse.ok) {
     const data = (await getResponse.json()) as { sha: string }
     sha = data.sha
+  } else if (getResponse.status !== 404) {
+    throw new Error(`Failed to fetch workflow file: ${getResponse.status}`)
   }
 
   const content = btoa(unescape(encodeURIComponent(yaml)))

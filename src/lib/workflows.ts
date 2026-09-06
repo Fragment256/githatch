@@ -263,15 +263,16 @@ export async function fetchRunOutput(params: {
       { headers },
     )
     if (!res.ok) return null
-    const issues = (await res.json()) as Array<{
+    const items = (await res.json()) as Array<{
       number: number
       title: string
       body: string | null
       html_url: string
       created_at: string
+      pull_request?: object
     }>
-    if (issues.length === 0) return null
-    const issue = issues[0]
+    const issue = items.find((i) => !i.pull_request)
+    if (!issue) return null
     return {
       type: 'issue',
       title: issue.title,

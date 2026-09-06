@@ -143,6 +143,14 @@ describe('upsertWorkflowFile', () => {
 
     await expect(upsertWorkflowFile(params)).rejects.toThrow()
   })
+
+  it('throws when GET returns a non-404 error without attempting the PUT', async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce({ ok: false, status: 403 })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(upsertWorkflowFile(params)).rejects.toThrow('403')
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
 })
 
 describe('deleteWorkflowFile', () => {
