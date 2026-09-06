@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-06 (sprint 18)
+
+- Action: bug-fix
+- Summary: CI green on main (c735998 HEAD, post-sprint-17 baseline). No open PRs. Both open issues (#44 severed git history, #46 credential-stealing payload) unchanged — still OPEN, human-gated. ROADMAP Backlog empty. Day 3 of dry streak — unscoped Explore audit ran per precedent. Explore agent surfaced 5 potential bugs; 2 confirmed real (HIGH + MEDIUM). Fixed both via TDD. (1) `AgentConfig` stale-response guard bypassed on closed-accordion repo switch: invalidation effect (`[owner, repo]`) called `setConfig(null)` + `setOpen(false)` but never incremented `requestIdRef.current`. If accordion was closed before repo change, Effect 2 returned early (`!open`) and also skipped the increment — leaving ref at old value. Stale in-flight response from old repo arrived with `id === requestIdRef.current` and overwrote state. Subsequent accordion open in new repo saw `config !== null` and returned early, showing stale data permanently. Fix: `requestIdRef.current += 1` in invalidation effect. 1 regression test (RED→GREEN). (2) `isValidCron` rejected all GitHub Actions-valid crons with non-`*` `dom`/`month` (e.g. `0 8 1 * *`). Root: delegated to `nextCronRun`, which returns null for dom/month-specific crons. TaskForm showed "Invalid cron expression" and disabled submit. Fix: independent field-level validator `isValidCronField`; comma-separated minute/hour still rejected (no next-fire preview). 4 regression tests (RED→GREEN). Commit `79e40cd`, pushed to main. Full baseline: format:check clean, lint 0 warnings, type-check clean, test 437/437 (up from 435). Dry streak resets to 0.
+- Rationale: Day 3 audit found 2 genuine correctness bugs. (1) Stale data rendered as current repo config — user-visible, no error indicator, no workaround. (2) Valid GitHub Actions dom/month crons rejected at submission — blocks real use case.
+- PR: —
+- ROADMAP updated: no
+
+---
+
 ## 2026-09-06 (sprint 17)
 
 - Action: baseline
