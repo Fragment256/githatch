@@ -1,3 +1,7 @@
+## Sprint 66 — 2026-09-06 (day 2 of dry streak)
+
+**Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 487/487. No drift from sprint 65. Unscoped Explore audit reserved for day 3 (sprint 67).
+
 ## Sprint 65 — 2026-09-06 (day 1 of new dry streak)
 
 **Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 487/487. No drift from sprint 64. Unscoped Explore audit reserved for day 3 (sprint 67).
