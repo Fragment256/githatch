@@ -624,6 +624,10 @@ export function TaskList({
   const [lastRuns, setLastRuns] = useState<Record<string, WorkflowRun | null>>({})
   const [filterQuery, setFilterQuery] = useState('')
 
+  useEffect(() => {
+    setLastRuns({})
+  }, [owner, repo])
+
   const handleLastRunChange = (slug: string, run: WorkflowRun | null) => {
     setLastRuns((prev) => ({ ...prev, [slug]: run }))
   }

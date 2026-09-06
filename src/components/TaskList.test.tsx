@@ -328,6 +328,29 @@ describe('TaskList', () => {
         expect(screen.getByText(/1 of 1 tasks? failed last run/i)).toBeInTheDocument(),
       )
     })
+
+    it('clears stale lastRuns on repo switch — banner must not show stale failure for new repo', async () => {
+      const FAILED_RUN: WorkflowRun = {
+        id: 1,
+        status: 'completed',
+        conclusion: 'failure',
+        createdAt: '2024-01-01T09:00:00Z',
+        htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/1',
+      }
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(asResult([FAILED_RUN]))
+
+      const { rerender } = render(<TaskList {...BASE_PROPS} repo="my-repo" tasks={[TASK]} />)
+      await waitFor(() =>
+        expect(screen.getByText(/1 of 1 tasks? failed last run/i)).toBeInTheDocument(),
+      )
+
+      // Switch repo — new getWorkflowRuns never resolves (simulates in-flight fetch)
+      vi.spyOn(workflows, 'getWorkflowRuns').mockReturnValue(new Promise(() => {}))
+      rerender(<TaskList {...BASE_PROPS} repo="other-repo" tasks={[TASK]} />)
+
+      // Banner must be gone immediately — stale lastRuns cleared on repo change
+      expect(screen.queryByText(/tasks failed last run/i)).not.toBeInTheDocument()
+    })
   })
 
   describe('last-run status badge', () => {

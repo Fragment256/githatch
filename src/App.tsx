@@ -127,13 +127,20 @@ export default function App() {
         try {
           await deleteWorkflowFile({ token, owner, repo, path: editingTask.path })
         } catch (deleteErr) {
-          // Rollback: remove the new file so we don't leave both files in the repo
+          let rollbackFailed = false
           await deleteWorkflowFile({
             token,
             owner,
             repo,
             path: `.github/workflows/githatch-${newSlug}.yml`,
-          }).catch(() => {})
+          }).catch(() => {
+            rollbackFailed = true
+          })
+          if (rollbackFailed) {
+            throw new Error(
+              `Rename failed and rollback also failed — both "${editingTask.slug}" and "${newSlug}" workflow files now exist in the repo. Please delete one manually.`,
+            )
+          }
           throw deleteErr
         }
       }
@@ -143,6 +150,7 @@ export default function App() {
       loadTasks()
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Failed to save workflow')
+      loadTasks()
     } finally {
       setSaving(false)
     }

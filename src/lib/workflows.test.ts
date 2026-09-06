@@ -287,6 +287,38 @@ describe('listGithatchTasks', () => {
     expect(tasks[0].slug).toBe('daily-standup')
   })
 
+  it('excludes githatch-tool-*.yml files from the task list', async () => {
+    const workflowsListResponse = [
+      { name: 'githatch-daily-standup.yml', path: '.github/workflows/githatch-daily-standup.yml' },
+      {
+        name: 'githatch-tool-send-gmail.yml',
+        path: '.github/workflows/githatch-tool-send-gmail.yml',
+      },
+    ]
+    const actionsWorkflows = {
+      workflows: [
+        { id: 10, path: '.github/workflows/githatch-daily-standup.yml', state: 'active' },
+        { id: 20, path: '.github/workflows/githatch-tool-send-gmail.yml', state: 'active' },
+      ],
+    }
+    const dailyYaml = Buffer.from(
+      `# Githatch — Daily Standup\n# githatch:output_type=new_issue\nname: githatch-daily-standup\n\non:\n  schedule:\n    - cron: '0 9 * * 1-5'\n  workflow_dispatch:\n`,
+    ).toString('base64')
+
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(workflowsListResponse) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(actionsWorkflows) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ content: dailyYaml }) })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const tasks = await listGithatchTasks({ token: 'gho_test', owner: 'testuser', repo: 'my-repo' })
+
+    expect(tasks).toHaveLength(1)
+    expect(tasks[0].slug).toBe('daily-standup')
+    expect(fetchMock).toHaveBeenCalledTimes(3) // directory list + actions API + one content fetch
+  })
+
   it('paginates the actions/workflows API when total_count exceeds one page', async () => {
     const workflowsListResponse = [
       { name: 'githatch-alpha.yml', path: '.github/workflows/githatch-alpha.yml' },

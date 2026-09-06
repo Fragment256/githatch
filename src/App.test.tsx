@@ -532,4 +532,54 @@ describe('App — task form submission', () => {
       expect(screen.queryByText('Load failed')).not.toBeInTheDocument()
     })
   })
+
+  it('when rename delete and rollback both fail, shows descriptive error naming both slugs and reloads tasks', async () => {
+    const task: GithatchTask = {
+      slug: 'daily-digest',
+      displayName: 'Daily Digest',
+      schedule: '0 9 * * *',
+      workflowId: 1,
+      path: '.github/workflows/githatch-daily-digest.yml',
+      enabled: true,
+      outputDestination: { type: 'new_issue' },
+      prompt: 'Summarize.',
+    }
+    mockUseTasks.mockReturnValue({ ...defaultTasksState, tasks: [task] })
+    vi.mocked(github.fetchFileContent).mockResolvedValue(
+      'name: Daily Digest\non:\n  schedule:\n    - cron: "0 9 * * *"\n  workflow_dispatch:\njobs:\n  run:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: anthropics/claude-code-action@v1\n        with:\n          prompt: |\n            Summarize.\n',
+    )
+    // upsert succeeds; delete (old file) fails; rollback delete also fails
+    vi.mocked(github.deleteWorkflowFile).mockRejectedValue(new Error('Network error'))
+
+    render(<App />, { wrapper })
+
+    // Navigate to edit form
+    const editBtn = await screen.findByRole('button', { name: /^edit$/i })
+    fireEvent.click(editBtn)
+    await waitFor(() => screen.getByRole('button', { name: /save changes/i }))
+
+    // Change the task name to trigger a rename
+    const nameInput = screen.getByRole('textbox', { name: /task name/i })
+    fireEvent.change(nameInput, { target: { value: 'Brand New Name' } })
+
+    // Clear mockLoad call count so we can count calls from the catch block specifically
+    mockLoad.mockClear()
+
+    // Submit form → preview
+    fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
+    await waitFor(() => screen.getByRole('button', { name: /commit to repo/i }))
+
+    // Confirm commit → triggers handleEditFormSubmit with new slug
+    fireEvent.click(screen.getByRole('button', { name: /commit to repo/i }))
+
+    // Error must mention both the old slug and the new slug
+    await waitFor(() => {
+      expect(
+        screen.getByText(/both "daily-digest" and "brand-new-name" workflow files now exist/i),
+      ).toBeInTheDocument()
+    })
+
+    // loadTasks must have been called to refresh the task list with the actual repo state
+    expect(mockLoad).toHaveBeenCalledTimes(1)
+  })
 })

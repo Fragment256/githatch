@@ -110,7 +110,10 @@ export async function listGithatchTasks(params: TaskParams): Promise<GithatchTas
   }
   const files = (await contentsRes.json()) as Array<{ name: string; path: string }>
   const githatchFiles = files.filter(
-    (f) => f.name.startsWith('githatch-') && f.name.endsWith('.yml'),
+    (f) =>
+      f.name.startsWith('githatch-') &&
+      !f.name.startsWith('githatch-tool-') &&
+      f.name.endsWith('.yml'),
   )
 
   if (githatchFiles.length === 0) return []
