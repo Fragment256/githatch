@@ -28,7 +28,12 @@ export function nextCronRun(expr: string, from: Date = new Date()): Date | null 
     t.setUTCMinutes(t.getUTCMinutes() + 1)
     if (t.getUTCMinutes() % n === 0) return t
     const curMin = t.getUTCMinutes()
-    t.setUTCMinutes(curMin + (n - (curMin % n)), 0, 0)
+    const target = curMin + (n - (curMin % n))
+    if (target >= 60) {
+      t.setUTCHours(t.getUTCHours() + 1, 0, 0, 0)
+    } else {
+      t.setUTCMinutes(target, 0, 0)
+    }
     return t
   }
 
@@ -89,7 +94,7 @@ function isValidCronField(field: string, min: number, max: number): boolean {
   if (field === '*') return true
   if (field.startsWith('*/')) {
     const n = parseInt(field.slice(2), 10)
-    return !isNaN(n) && n >= 1
+    return !isNaN(n) && n >= 1 && n <= max
   }
   const rangeParts = field.split('-')
   if (rangeParts.length === 2 && rangeParts.every((p) => /^\d+$/.test(p))) {

@@ -129,6 +129,8 @@ export function parsePromptFromYaml(yaml: string): string {
       .map((line) => (line.startsWith(' '.repeat(indent)) ? line.slice(indent) : line))
       .join('\n')
       .trimEnd()
+    const isAgentManaged = /^# githatch:output_type=agent_managed$/m.test(yaml)
+    if (isAgentManaged) return full.trimEnd()
     const marker = '\n\nWhen done,'
     const idx = full.lastIndexOf(marker)
     return idx === -1 ? full.trimEnd() : full.slice(0, idx).trimEnd()

@@ -92,6 +92,9 @@ describe('nextCronRun', () => {
       new Date('2026-01-14T15:00:00Z'),
     )
     // from 23:55:00, next */10 is next day 00:00:00
+    expect(nextCronRun('*/7 * * * *', new Date('2026-01-14T10:57:30Z'))).toEqual(
+      new Date('2026-01-14T11:00:00Z'),
+    )
     expect(nextCronRun('*/10 * * * *', new Date('2026-01-14T23:55:00Z'))).toEqual(
       new Date('2026-01-15T00:00:00Z'),
     )
@@ -203,6 +206,11 @@ describe('isValidCron', () => {
   it('returns false for comma-separated hour/minute lists (not supported by the preview/description logic)', () => {
     expect(isValidCron('0 9,17 * * *')).toBe(false)
     expect(isValidCron('0,30 9 * * *')).toBe(false)
+  })
+
+  it('returns false for */n step where n exceeds the field maximum', () => {
+    expect(isValidCron('*/100 * * * *')).toBe(false)
+    expect(isValidCron('* */25 * * *')).toBe(false)
   })
 
   it('returns true for comma-separated day-of-week lists', () => {

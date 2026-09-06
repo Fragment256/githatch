@@ -289,6 +289,14 @@ describe('parsePromptFromYaml', () => {
     expect(parsePromptFromYaml(yaml)).toBe(prompt)
   })
 
+  it('round-trips agent_managed prompt containing the When done phrase', () => {
+    const prompt = 'Check the repo status.\n\nWhen done, tag me on the PR.'
+    const yaml = generateWorkflowYaml(
+      makeConfig({ prompt, outputDestination: { type: 'agent_managed' } }),
+    )
+    expect(parsePromptFromYaml(yaml)).toBe(prompt)
+  })
+
   it('generates block scalar with content indented deeper than the prompt key', () => {
     // GitHub rejects workflow_dispatch if YAML is malformed — content must be
     // indented more than the `prompt:` key (which sits at 10 spaces).
