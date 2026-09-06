@@ -1,3 +1,7 @@
+## Sprint 78 — 2026-09-06 (day 2 of dry streak)
+
+**Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 494/494. No drift from sprint 77. Unscoped Explore audit scheduled for sprint 79 (next sprint, day 3).
+
 ## Sprint 77 — 2026-09-06 (day 1 of new dry streak)
 
 **Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 494/494. No drift from sprint 76. Unscoped Explore audit reserved for day 3 (sprint 79).
