@@ -58,7 +58,7 @@ export function parseGithatchYaml(
   const nameMatch = yaml.match(/^# Githatch — (.+)$/m)
   const displayName = nameMatch ? nameMatch[1].trim() : slug
 
-  const cronMatch = yaml.match(/cron: '([^']+)'/)
+  const cronMatch = yaml.match(/^ {4}- cron: '([^']+)'/m)
   const schedule = cronMatch ? cronMatch[1] : ''
 
   return {
@@ -71,6 +71,30 @@ export function parseGithatchYaml(
     outputDestination: parseOutputDestination(yaml),
     prompt: parsePromptFromYaml(yaml),
   }
+}
+
+async function fetchAllActionWorkflows(
+  owner: string,
+  repo: string,
+  headers: HeadersInit,
+): Promise<Array<{ id: number; path: string; state: string }>> {
+  const all: Array<{ id: number; path: string; state: string }> = []
+  let page = 1
+  while (true) {
+    const res = await fetch(
+      `${API}/repos/${owner}/${repo}/actions/workflows?per_page=100&page=${page}`,
+      { headers },
+    )
+    if (!res.ok) throw new Error(`Failed to list actions workflows: ${res.status}`)
+    const { workflows, total_count } = (await res.json()) as {
+      workflows: Array<{ id: number; path: string; state: string }>
+      total_count?: number
+    }
+    all.push(...workflows)
+    if (workflows.length < 100 || (total_count !== undefined && all.length >= total_count)) break
+    page++
+  }
+  return all
 }
 
 export async function listGithatchTasks(params: TaskParams): Promise<GithatchTask[]> {
@@ -91,15 +115,7 @@ export async function listGithatchTasks(params: TaskParams): Promise<GithatchTas
 
   if (githatchFiles.length === 0) return []
 
-  const actionsRes = await fetch(`${API}/repos/${owner}/${repo}/actions/workflows?per_page=100`, {
-    headers,
-  })
-  if (!actionsRes.ok) {
-    throw new Error(`Failed to list actions workflows: ${actionsRes.status}`)
-  }
-  const { workflows } = (await actionsRes.json()) as {
-    workflows: Array<{ id: number; path: string; state: string }>
-  }
+  const workflows = await fetchAllActionWorkflows(owner, repo, headers)
   const workflowIdByPath = new Map(workflows.map((w) => [w.path, w.id]))
   const workflowStateByPath = new Map(workflows.map((w) => [w.path, w.state]))
 
@@ -237,7 +253,7 @@ export async function fetchRunOutput(params: {
 
   if (outputDestination.type === 'pull_request') {
     const res = await fetch(
-      `${API}/repos/${owner}/${repo}/issues?creator=github-actions%5Bbot%5D&since=${encodeURIComponent(run.createdAt)}&per_page=5&sort=created&direction=asc&state=all`,
+      `${API}/repos/${owner}/${repo}/issues?creator=github-actions%5Bbot%5D&since=${encodeURIComponent(run.createdAt)}&per_page=100&sort=created&direction=asc&state=all`,
       { headers },
     )
     if (!res.ok) return null
@@ -265,7 +281,7 @@ export async function fetchRunOutput(params: {
 
   if (outputDestination.type === 'new_issue') {
     const res = await fetch(
-      `${API}/repos/${owner}/${repo}/issues?creator=github-actions%5Bbot%5D&since=${encodeURIComponent(run.createdAt)}&per_page=5&sort=created&direction=asc&state=all`,
+      `${API}/repos/${owner}/${repo}/issues?creator=github-actions%5Bbot%5D&since=${encodeURIComponent(run.createdAt)}&per_page=100&sort=created&direction=asc&state=all`,
       { headers },
     )
     if (!res.ok) return null
@@ -292,7 +308,7 @@ export async function fetchRunOutput(params: {
   if (outputDestination.type === 'issue_comment') {
     const { issueNumber } = outputDestination
     const res = await fetch(
-      `${API}/repos/${owner}/${repo}/issues/${issueNumber}/comments?since=${encodeURIComponent(run.createdAt)}&per_page=10`,
+      `${API}/repos/${owner}/${repo}/issues/${issueNumber}/comments?since=${encodeURIComponent(run.createdAt)}&per_page=100`,
       { headers },
     )
     if (!res.ok) return null

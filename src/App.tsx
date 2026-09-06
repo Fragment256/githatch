@@ -419,7 +419,10 @@ export default function App() {
             )}
             <TemplatePicker
               selected={selectedTemplate?.id ?? null}
-              onSelect={(t) => setSelectedTemplate(t)}
+              onSelect={(t) => {
+                setSelectedTemplate(t)
+                setDuplicatingConfig(null)
+              }}
             />
             <ErrorBoundary>
               <TaskForm

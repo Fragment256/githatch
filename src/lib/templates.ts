@@ -15,7 +15,7 @@ type ConfigTemplate = TemplateBase & { config: Partial<TaskConfig>; yaml?: never
 export type Template = YamlTemplate | ConfigTemplate
 
 function parseScheduleFromYaml(yaml: string): string | undefined {
-  const match = yaml.match(/cron: '([^']+)'/)
+  const match = yaml.match(/^ {4}- cron: '([^']+)'/m)
   return match ? match[1] : undefined
 }
 

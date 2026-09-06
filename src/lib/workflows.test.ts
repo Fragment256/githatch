@@ -117,6 +117,36 @@ jobs:
     const result = parseGithatchYaml(yamlWithPrompt, 'daily-standup', 1)
     expect(result.prompt).toBe('Summarize the last 7 days of commits.')
   })
+
+  it('does not extract cron expression from the prompt body of a manual-only task', () => {
+    const manualYamlWithCronInPrompt = [
+      '# Githatch — Manual Task',
+      '# githatch:output_type=new_issue',
+      'name: githatch-manual-task',
+      '',
+      'on:',
+      '  workflow_dispatch:',
+      '',
+      'permissions:',
+      '  contents: write',
+      '  issues: write',
+      '  id-token: write',
+      '',
+      'jobs:',
+      '  run:',
+      '    runs-on: ubuntu-latest',
+      '    steps:',
+      '      - uses: actions/checkout@v4',
+      '      - name: Run Claude agent',
+      '        uses: anthropics/claude-code-action@v1',
+      '        with:',
+      '          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}',
+      '          prompt: |',
+      "            Audit the CI pipeline. It currently runs with cron: '0 9 * * 1' but needs to be daily.",
+    ].join('\n')
+    const result = parseGithatchYaml(manualYamlWithCronInPrompt, 'manual-task', 1)
+    expect(result.schedule).toBe('')
+  })
 })
 
 describe('listGithatchTasks', () => {
@@ -255,6 +285,53 @@ describe('listGithatchTasks', () => {
     })
     expect(tasks).toHaveLength(1)
     expect(tasks[0].slug).toBe('daily-standup')
+  })
+
+  it('paginates the actions/workflows API when total_count exceeds one page', async () => {
+    const workflowsListResponse = [
+      { name: 'githatch-alpha.yml', path: '.github/workflows/githatch-alpha.yml' },
+      { name: 'githatch-beta.yml', path: '.github/workflows/githatch-beta.yml' },
+    ]
+    // Page 1: 100 non-githatch workflows — githatch ones are not yet fetched
+    const page1Workflows = Array.from({ length: 100 }, (_, i) => ({
+      id: i + 1,
+      path: `.github/workflows/other-${i}.yml`,
+      state: 'active',
+    }))
+    // Page 2: the githatch workflows
+    const page2Workflows = [
+      { id: 201, path: '.github/workflows/githatch-alpha.yml', state: 'active' },
+      { id: 202, path: '.github/workflows/githatch-beta.yml', state: 'active' },
+    ]
+    const alphaYaml = Buffer.from(
+      `# Githatch — Alpha\n# githatch:output_type=new_issue\nname: githatch-alpha\n\non:\n  workflow_dispatch:\n`,
+    ).toString('base64')
+    const betaYaml = Buffer.from(
+      `# Githatch — Beta\n# githatch:output_type=new_issue\nname: githatch-beta\n\non:\n  workflow_dispatch:\n`,
+    ).toString('base64')
+
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(workflowsListResponse) })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ workflows: page1Workflows, total_count: 102 }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ workflows: page2Workflows, total_count: 102 }),
+      })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ content: alphaYaml }) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ content: betaYaml }) })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const tasks = await listGithatchTasks({ token: 'gho_test', owner: 'testuser', repo: 'my-repo' })
+
+    expect(tasks).toHaveLength(2)
+    expect(tasks.find((t) => t.slug === 'alpha')?.workflowId).toBe(201)
+    expect(tasks.find((t) => t.slug === 'beta')?.workflowId).toBe(202)
+    // 1 contents + 2 pages + 2 files = 5 calls
+    expect(fetchMock).toHaveBeenCalledTimes(5)
   })
 })
 
@@ -788,6 +865,54 @@ describe('fetchRunOutput', () => {
 
     expect(result).not.toBeNull()
     expect(result!.title).toBe('New issue from this run')
+  })
+
+  it('uses per_page=100 for new_issue output type lookup', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve([]) })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await fetchRunOutput({
+      token: 'gho_test',
+      owner: 'testuser',
+      repo: 'my-repo',
+      run: baseRun,
+      outputDestination: { type: 'new_issue' },
+    })
+
+    const url = fetchMock.mock.calls[0][0] as string
+    expect(url).toContain('per_page=100')
+  })
+
+  it('uses per_page=100 for pull_request output type lookup', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve([]) })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await fetchRunOutput({
+      token: 'gho_test',
+      owner: 'testuser',
+      repo: 'my-repo',
+      run: baseRun,
+      outputDestination: { type: 'pull_request' },
+    })
+
+    const url = fetchMock.mock.calls[0][0] as string
+    expect(url).toContain('per_page=100')
+  })
+
+  it('uses per_page=100 for issue_comment output type lookup', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve([]) })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await fetchRunOutput({
+      token: 'gho_test',
+      owner: 'testuser',
+      repo: 'my-repo',
+      run: baseRun,
+      outputDestination: { type: 'issue_comment', issueNumber: 5 },
+    })
+
+    const url = fetchMock.mock.calls[0][0] as string
+    expect(url).toContain('per_page=100')
   })
 
   it('ignores pre-existing PRs updated after run start for pull_request type', async () => {
