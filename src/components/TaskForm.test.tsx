@@ -245,4 +245,13 @@ describe('TaskForm', () => {
     // Confirm commit button exists and is enabled when not loading
     expect(screen.getByRole('button', { name: /commit to repo/i })).not.toBeDisabled()
   })
+
+  // isDuplicating: shows "New task"/"Create task" even when initialConfig is provided
+  it('shows "New task" heading and "Create task" button when isDuplicating is true', () => {
+    render(<TaskForm onSubmit={mockSubmit} initialConfig={baseConfig} isDuplicating={true} />)
+    expect(screen.getByRole('heading', { name: /new task/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /create task/i })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: /edit task/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /save changes/i })).not.toBeInTheDocument()
+  })
 })

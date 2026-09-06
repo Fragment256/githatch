@@ -466,6 +466,7 @@ export default function App() {
                   duplicatingConfig ??
                   (selectedTemplate ? templateToConfig(selectedTemplate) : undefined)
                 }
+                isDuplicating={!!duplicatingConfig}
                 existingSlugs={tasks.map((t) => t.slug)}
               />
             </ErrorBoundary>

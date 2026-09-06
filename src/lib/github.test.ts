@@ -367,6 +367,11 @@ describe('fetchRepoAgentConfig', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 403 }))
     await expect(fetchRepoAgentConfig(params)).rejects.toThrow('GitHub API error: 403')
   })
+
+  it('throws on a network-level fetch rejection instead of silently reporting files as absent', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Failed to fetch')))
+    await expect(fetchRepoAgentConfig(params)).rejects.toThrow('Failed to fetch')
+  })
 })
 
 describe('getRecentCommits', () => {

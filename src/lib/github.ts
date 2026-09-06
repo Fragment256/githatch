@@ -160,10 +160,13 @@ export async function fetchRepoAgentConfig(params: {
       fetch(`${base}/.codex/hooks.json`, { headers }),
     ])
 
-  // 404 means the file doesn't exist (expected); any other non-ok status is an unexpected
-  // error (e.g. 403 SAML SSO not authorized) that we surface instead of silently lying.
+  // 404 means the file doesn't exist (expected); any other non-ok status or network
+  // rejection is an unexpected error that we surface instead of silently lying.
   function assertOkOrNotFound(r: PromiseSettledResult<Response>): void {
-    if (r.status === 'fulfilled' && !r.value.ok && r.value.status !== 404) {
+    if (r.status === 'rejected') {
+      throw r.reason
+    }
+    if (!r.value.ok && r.value.status !== 404) {
       throw new Error(`GitHub API error: ${r.value.status}`)
     }
   }

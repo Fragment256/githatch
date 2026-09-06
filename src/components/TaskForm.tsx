@@ -28,6 +28,7 @@ interface Props {
   initialConfig?: TaskConfig
   originalYaml?: string
   existingSlugs?: string[]
+  isDuplicating?: boolean
 }
 
 const SCHEDULE_PRESETS = [
@@ -169,8 +170,9 @@ export function TaskForm({
   initialConfig,
   originalYaml,
   existingSlugs = [],
+  isDuplicating = false,
 }: Props) {
-  const isEditing = !!initialConfig
+  const isEditing = !!initialConfig && !isDuplicating
   const [values, setValues] = useState<TaskFormValues>(() =>
     initialConfig ? configToFormValues(initialConfig) : DEFAULT_VALUES,
   )
