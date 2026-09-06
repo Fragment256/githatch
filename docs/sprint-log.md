@@ -1310,3 +1310,63 @@ Agent-maintained. One entry per daily sprint run.
 - Rationale: Day-3 dry streak unscoped audit is established precedent (sprints 10, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42 all found real bugs). All 3 bugs confirmed against actual source before fixing; no speculative changes.
 - PR: n/a (direct push to main)
 - ROADMAP updated: no
+
+---
+
+## 2026-09-06 (sprint 46)
+
+- Action: baseline
+- Summary: Day 1 of fresh dry streak (sprint 45 reset to 0 — 3 bugs fixed). Full baseline: format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 470/470. No drift.
+- Rationale: Sprint 45 was an actionable day (3 bugs fixed); today is day 1 of fresh streak. Precedent reserves unscoped Explore audit for day 3 (sprint 48). Logging verified-clean baseline.
+- PR: n/a
+- ROADMAP updated: no
+
+---
+
+## 2026-09-06 (sprint 47)
+
+- Action: baseline
+- Summary: Day 2 of fresh dry streak (sprint 46 = day 1). Full baseline: format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 470/470. No drift.
+- Rationale: Day 2 of streak; precedent reserves unscoped Explore audit for day 3 (sprint 48). Logging verified-clean baseline.
+- PR: n/a
+- ROADMAP updated: no
+
+---
+
+## 2026-09-06 (sprint 48)
+
+- Action: correctness-bugs-fixed
+- Summary: Day 3 of dry streak — unscoped Explore audit ran per precedent. Full baseline first: format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 470/470. Explore surfaced findings; 2 MEDIUM bugs confirmed and fixed via TDD. (1) MEDIUM: `checkToolInstalled` returned `false` for 403/500 responses — ToolCard showed "Install" for already-installed tools when token scope was insufficient; clicking Install produced a confusing double-failure. Fix: throw on non-404 errors, matching the `checkSecretExists` pattern from sprint 39. (2) MEDIUM: `ActivityPanel` "Open PRs" and "Merged PRs" stat tiles computed counts from the 20 most-recently-updated PRs — a repo with 80 open PRs showed "Open PRs: 12". Fix: add `getPRCounts` using per_page=1 + Link-header last-page trick for open count and GitHub search API for merged count. 6 regression tests added (RED→GREEN). 476/476 passing (up from 470). Dry streak resets to 0.
+- Rationale: Day-3 dry streak unscoped audit is established precedent (sprints 10, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45 all found real bugs). Both bugs confirmed against actual source before fixing; no speculative changes.
+- PR: n/a (direct push to main)
+- ROADMAP updated: no
+
+---
+
+## 2026-09-06 (sprint 49)
+
+- Action: baseline
+- Summary: Day 1 of fresh dry streak (sprint 48 reset to 0 — 2 bugs fixed). Full baseline: format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 476/476. No drift.
+- Rationale: Sprint 48 was an actionable day (2 bugs fixed); today is day 1 of fresh streak. Precedent reserves unscoped Explore audit for day 3 (sprint 51). Logging verified-clean baseline.
+- PR: n/a
+- ROADMAP updated: no
+
+---
+
+## 2026-09-06 (sprint 50)
+
+- Action: baseline
+- Summary: Day 2 of fresh dry streak (sprint 49 = day 1). Full baseline: format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 476/476. No drift.
+- Rationale: Day 2 of streak; precedent reserves unscoped Explore audit for day 3 (sprint 51). Logging verified-clean baseline.
+- PR: n/a
+- ROADMAP updated: no
+
+---
+
+## 2026-09-06 (sprint 51)
+
+- Action: correctness-bugs-fixed
+- Summary: Day 3 of dry streak — unscoped Explore audit ran per precedent. Full baseline first (post Luke's ToolCard fix `604eaa9`): format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 477/477. Explore surfaced 1 confirmed bug fixed via TDD. (1) MEDIUM: `fetchRunOutput` used `direction=asc` for `pull_request` and `new_issue` API queries — the GitHub Issues `since` parameter filters by `updated_at`, so old issues updated after run start fill the 100-item page; on repos with many old issues the freshly-created output issue/PR lands beyond position 100 and "View output" never appears. Fix: use `direction=desc` so newest-created items appear first; existing `created_at >= run.createdAt` filter discards any old items that slip through. 2 regression tests added (RED→GREEN). 479/479 passing (up from 477). Dry streak resets to 0.
+- Rationale: Day-3 dry streak unscoped audit is established precedent (sprints 10, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48 all found real bugs). Bug confirmed against actual source before fixing; no speculative changes.
+- PR: n/a (direct push to main)
+- ROADMAP updated: no
