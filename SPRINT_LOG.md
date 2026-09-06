@@ -1,3 +1,7 @@
+## Sprint 65 — 2026-09-06 (day 1 of new dry streak)
+
+**Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 487/487. No drift from sprint 64. Unscoped Explore audit reserved for day 3 (sprint 67).
+
 ## Sprint 64 — 2026-09-06 (Explore audit → 3 bugs fixed, dry streak resets to 0)
 
 **Audit:** Unscoped Explore audit. Baseline first: format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 486/486. Explore surfaced 3 real MEDIUM correctness bugs, all fixed via TDD. (1) MEDIUM: `useTasks.load()` did not clear tasks on call — stale tasks from previous repo visible during fetch, causing `GettingStarted` onboarding CTA to show wrong state on repo switch. Fix: `setTasks([])` at top of `load()`. 1 regression test added. (2) MEDIUM: `handleEditFormSubmit` non-atomic rename — if `deleteWorkflowFile` failed after `upsertWorkflowFile` succeeded, both old and new workflow files survived in the repo; subsequent `loadTasks()` never fired; user was shown save error but the new file remained. Fix: try/catch around the delete; on delete failure, call `deleteWorkflowFile` on the newly created file as a rollback before re-throwing. (3) MEDIUM: `fetchRunOutput` used `direction=desc` for all three output types (pull_request, new_issue, issue_comment) — when two runs overlapped, the NEWER run's PR/issue/comment was returned for the OLDER run's output request. Fix: `direction=asc` in all three branches; 3 existing tests updated to assert the correct direction. 487/487 passing (up from 486). Dry streak resets to 0.
