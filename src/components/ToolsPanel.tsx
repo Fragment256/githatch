@@ -41,12 +41,15 @@ function ToolCard({
   }, [token, owner, repo, tool.workflowFileName])
 
   const handleInstall = async () => {
+    const id = ++requestIdRef.current
     setInstalling(true)
     setError(null)
     try {
       await installTool({ token, owner, repo, tool })
+      if (id !== requestIdRef.current) return
       setInstalled(true)
     } catch (err) {
+      if (id !== requestIdRef.current) return
       setError(err instanceof Error ? err.message : 'Install failed')
     } finally {
       setInstalling(false)

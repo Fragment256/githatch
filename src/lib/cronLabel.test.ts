@@ -52,6 +52,11 @@ describe('describeCron', () => {
     expect(describeCron('abc def * * *')).toBe('abc def * * *')
   })
 
+  it('describes leading-zero "00 */N * * *" as "Every N hours"', () => {
+    expect(describeCron('00 */6 * * *')).toBe('Every 6 hours')
+    expect(describeCron('00 */1 * * *')).toBe('Every 1 hour')
+  })
+
   it('returns the raw expression for comma-separated hour/minute lists instead of describing only the first value', () => {
     // '0 9,17 * * *' means 9 AM and 5 PM — describing it as "Daily at 9 AM UTC" would hide the 5 PM run
     expect(describeCron('0 9,17 * * *')).toBe('0 9,17 * * *')
@@ -200,6 +205,14 @@ describe('nextCronRun', () => {
     expect(nextCronRun('0 9 * * 1-7', SAT_PM)).toEqual(new Date('2026-01-18T09:00:00Z'))
     // '5-7' = Fri–Sun: from Sat 14:00 (Sat 09:00 past), next is Sunday Jan 18
     expect(nextCronRun('0 9 * * 5-7', SAT_PM)).toEqual(new Date('2026-01-18T09:00:00Z'))
+  })
+
+  it('treats leading-zero minute "00" as equivalent to "0" for every-N-hours pattern', () => {
+    // '00 */6 * * *' is valid GHA cron syntax but minute === '0' check fails with strict equality
+    expect(nextCronRun('00 */6 * * *', REF)).not.toBeNull()
+    expect(nextCronRun('00 */6 * * *', REF)).toEqual(nextCronRun('0 */6 * * *', REF))
+    // Verify a concrete value: from 14:23:30 next */6 boundary is 18:00:00
+    expect(nextCronRun('00 */6 * * *', REF)).toEqual(new Date('2026-01-14T18:00:00Z'))
   })
 })
 

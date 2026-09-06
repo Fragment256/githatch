@@ -193,9 +193,11 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
           <ul className="space-y-3">
             {taskActivity.map(({ task, runs, loading, error }) => {
               const buckets = buildDayBuckets(runs, DAYS)
-              const total = runs.length
-              const successes = runs.filter((r) => r.conclusion === 'success').length
-              const failures = runs.filter(
+              const windowStart = Date.now() - DAYS * 86400_000
+              const windowRuns = runs.filter((r) => new Date(r.createdAt).getTime() >= windowStart)
+              const total = windowRuns.length
+              const successes = windowRuns.filter((r) => r.conclusion === 'success').length
+              const failures = windowRuns.filter(
                 (r) => r.status === 'completed' && r.conclusion !== 'success',
               ).length
 

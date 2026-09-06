@@ -188,4 +188,69 @@ describe('ActivityPanel', () => {
     expect(allStatValues[2].textContent).not.toBe('0')
     expect(allStatValues[3].textContent).not.toBe('0')
   })
+
+  it('counts run totals/successes/failures from within the 14-day window only', async () => {
+    const now = Date.now()
+    const task = makeTask('task-x', 1)
+    const runsInWindow = [
+      {
+        id: 1,
+        status: 'completed',
+        conclusion: 'success',
+        createdAt: new Date(now - 1 * 86400_000).toISOString(),
+        htmlUrl: '',
+      },
+      {
+        id: 2,
+        status: 'completed',
+        conclusion: 'success',
+        createdAt: new Date(now - 5 * 86400_000).toISOString(),
+        htmlUrl: '',
+      },
+      {
+        id: 3,
+        status: 'completed',
+        conclusion: 'failure',
+        createdAt: new Date(now - 10 * 86400_000).toISOString(),
+        htmlUrl: '',
+      },
+    ]
+    const runsOutsideWindow = [
+      {
+        id: 4,
+        status: 'completed',
+        conclusion: 'success',
+        createdAt: new Date(now - 20 * 86400_000).toISOString(),
+        htmlUrl: '',
+      },
+      {
+        id: 5,
+        status: 'completed',
+        conclusion: 'success',
+        createdAt: new Date(now - 30 * 86400_000).toISOString(),
+        htmlUrl: '',
+      },
+    ]
+    mockGetWorkflowRuns.mockResolvedValue({
+      runs: [...runsInWindow, ...runsOutsideWindow],
+      totalCount: 5,
+    })
+    mockGetRecentCommits.mockResolvedValue([])
+    mockGetRecentPRs.mockResolvedValue([])
+    mockGetPRCounts.mockResolvedValue({ open: 0, merged: 0 })
+
+    render(<ActivityPanel tasks={[task]} token="t" owner="o" repo="r" defaultBranch="main" />)
+
+    // Wait for loading to complete (loading spinner gone)
+    await waitFor(() => expect(screen.queryByText('Loading…')).not.toBeInTheDocument())
+
+    // Label must reflect only the 3 in-window runs, not the full 5
+    const label = screen.getByText(
+      (_, el) => el?.tagName === 'P' && /\d+ runs?/.test(el.textContent ?? ''),
+    )
+    expect(label.textContent).toContain('3 runs')
+    expect(label.textContent).toContain('2 ✓')
+    expect(label.textContent).toContain('1 ✗')
+    expect(label.textContent).not.toContain('5 runs')
+  })
 })

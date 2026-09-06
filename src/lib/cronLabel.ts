@@ -38,8 +38,14 @@ export function nextCronRun(expr: string, from: Date = new Date()): Date | null 
     return t
   }
 
-  // Every N hours: 0 */N * * *
-  if (minute === '0' && hour.startsWith('*/') && dom === '*' && month === '*' && dow === '*') {
+  // Every N hours: 0 */N * * * (also accepts leading-zero form: 00 */N * * *)
+  if (
+    parseInt(minute, 10) === 0 &&
+    hour.startsWith('*/') &&
+    dom === '*' &&
+    month === '*' &&
+    dow === '*'
+  ) {
     const n = parseInt(hour.slice(2), 10)
     if (isNaN(n) || n < 1 || n > 23) return null
     const t = new Date(from)
@@ -165,7 +171,13 @@ export function describeCron(expr: string): string {
     return `Every ${n} minute${n === 1 ? '' : 's'}`
   }
 
-  if (minute === '0' && hour.startsWith('*/') && dom === '*' && month === '*' && dow === '*') {
+  if (
+    parseInt(minute, 10) === 0 &&
+    hour.startsWith('*/') &&
+    dom === '*' &&
+    month === '*' &&
+    dow === '*'
+  ) {
     const n = parseInt(hour.slice(2), 10)
     return `Every ${n} hour${n === 1 ? '' : 's'}`
   }

@@ -130,4 +130,38 @@ describe('ToolsPanel', () => {
     expect(screen.queryByRole('button', { name: 'Install' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Reinstall' })).toBeNull()
   })
+
+  it('discards stale installTool completion when repo changes mid-install', async () => {
+    let resolveInstall!: () => void
+    const staleInstall = new Promise<void>((resolve) => {
+      resolveInstall = resolve
+    })
+    vi.spyOn(tools, 'checkToolInstalled')
+      .mockResolvedValueOnce(false) // repo-a: not installed
+      .mockResolvedValue(false) // repo-b: not installed
+    vi.spyOn(tools, 'installTool').mockReturnValueOnce(staleInstall)
+
+    const { rerender } = render(<ToolsPanel token="gho_test" owner="testuser" repo="repo-a" />)
+    // repo-a check resolves → Install button visible
+    await screen.findByRole('button', { name: 'Install' })
+
+    // Click Install — stale install is now in-flight, installing=true
+    await userEvent.click(screen.getByRole('button', { name: 'Install' }))
+
+    // Switch to repo-b before install completes
+    rerender(<ToolsPanel token="gho_test" owner="testuser" repo="repo-b" />)
+
+    // Resolve stale repo-a install — finally() clears installing, try branch should be guarded
+    await act(async () => {
+      resolveInstall()
+    })
+
+    // After stale install resolves: repo-b check also resolves (false → not installed).
+    // With the bug: setInstalled(true) fires → "Installed" badge / "Reinstall".
+    // With the fix:  setInstalled(true) is guarded → installed stays false → "Install".
+    await waitFor(() => {
+      expect(screen.queryByText('Installed')).toBeNull()
+      expect(screen.getByRole('button', { name: 'Install' })).toBeDefined()
+    })
+  })
 })
