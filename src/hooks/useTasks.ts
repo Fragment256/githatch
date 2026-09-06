@@ -13,6 +13,7 @@ export function useTasks(token: string | null, owner: string, repo: string) {
     const id = ++requestId.current
     setLoading(true)
     setError(null)
+    setTasks([])
     listGithatchTasks({ token, owner, repo })
       .then((result) => {
         if (id !== requestId.current) return

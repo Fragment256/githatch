@@ -921,7 +921,7 @@ describe('fetchRunOutput', () => {
     expect(url).toContain('per_page=100')
   })
 
-  it('uses direction=desc for issue_comment output type lookup — newest comments first, bot comment found on busy issues', async () => {
+  it('uses direction=asc for issue_comment output type lookup — oldest-first so overlapping runs return the right comment', async () => {
     const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve([]) })
     vi.stubGlobal('fetch', fetchMock)
 
@@ -934,11 +934,11 @@ describe('fetchRunOutput', () => {
     })
 
     const url = fetchMock.mock.calls[0][0] as string
-    expect(url).toContain('direction=desc')
-    expect(url).not.toContain('direction=asc')
+    expect(url).toContain('direction=asc')
+    expect(url).not.toContain('direction=desc')
   })
 
-  it('uses direction=desc for new_issue output type lookup', async () => {
+  it('uses direction=asc for new_issue output type lookup — oldest-first so overlapping runs return the right issue', async () => {
     const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve([]) })
     vi.stubGlobal('fetch', fetchMock)
 
@@ -951,11 +951,11 @@ describe('fetchRunOutput', () => {
     })
 
     const url = fetchMock.mock.calls[0][0] as string
-    expect(url).toContain('direction=desc')
-    expect(url).not.toContain('direction=asc')
+    expect(url).toContain('direction=asc')
+    expect(url).not.toContain('direction=desc')
   })
 
-  it('uses direction=desc for pull_request output type lookup', async () => {
+  it('uses direction=asc for pull_request output type lookup — oldest-first so overlapping runs return the right PR', async () => {
     const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve([]) })
     vi.stubGlobal('fetch', fetchMock)
 
@@ -968,8 +968,8 @@ describe('fetchRunOutput', () => {
     })
 
     const url = fetchMock.mock.calls[0][0] as string
-    expect(url).toContain('direction=desc')
-    expect(url).not.toContain('direction=asc')
+    expect(url).toContain('direction=asc')
+    expect(url).not.toContain('direction=desc')
   })
 
   it('ignores pre-existing PRs updated after run start for pull_request type', async () => {

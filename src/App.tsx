@@ -124,7 +124,18 @@ export default function App() {
     try {
       await upsertWorkflowFile({ token, owner, repo, slug: newSlug, yaml })
       if (newSlug !== editingTask.slug) {
-        await deleteWorkflowFile({ token, owner, repo, path: editingTask.path })
+        try {
+          await deleteWorkflowFile({ token, owner, repo, path: editingTask.path })
+        } catch (deleteErr) {
+          // Rollback: remove the new file so we don't leave both files in the repo
+          await deleteWorkflowFile({
+            token,
+            owner,
+            repo,
+            path: `.github/workflows/githatch-${newSlug}.yml`,
+          }).catch(() => {})
+          throw deleteErr
+        }
       }
       setEditingTask(null)
       setEditingConfig(null)

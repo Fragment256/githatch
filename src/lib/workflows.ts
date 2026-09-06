@@ -259,7 +259,7 @@ export async function fetchRunOutput(params: {
 
   if (outputDestination.type === 'pull_request') {
     const res = await fetch(
-      `${API}/repos/${owner}/${repo}/issues?creator=github-actions%5Bbot%5D&since=${encodeURIComponent(run.createdAt)}&per_page=100&sort=created&direction=desc&state=all`,
+      `${API}/repos/${owner}/${repo}/issues?creator=github-actions%5Bbot%5D&since=${encodeURIComponent(run.createdAt)}&per_page=100&sort=created&direction=asc&state=all`,
       { headers },
     )
     if (!res.ok) throw new Error(`GitHub API error ${res.status}`)
@@ -287,7 +287,7 @@ export async function fetchRunOutput(params: {
 
   if (outputDestination.type === 'new_issue') {
     const res = await fetch(
-      `${API}/repos/${owner}/${repo}/issues?creator=github-actions%5Bbot%5D&since=${encodeURIComponent(run.createdAt)}&per_page=100&sort=created&direction=desc&state=all`,
+      `${API}/repos/${owner}/${repo}/issues?creator=github-actions%5Bbot%5D&since=${encodeURIComponent(run.createdAt)}&per_page=100&sort=created&direction=asc&state=all`,
       { headers },
     )
     if (!res.ok) throw new Error(`GitHub API error ${res.status}`)
@@ -314,7 +314,7 @@ export async function fetchRunOutput(params: {
   if (outputDestination.type === 'issue_comment') {
     const { issueNumber } = outputDestination
     const res = await fetch(
-      `${API}/repos/${owner}/${repo}/issues/${issueNumber}/comments?since=${encodeURIComponent(run.createdAt)}&per_page=100&direction=desc`,
+      `${API}/repos/${owner}/${repo}/issues/${issueNumber}/comments?since=${encodeURIComponent(run.createdAt)}&per_page=100&direction=asc`,
       { headers },
     )
     if (!res.ok) throw new Error(`GitHub API error ${res.status}`)

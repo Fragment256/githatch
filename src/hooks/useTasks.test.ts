@@ -116,4 +116,34 @@ describe('useTasks', () => {
 
     expect(result.current.tasks).toEqual([updated])
   })
+
+  it('clears tasks immediately when load is called — stale tasks from previous repo do not persist during fetch', async () => {
+    mockListGithatchTasks.mockResolvedValueOnce([makeTask('old')])
+    const { result } = renderHook(() => useTasks('gho_test', 'owner', 'repo-a'))
+
+    await act(async () => {
+      result.current.load()
+    })
+    await waitFor(() => expect(result.current.tasks).toEqual([makeTask('old')]))
+
+    // Second load (repo switch): tasks should be [] before the new fetch resolves
+    let resolve: (t: GithatchTask[]) => void = () => {}
+    mockListGithatchTasks.mockReturnValueOnce(
+      new Promise<GithatchTask[]>((r) => {
+        resolve = r
+      }),
+    )
+
+    act(() => {
+      result.current.load()
+    })
+
+    // Cleared immediately, before resolve fires
+    expect(result.current.tasks).toEqual([])
+
+    await act(async () => {
+      resolve([makeTask('new')])
+    })
+    await waitFor(() => expect(result.current.tasks).toEqual([makeTask('new')]))
+  })
 })
