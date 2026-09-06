@@ -113,7 +113,10 @@ export async function listGithatchTasks(params: TaskParams): Promise<GithatchTas
       const fileRes = await fetch(`${API}/repos/${owner}/${repo}/contents/${file.path}`, {
         headers,
       })
-      if (!fileRes.ok) return null
+      if (!fileRes.ok) {
+        if (fileRes.status === 404) return null
+        throw new Error(`Failed to fetch workflow file ${file.name}: ${fileRes.status}`)
+      }
       const { content } = (await fileRes.json()) as { content: string }
       const binary = atob(content.replace(/\s/g, ''))
       const bytes = new Uint8Array(binary.length)

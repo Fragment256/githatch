@@ -93,7 +93,8 @@ export function parseOutputDestination(yaml: string): OutputDestination {
   const [, type, params] = match
   if (type === 'issue_comment') {
     const n = parseInt(params?.match(/issue=#(\d+)/)?.[1] ?? '0', 10)
-    return { type: 'issue_comment', issueNumber: n || 1 }
+    if (!n) return { type: 'new_issue' }
+    return { type: 'issue_comment', issueNumber: n }
   }
   if (type === 'file') {
     const filePath = params?.match(/path=(\S+)/)?.[1] ?? ''

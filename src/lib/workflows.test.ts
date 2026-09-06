@@ -196,6 +196,66 @@ describe('listGithatchTasks', () => {
       listGithatchTasks({ token: 'gho_test', owner: 'testuser', repo: 'my-repo' }),
     ).rejects.toThrow()
   })
+
+  it('throws when a per-file content fetch returns a non-404 error (task must not silently vanish)', async () => {
+    const workflowsListResponse = [
+      { name: 'githatch-daily-standup.yml', path: '.github/workflows/githatch-daily-standup.yml' },
+      { name: 'githatch-weekly-report.yml', path: '.github/workflows/githatch-weekly-report.yml' },
+    ]
+    const actionsWorkflows = {
+      workflows: [
+        { id: 10, path: '.github/workflows/githatch-daily-standup.yml', state: 'active' },
+        { id: 12, path: '.github/workflows/githatch-weekly-report.yml', state: 'active' },
+      ],
+    }
+    const dailyYaml = Buffer.from(
+      `# Githatch — Daily Standup\n# githatch:output_type=new_issue\nname: githatch-daily-standup\n\non:\n  workflow_dispatch:\n`,
+    ).toString('base64')
+
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(workflowsListResponse) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(actionsWorkflows) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ content: dailyYaml }) })
+      .mockResolvedValueOnce({ ok: false, status: 403 }) // rate-limited / permission error
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(
+      listGithatchTasks({ token: 'gho_test', owner: 'testuser', repo: 'my-repo' }),
+    ).rejects.toThrow('403')
+  })
+
+  it('skips a file that returns 404 after the directory listing (race: file just deleted)', async () => {
+    const workflowsListResponse = [
+      { name: 'githatch-daily-standup.yml', path: '.github/workflows/githatch-daily-standup.yml' },
+      { name: 'githatch-weekly-report.yml', path: '.github/workflows/githatch-weekly-report.yml' },
+    ]
+    const actionsWorkflows = {
+      workflows: [
+        { id: 10, path: '.github/workflows/githatch-daily-standup.yml', state: 'active' },
+        { id: 12, path: '.github/workflows/githatch-weekly-report.yml', state: 'active' },
+      ],
+    }
+    const dailyYaml = Buffer.from(
+      `# Githatch — Daily Standup\n# githatch:output_type=new_issue\nname: githatch-daily-standup\n\non:\n  workflow_dispatch:\n`,
+    ).toString('base64')
+
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(workflowsListResponse) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(actionsWorkflows) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ content: dailyYaml }) })
+      .mockResolvedValueOnce({ ok: false, status: 404 }) // file deleted between listing and fetch
+    vi.stubGlobal('fetch', fetchMock)
+
+    const tasks = await listGithatchTasks({
+      token: 'gho_test',
+      owner: 'testuser',
+      repo: 'my-repo',
+    })
+    expect(tasks).toHaveLength(1)
+    expect(tasks[0].slug).toBe('daily-standup')
+  })
 })
 
 describe('triggerWorkflow', () => {

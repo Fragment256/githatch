@@ -232,6 +232,12 @@ describe('parseOutputDestination', () => {
   it('defaults to new_issue when comment is absent', () => {
     expect(parseOutputDestination('name: test')).toEqual({ type: 'new_issue' })
   })
+
+  it('falls back to new_issue when issue_comment annotation has no issue number', () => {
+    // Manually edited YAML: type declared but issue=#N is missing
+    const yaml = '# githatch:output_type=issue_comment\nname: test'
+    expect(parseOutputDestination(yaml)).toEqual({ type: 'new_issue' })
+  })
 })
 
 describe('parsePromptFromYaml', () => {
