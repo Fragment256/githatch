@@ -1,3 +1,7 @@
+## Sprint 63 — 2026-09-06 (day 3 of dry streak → 2 bugs fixed)
+
+**Audit:** Unscoped Explore audit ran per precedent. Full baseline first: format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 486/486. Explore surfaced 5 findings; 2 confirmed real bugs fixed via TDD. (1) MEDIUM: `deleteWorkflowFile` threw on 404 GET during a rename — when the old file was already externally deleted, the new file had been written successfully but `handleEditFormSubmit` caught the throw, set "Workflow file not found" error, and left the user on the edit view. Fix: return early on 404 (file already gone is a no-op). Updated existing test that expected a throw. (2) MEDIUM defensive: `secretStatus` not reset eagerly in repo-switch and logout handlers — for one render cycle after switching repos, `GettingStarted` could show stale status from the previous repo. Fix: add `setSecretStatus('loading')` to `onSelect` (RepoPicker), "Switch repo" button handler, and logout handler, batching the reset with the repo change. Remaining 3 acknowledged: LOW directory-listing truncation at 1000+ workflow files (Contents API silently truncates, no `truncated` field), LOW `fetchRunOutput` 100-item cap (no pagination on issue/PR search), LOW unmount guard on poll-loop `fetchRunOutput`. 486/486 passing. Dry streak resets to 0.
+
 ## Sprint 62 — 2026-09-06 (day 2 of dry streak)
 
 **Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 486/486. No drift from sprint 61. Unscoped Explore audit scheduled for sprint 63 (day 3).

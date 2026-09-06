@@ -91,12 +91,10 @@ export async function deleteWorkflowFile(params: {
   const url = `${API}/repos/${owner}/${repo}/contents/${path}`
 
   const getRes = await fetch(url, { headers })
-  if (!getRes.ok)
-    throw new Error(
-      getRes.status === 404
-        ? 'Workflow file not found'
-        : `Failed to fetch workflow file for deletion: ${getRes.status}`,
-    )
+  if (!getRes.ok) {
+    if (getRes.status === 404) return
+    throw new Error(`Failed to fetch workflow file for deletion: ${getRes.status}`)
+  }
   const { sha } = (await getRes.json()) as { sha: string }
 
   const deleteRes = await fetch(url, {

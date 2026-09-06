@@ -180,9 +180,11 @@ describe('deleteWorkflowFile', () => {
     expect(body.sha).toBe('abc123')
   })
 
-  it('throws when file is not found', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 404 }))
-    await expect(deleteWorkflowFile(params)).rejects.toThrow()
+  it('treats 404 as a no-op when the file is already deleted', async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce({ ok: false, status: 404 })
+    vi.stubGlobal('fetch', fetchMock)
+    await expect(deleteWorkflowFile(params)).resolves.toBeUndefined()
+    expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
   it('throws when DELETE fails', async () => {

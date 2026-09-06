@@ -204,6 +204,7 @@ export default function App() {
                 onLogout={() => {
                   logout()
                   setActiveRepo(null)
+                  setSecretStatus('loading')
                   setView('tasks')
                   setEditingTask(null)
                   setEditingConfig(null)
@@ -248,6 +249,7 @@ export default function App() {
               error={reposError}
               onSelect={(r) => {
                 setSaveError(null)
+                setSecretStatus('loading')
                 setActiveRepo(r)
               }}
             />
@@ -295,6 +297,7 @@ export default function App() {
                   <button
                     onClick={() => {
                       setSaveError(null)
+                      setSecretStatus('loading')
                       setActiveRepo(null)
                     }}
                     className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white"
