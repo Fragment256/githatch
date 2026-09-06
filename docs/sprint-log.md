@@ -1300,3 +1300,13 @@ Agent-maintained. One entry per daily sprint run.
 - Rationale: Day 2 of streak; precedent reserves unscoped Explore audit for day 3 (sprint 45). Logging verified-clean baseline.
 - PR: n/a
 - ROADMAP updated: no
+
+---
+
+## 2026-09-06 (sprint 45)
+
+- Action: correctness-bugs-fixed
+- Summary: Day 3 of dry streak — unscoped Explore audit ran per precedent. Full baseline first: format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 467/467. Explore surfaced 6 findings; 3 confirmed real bugs fixed via TDD. (1) HIGH: `patchScheduleInYaml` returned unchanged YAML silently when the `on:/permissions:` block pattern was absent — `updateWorkflowSchedule` then PUT a spurious commit with no schedule change, giving the user a false success. Fix: throw with a clear message when `.replace()` no-ops. (2) HIGH: App logout handler left `view`, `editingTask`, `editingConfig`, `editingOriginalYaml`, `duplicatingConfig`, `selectedTemplate` set — on re-login to a different repo the edit-task form reappeared with the previous repo's task data; submit would cross-write YAML into the wrong repo. Fix: reset all navigation and editing state in `onLogout`. (3) MEDIUM: `SchedulePreview` rendered an empty table (header row, no dates) for valid dom/month-specific crons (e.g. `0 8 15 * *`) because `isValidCron` passes but `nextCronRuns` returns `[]` — no signal to user that the schedule is accepted or how it will fire. Fix: show explicit "preview not available" note when runs is empty. 3 regression tests added (RED→GREEN). 470/470 passing. Dry streak resets to 0.
+- Rationale: Day-3 dry streak unscoped audit is established precedent (sprints 10, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42 all found real bugs). All 3 bugs confirmed against actual source before fixing; no speculative changes.
+- PR: n/a (direct push to main)
+- ROADMAP updated: no
