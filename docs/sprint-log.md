@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-06 (sprint 41)
+
+- Action: baseline
+- Summary: Day 2 of dry streak (sprint 40 = day 1). Full baseline: format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 463/463. No drift. No open PRs; both open issues (#44 severed git history, #46 credential-stealing payload) unchanged, human-gated. ROADMAP Backlog empty. Unscoped Explore audit reserved for day 3 (sprint 42).
+- Rationale: Day 2 of streak; precedent reserves unscoped Explore audit for day 3. Logging verified-clean baseline.
+- PR: —
+- ROADMAP updated: no
+
+---
+
 ## 2026-09-06 (sprint 40)
 
 - Action: baseline
