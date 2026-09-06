@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-06 (sprint 17)
+
+- Action: baseline
+- Summary: CI green on main (2e00b35 HEAD, post-sprint-16 baseline). No open PRs. Both open issues (#44 severed git history, #46 credential-stealing payload) unchanged — still OPEN, human-gated. ROADMAP Backlog empty. Day 2 of dry streak (sprint 16 was day 1). Full local baseline: `format:check` clean, `lint` (0 warnings, `--max-warnings=0`), `type-check` clean, `test` 435/435. No drift from sprint 16. Per precedent, unscoped Explore audit reserved for day 3.
+- Rationale: Day 2 of dry streak — per project precedent, unscoped audit reserved for day 3. Baseline confirms 435/435 still holds, no regressions since sprint 15 bug-fixes. No manufactured scope.
+- PR: —
+- ROADMAP updated: no
+
+---
+
 ## 2026-09-06 (sprint 16)
 
 - Action: baseline
