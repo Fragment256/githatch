@@ -1100,3 +1100,13 @@ Agent-maintained. One entry per daily sprint run.
 - Rationale: Decision tree exhausted through all steps (CI, PRs, issues, roadmap, specs) with nothing safely actionable. Yesterday (2026-08-20) was an actionable day (PR #50 merged), so today is day one of a fresh dry streak, not day three — this project's own precedent reserves unscoped deep investigation for a 3-consecutive-day streak, so logging a verified-clean baseline is the correct move over manufacturing scope.
 - PR: n/a
 - ROADMAP updated: no
+
+---
+
+## 2026-09-06 (sprint 27)
+
+- Action: correctness-bugs-fixed
+- Summary: Day 3 of dry streak — unscoped Explore audit ran per precedent. Full baseline first: format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 443/443. Explore surfaced 6 findings; 4 confirmed real bugs fixed via TDD. (1) MEDIUM: `fetchRunOutput` for `pull_request`/`new_issue` — GitHub `since` filters by `updated_at` not `created_at`; pre-existing items updated after `run.createdAt` appeared as this run's output. Fix: filter by `created_at >= run.createdAt` before `.find()`. 2 regression tests. (2) MEDIUM: `patchScheduleInYaml` regex required exactly `\n\n` before `permissions:` — manually-edited YAML with single blank line silently no-oped; PUT succeeded with identical content. Fix: `\n+` instead of `\n\n`. 1 regression test. (3) MEDIUM: `handleEditFormSubmit` wrote renamed task to old filename — stale workflow file left on GitHub, new name in a different file. Fix: upsert to new slug, delete old path when slug differs; pass `existingSlugs` (minus current task) to edit `TaskForm`. (4) LOW: `handleTaskFormSubmit` omitted `setSelectedTemplate(null)` — next "+ New task" opened pre-filled with prior template. Fix: add the clear call. Final: 446/446 passing (up from 443). Dry streak resets to 0.
+- Rationale: Day-3 dry streak unscoped audit is established precedent (sprints 10, 12, 15, 18, 21, 24 all found real bugs). All 4 bugs confirmed against actual code before fixing; no speculative changes.
+- PR: n/a (direct push to main, no reviewable changes, CI owns safety gate)
+- ROADMAP updated: no
