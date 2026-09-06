@@ -27,6 +27,7 @@ function ToolCard({
 
   useEffect(() => {
     const id = ++requestIdRef.current
+    setInstalled(null)
     setCheckError(null)
     checkToolInstalled({ token, owner, repo, fileName: tool.workflowFileName })
       .then((result) => {

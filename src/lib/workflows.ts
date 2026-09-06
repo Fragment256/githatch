@@ -314,7 +314,7 @@ export async function fetchRunOutput(params: {
   if (outputDestination.type === 'issue_comment') {
     const { issueNumber } = outputDestination
     const res = await fetch(
-      `${API}/repos/${owner}/${repo}/issues/${issueNumber}/comments?since=${encodeURIComponent(run.createdAt)}&per_page=100`,
+      `${API}/repos/${owner}/${repo}/issues/${issueNumber}/comments?since=${encodeURIComponent(run.createdAt)}&per_page=100&direction=desc`,
       { headers },
     )
     if (!res.ok) return null

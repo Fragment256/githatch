@@ -379,7 +379,11 @@ describe('getRecentCommits', () => {
     ]
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(raw) }),
+      vi.fn().mockResolvedValue({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve(raw),
+      }),
     )
     const commits = await getRecentCommits(params)
     expect(commits).toHaveLength(1)
@@ -392,7 +396,11 @@ describe('getRecentCommits', () => {
     const raw = [{ sha: 'abc1234', commit: { message: 'msg', author: null } }]
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(raw) }),
+      vi.fn().mockResolvedValue({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve(raw),
+      }),
     )
     const commits = await getRecentCommits(params)
     expect(commits[0].author).toBe('')
@@ -402,6 +410,42 @@ describe('getRecentCommits', () => {
   it('throws on non-ok response', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 403 }))
     await expect(getRecentCommits(params)).rejects.toThrow()
+  })
+
+  it('paginates across multiple pages via Link header — returns commits from all pages', async () => {
+    const page1 = [
+      {
+        sha: 'aaaaaaa1234567',
+        commit: { message: 'fix: page-1 commit', author: { date: '2026-01-01', name: 'Alice' } },
+      },
+    ]
+    const page2 = [
+      {
+        sha: 'bbbbbbb1234567',
+        commit: { message: 'feat: page-2 commit', author: { date: '2026-01-02', name: 'Bob' } },
+      },
+    ]
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: {
+          get: () => '<https://api.github.com/repos/testuser/my-repo/commits?page=2>; rel="next"',
+        },
+        json: () => Promise.resolve(page1),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve(page2),
+      })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const commits = await getRecentCommits(params)
+    expect(commits).toHaveLength(2)
+    expect(commits[0].sha).toBe('aaaaaaa')
+    expect(commits[1].sha).toBe('bbbbbbb')
+    expect(fetchMock).toHaveBeenCalledTimes(2)
   })
 })
 

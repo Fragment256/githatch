@@ -240,21 +240,27 @@ export async function getRecentCommits(params: {
 }): Promise<CommitSummary[]> {
   const { token, owner, repo, days = 30 } = params
   const since = new Date(Date.now() - days * 86400_000).toISOString()
-  const res = await fetch(
-    `${API}/repos/${owner}/${repo}/commits?since=${encodeURIComponent(since)}&per_page=100`,
-    { headers: authHeaders(token) },
-  )
-  if (!res.ok) throw new Error(`Failed to fetch commits: ${res.status}`)
-  const data = (await res.json()) as Array<{
-    sha: string
-    commit: { message: string; author: { date: string; name: string } | null }
-  }>
-  return data.map((c) => ({
-    sha: c.sha.slice(0, 7),
-    message: c.commit.message.split('\n')[0],
-    date: c.commit.author?.date ?? '',
-    author: c.commit.author?.name ?? '',
-  }))
+  const all: CommitSummary[] = []
+  let url: string | null =
+    `${API}/repos/${owner}/${repo}/commits?since=${encodeURIComponent(since)}&per_page=100`
+  while (url) {
+    const res = await fetch(url, { headers: authHeaders(token) })
+    if (!res.ok) throw new Error(`Failed to fetch commits: ${res.status}`)
+    const data = (await res.json()) as Array<{
+      sha: string
+      commit: { message: string; author: { date: string; name: string } | null }
+    }>
+    all.push(
+      ...data.map((c) => ({
+        sha: c.sha.slice(0, 7),
+        message: c.commit.message.split('\n')[0],
+        date: c.commit.author?.date ?? '',
+        author: c.commit.author?.name ?? '',
+      })),
+    )
+    url = parseNextUrl(res.headers.get('Link'))
+  }
+  return all
 }
 
 export interface PRSummary {

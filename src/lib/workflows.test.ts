@@ -921,6 +921,23 @@ describe('fetchRunOutput', () => {
     expect(url).toContain('per_page=100')
   })
 
+  it('uses direction=desc for issue_comment output type lookup — newest comments first, bot comment found on busy issues', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve([]) })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await fetchRunOutput({
+      token: 'gho_test',
+      owner: 'testuser',
+      repo: 'my-repo',
+      run: baseRun,
+      outputDestination: { type: 'issue_comment', issueNumber: 5 },
+    })
+
+    const url = fetchMock.mock.calls[0][0] as string
+    expect(url).toContain('direction=desc')
+    expect(url).not.toContain('direction=asc')
+  })
+
   it('uses direction=desc for new_issue output type lookup', async () => {
     const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve([]) })
     vi.stubGlobal('fetch', fetchMock)

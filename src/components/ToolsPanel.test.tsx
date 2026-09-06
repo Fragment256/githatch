@@ -97,6 +97,25 @@ describe('ToolsPanel', () => {
     expect(screen.getByRole('button', { name: 'Install' })).toBeDefined()
   })
 
+  it('resets install button to hidden immediately when repo changes before new check resolves', async () => {
+    vi.spyOn(tools, 'checkToolInstalled')
+      .mockResolvedValueOnce(true) // repo-a: installed
+      .mockImplementation(() => new Promise(() => {})) // repo-b: never resolves
+
+    const { rerender } = render(<ToolsPanel token="gho_test" owner="testuser" repo="repo-a" />)
+    // repo-a result: installed=true → Reinstall button visible
+    await screen.findByRole('button', { name: 'Reinstall' })
+
+    // Switch to repo-b — check is in-flight and never resolves
+    rerender(<ToolsPanel token="gho_test" owner="testuser" repo="repo-b" />)
+
+    // installed must reset to null → both Install and Reinstall hidden during check
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: 'Reinstall' })).toBeNull()
+      expect(screen.queryByRole('button', { name: 'Install' })).toBeNull()
+    })
+  })
+
   it('Reinstall button is enabled when tool is already installed', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }))
     render(<ToolsPanel {...defaultProps} />)
