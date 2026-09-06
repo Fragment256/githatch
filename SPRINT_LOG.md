@@ -1,3 +1,23 @@
+## Sprint 74 — 2026-09-06 (day 1 of new dry streak)
+
+**Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 491/491. No drift from sprint 73. Unscoped Explore audit reserved for day 3 (sprint 76).
+
+## Sprint 73 — 2026-09-06 (Explore audit → 3 bugs fixed, dry streak resets to 0)
+
+**Audit:** Unscoped Explore audit ran per precedent. Full baseline first: format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 490/490. Explore surfaced 3 real correctness bugs, all fixed via TDD. (1) MEDIUM: `getWorkflowRuns` ignored `defaultBranch` param — fetch URL had no `branch` query param, so all-branch runs were returned instead of branch-filtered results. Fix: append `&branch=${encodeURIComponent(branch)}` to the fetch URL. (2) MEDIUM: `ActivityPanel` `runsThisWeek` capped at the fetched page size (max 100) for high-frequency tasks — when the page didn't cover 7 full days the count was wrong without indication. Fix: detect truncation (page full and oldest run is within the week) and render `count+` instead of a confident number. (3) MEDIUM: `useAuth` left a stale token in `sessionStorage` when `getAuthenticatedUser` failed after `storeToken` succeeded — subsequent page loads re-authenticated with a bad token silently. Fix: call `clearToken()` before setting error state in the failure branch. 1 regression test added for stale-token scenario. 491/491 passing (up from 490). Dry streak resets to 0. Commit `9c9303d`.
+
+## Sprint 72 — 2026-09-06 (day 2 of dry streak)
+
+**Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 490/490. No drift from sprint 71. Unscoped Explore audit scheduled for sprint 73 (day 3).
+
+## Sprint 71 — 2026-09-06 (day 1 of new dry streak)
+
+**Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 490/490. No drift from sprint 70. Unscoped Explore audit reserved for day 3 (sprint 73).
+
+## Sprint 70 — 2026-09-06 (Explore audit → 3 bugs fixed, dry streak resets to 0)
+
+**Audit:** Unscoped Explore audit ran per precedent. Full baseline first: format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 489/489. Explore surfaced 3 real correctness bugs, all fixed via TDD. (1) MEDIUM: `TaskList` failed-task banner denominator used `filteredLastRuns.length` (only tasks that had already reported back) instead of `filteredTasks.length` — banner showed "1 of 1 failed" instead of "1 of 10" while other task fetches were still in-flight. Fix: denominator now uses the full filtered task count. (2) MEDIUM: `ActivityPanel` "Total runs" stat tile summed `a.runs.length` capped at the 100-per-task perPage limit — tasks with >100 lifetime runs were silently undercounted. Fix: use `total_count` from the GitHub API response (exposed via new `WorkflowRunsResult` return type). (3) MEDIUM: `fetchRepoAgentConfig` treated any non-ok HTTP response (403 SAML SSO, 401, 500) the same as 404 — agent config files appeared "Not found" even when an auth error blocked access. Fix: throw `"GitHub API error: {status}"` for non-404 errors. 1 regression test added. 490/490 passing (up from 489). Dry streak resets to 0. Commit `8525203`.
+
 ## Sprint 69 — 2026-09-06 (day 2 of dry streak)
 
 **Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 489/489. No drift from sprint 68. Unscoped Explore audit scheduled for sprint 70 (day 3).
