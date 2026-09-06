@@ -157,8 +157,8 @@ function RunHistoryPanel({
     setLoadingRuns(true)
     setRunsError(null)
     getWorkflowRuns({ token, owner, repo, workflowId: task.workflowId, defaultBranch })
-      .then((result) => {
-        if (id === fetchRunsRequestId.current) setRuns(result)
+      .then(({ runs }) => {
+        if (id === fetchRunsRequestId.current) setRuns(runs)
       })
       .catch((err: unknown) => {
         if (id === fetchRunsRequestId.current)
@@ -338,7 +338,7 @@ function TaskRow({
     if (!task.workflowId) return
     const id = ++fetchLastRunRequestId.current
     getWorkflowRuns({ token, owner, repo, workflowId: task.workflowId, defaultBranch, perPage: 1 })
-      .then((runs) => {
+      .then(({ runs }) => {
         if (id !== fetchLastRunRequestId.current) return
         const run = runs[0] ?? null
         setLastRun(run)
@@ -364,7 +364,7 @@ function TaskRow({
         return
       }
       void getWorkflowRuns({ token, owner, repo, workflowId, defaultBranch, perPage: 1 })
-        .then((runs) => {
+        .then(({ runs }) => {
           const run = runs[0]
           if (!run || run.id === prevRunIdRef.current) return
           setLastRun(run)
@@ -695,7 +695,7 @@ export function TaskList({
       </div>
       {failedCount > 0 && (
         <div className="mb-3 border-2 border-black bg-black px-4 py-2 font-mono text-xs tracking-widest text-white uppercase">
-          {failedCount} of {Object.keys(filteredLastRuns).length} tasks failed last run
+          {failedCount} of {filteredTasks.length} tasks failed last run
         </div>
       )}
       {filteredTasks.length === 0 ? (

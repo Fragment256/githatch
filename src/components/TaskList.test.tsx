@@ -2,9 +2,13 @@ import { StrictMode } from 'react'
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { TaskList } from './TaskList'
-import type { GithatchTask, WorkflowRun } from '@/lib/workflows'
+import type { GithatchTask, WorkflowRun, WorkflowRunsResult } from '@/lib/workflows'
 import * as workflows from '@/lib/workflows'
 import * as github from '@/lib/github'
+
+function asResult(runs: WorkflowRun[], totalCount?: number): WorkflowRunsResult {
+  return { runs, totalCount: totalCount ?? runs.length }
+}
 
 const TASK: GithatchTask = {
   slug: 'daily-standup',
@@ -32,7 +36,7 @@ const BASE_PROPS = {
 describe('TaskList', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
-    vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue([])
+    vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(asResult([]))
     vi.spyOn(workflows, 'fetchRunOutput').mockResolvedValue(null)
   })
 
@@ -82,15 +86,17 @@ describe('TaskList', () => {
   })
 
   it('loads run history when History is clicked', async () => {
-    vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue([
-      {
-        id: 100,
-        status: 'completed',
-        conclusion: 'success',
-        createdAt: '2024-01-01T09:00:00Z',
-        htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/100',
-      },
-    ])
+    vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(
+      asResult([
+        {
+          id: 100,
+          status: 'completed',
+          conclusion: 'success',
+          createdAt: '2024-01-01T09:00:00Z',
+          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/100',
+        },
+      ]),
+    )
     render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
     fireEvent.click(screen.getAllByRole('button', { name: /^history$/i })[0])
     await waitFor(() => expect(screen.getByText(/Success/)).toBeInTheDocument())
@@ -176,25 +182,29 @@ describe('TaskList', () => {
       }
       vi.spyOn(workflows, 'getWorkflowRuns').mockImplementation(({ workflowId }) => {
         if (workflowId === TASK.workflowId) {
-          return Promise.resolve([
-            {
-              id: 1,
-              status: 'completed',
-              conclusion: 'failure',
-              createdAt: '2024-01-01T09:00:00Z',
-              htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/1',
-            },
-          ])
+          return Promise.resolve(
+            asResult([
+              {
+                id: 1,
+                status: 'completed',
+                conclusion: 'failure',
+                createdAt: '2024-01-01T09:00:00Z',
+                htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/1',
+              },
+            ]),
+          )
         }
-        return Promise.resolve([
-          {
-            id: 2,
-            status: 'completed',
-            conclusion: 'success',
-            createdAt: '2024-01-01T09:00:00Z',
-            htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/2',
-          },
-        ])
+        return Promise.resolve(
+          asResult([
+            {
+              id: 2,
+              status: 'completed',
+              conclusion: 'success',
+              createdAt: '2024-01-01T09:00:00Z',
+              htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/2',
+            },
+          ]),
+        )
       })
       render(<TaskList {...BASE_PROPS} tasks={[TASK, okTask]} />)
       await waitFor(() =>
@@ -203,15 +213,17 @@ describe('TaskList', () => {
     })
 
     it('does not show a banner when no task has a failed last run', async () => {
-      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue([
-        {
-          id: 1,
-          status: 'completed',
-          conclusion: 'success',
-          createdAt: '2024-01-01T09:00:00Z',
-          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/1',
-        },
-      ])
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(
+        asResult([
+          {
+            id: 1,
+            status: 'completed',
+            conclusion: 'success',
+            createdAt: '2024-01-01T09:00:00Z',
+            htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/1',
+          },
+        ]),
+      )
       render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
       await waitFor(() =>
         expect(workflows.getWorkflowRuns).toHaveBeenCalledWith(
@@ -222,15 +234,17 @@ describe('TaskList', () => {
     })
 
     it('does not count a Running task as failed', async () => {
-      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue([
-        {
-          id: 1,
-          status: 'in_progress',
-          conclusion: null,
-          createdAt: '2024-01-01T09:00:00Z',
-          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/1',
-        },
-      ])
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(
+        asResult([
+          {
+            id: 1,
+            status: 'in_progress',
+            conclusion: null,
+            createdAt: '2024-01-01T09:00:00Z',
+            htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/1',
+          },
+        ]),
+      )
       render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
       await waitFor(() =>
         expect(workflows.getWorkflowRuns).toHaveBeenCalledWith(
@@ -249,15 +263,17 @@ describe('TaskList', () => {
       }
       vi.spyOn(workflows, 'getWorkflowRuns').mockImplementation(({ workflowId }) => {
         if (workflowId === TASK.workflowId) {
-          return Promise.resolve([
-            {
-              id: 1,
-              status: 'completed',
-              conclusion: 'failure',
-              createdAt: '2024-01-01T09:00:00Z',
-              htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/1',
-            },
-          ])
+          return Promise.resolve(
+            asResult([
+              {
+                id: 1,
+                status: 'completed',
+                conclusion: 'failure',
+                createdAt: '2024-01-01T09:00:00Z',
+                htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/1',
+              },
+            ]),
+          )
         }
         // errorTask fetch fails — denominator must still include it
         return Promise.reject(new Error('rate limited'))
@@ -277,25 +293,29 @@ describe('TaskList', () => {
       }
       vi.spyOn(workflows, 'getWorkflowRuns').mockImplementation(({ workflowId }) => {
         if (workflowId === TASK.workflowId) {
-          return Promise.resolve([
-            {
-              id: 1,
-              status: 'completed',
-              conclusion: 'failure',
-              createdAt: '2024-01-01T09:00:00Z',
-              htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/1',
-            },
-          ])
+          return Promise.resolve(
+            asResult([
+              {
+                id: 1,
+                status: 'completed',
+                conclusion: 'failure',
+                createdAt: '2024-01-01T09:00:00Z',
+                htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/1',
+              },
+            ]),
+          )
         }
-        return Promise.resolve([
-          {
-            id: 2,
-            status: 'completed',
-            conclusion: 'success',
-            createdAt: '2024-01-01T09:00:00Z',
-            htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/2',
-          },
-        ])
+        return Promise.resolve(
+          asResult([
+            {
+              id: 2,
+              status: 'completed',
+              conclusion: 'success',
+              createdAt: '2024-01-01T09:00:00Z',
+              htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/2',
+            },
+          ]),
+        )
       })
       const { rerender } = render(<TaskList {...BASE_PROPS} tasks={[TASK, okTask]} />)
       await waitFor(() =>
@@ -312,57 +332,65 @@ describe('TaskList', () => {
 
   describe('last-run status badge', () => {
     it('shows Failed badge when last run conclusion is failure', async () => {
-      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue([
-        {
-          id: 1,
-          status: 'completed',
-          conclusion: 'failure',
-          createdAt: '2024-01-01T09:00:00Z',
-          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/1',
-        },
-      ])
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(
+        asResult([
+          {
+            id: 1,
+            status: 'completed',
+            conclusion: 'failure',
+            createdAt: '2024-01-01T09:00:00Z',
+            htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/1',
+          },
+        ]),
+      )
       render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
       await waitFor(() => expect(screen.getByText(/^Failed$/i)).toBeInTheDocument())
     })
 
     it('shows Cancelled badge when last run is cancelled', async () => {
-      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue([
-        {
-          id: 2,
-          status: 'completed',
-          conclusion: 'cancelled',
-          createdAt: '2024-01-01T09:00:00Z',
-          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/2',
-        },
-      ])
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(
+        asResult([
+          {
+            id: 2,
+            status: 'completed',
+            conclusion: 'cancelled',
+            createdAt: '2024-01-01T09:00:00Z',
+            htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/2',
+          },
+        ]),
+      )
       render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
       await waitFor(() => expect(screen.getByText(/^Cancelled$/i)).toBeInTheDocument())
     })
 
     it('shows Running badge when last run is in_progress', async () => {
-      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue([
-        {
-          id: 3,
-          status: 'in_progress',
-          conclusion: null,
-          createdAt: '2024-01-01T09:00:00Z',
-          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/3',
-        },
-      ])
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(
+        asResult([
+          {
+            id: 3,
+            status: 'in_progress',
+            conclusion: null,
+            createdAt: '2024-01-01T09:00:00Z',
+            htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/3',
+          },
+        ]),
+      )
       render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
       await waitFor(() => expect(screen.getByText(/^Running$/i)).toBeInTheDocument())
     })
 
     it('shows no status badge when last run is success', async () => {
-      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue([
-        {
-          id: 4,
-          status: 'completed',
-          conclusion: 'success',
-          createdAt: '2024-01-01T09:00:00Z',
-          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/4',
-        },
-      ])
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(
+        asResult([
+          {
+            id: 4,
+            status: 'completed',
+            conclusion: 'success',
+            createdAt: '2024-01-01T09:00:00Z',
+            htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/4',
+          },
+        ]),
+      )
       render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
       await waitFor(() =>
         expect(workflows.getWorkflowRuns).toHaveBeenCalledWith(
@@ -402,15 +430,17 @@ describe('TaskList', () => {
     })
 
     it('Failed badge is an anchor linking to the run URL', async () => {
-      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue([
-        {
-          id: 10,
-          status: 'completed',
-          conclusion: 'failure',
-          createdAt: '2024-01-01T09:00:00Z',
-          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/10',
-        },
-      ])
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(
+        asResult([
+          {
+            id: 10,
+            status: 'completed',
+            conclusion: 'failure',
+            createdAt: '2024-01-01T09:00:00Z',
+            htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/10',
+          },
+        ]),
+      )
       render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
       await waitFor(() =>
         expect(screen.getByRole('link', { name: /^Failed$/i })).toBeInTheDocument(),
@@ -422,15 +452,17 @@ describe('TaskList', () => {
     })
 
     it('Running badge is an anchor linking to the run URL', async () => {
-      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue([
-        {
-          id: 11,
-          status: 'in_progress',
-          conclusion: null,
-          createdAt: '2024-01-01T09:00:00Z',
-          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/11',
-        },
-      ])
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(
+        asResult([
+          {
+            id: 11,
+            status: 'in_progress',
+            conclusion: null,
+            createdAt: '2024-01-01T09:00:00Z',
+            htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/11',
+          },
+        ]),
+      )
       render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
       await waitFor(() =>
         expect(screen.getByRole('link', { name: /^Running$/i })).toBeInTheDocument(),
@@ -450,25 +482,29 @@ describe('TaskList', () => {
       }
       vi.spyOn(workflows, 'getWorkflowRuns').mockImplementation(({ workflowId }) => {
         if (workflowId === TASK.workflowId) {
-          return Promise.resolve([
-            {
-              id: 1,
-              status: 'completed',
-              conclusion: 'failure',
-              createdAt: '2024-01-01T09:00:00Z',
-              htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/1',
-            },
-          ])
+          return Promise.resolve(
+            asResult([
+              {
+                id: 1,
+                status: 'completed',
+                conclusion: 'failure',
+                createdAt: '2024-01-01T09:00:00Z',
+                htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/1',
+              },
+            ]),
+          )
         }
-        return Promise.resolve([
-          {
-            id: 2,
-            status: 'completed',
-            conclusion: 'success',
-            createdAt: '2024-01-01T09:00:00Z',
-            htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/2',
-          },
-        ])
+        return Promise.resolve(
+          asResult([
+            {
+              id: 2,
+              status: 'completed',
+              conclusion: 'success',
+              createdAt: '2024-01-01T09:00:00Z',
+              htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/2',
+            },
+          ]),
+        )
       })
       render(<TaskList {...BASE_PROPS} tasks={[TASK, okTask]} />)
       // Unfiltered: banner shows "1 of 2 tasks failed"
@@ -635,7 +671,7 @@ describe('TaskList', () => {
 
     it('shows Queued badge immediately after Run now succeeds', async () => {
       vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
-      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue([])
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(asResult([]))
       render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
       fireEvent.click(screen.getByRole('button', { name: /run now/i }))
       await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
@@ -643,7 +679,7 @@ describe('TaskList', () => {
 
     it('Queued badge is not a link', async () => {
       vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
-      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue([])
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(asResult([]))
       render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
       fireEvent.click(screen.getByRole('button', { name: /run now/i }))
       await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
@@ -654,7 +690,7 @@ describe('TaskList', () => {
       vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
       const runsMock = vi.spyOn(workflows, 'getWorkflowRuns')
       // Initial mount: no previous runs
-      runsMock.mockResolvedValue([])
+      runsMock.mockResolvedValue(asResult([]))
 
       render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
 
@@ -664,15 +700,17 @@ describe('TaskList', () => {
       })
 
       // After trigger, polls will return a new in_progress run with a different ID
-      runsMock.mockResolvedValue([
-        {
-          id: 999,
-          status: 'in_progress',
-          conclusion: null,
-          createdAt: new Date().toISOString(),
-          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/999',
-        },
-      ])
+      runsMock.mockResolvedValue(
+        asResult([
+          {
+            id: 999,
+            status: 'in_progress',
+            conclusion: null,
+            createdAt: new Date().toISOString(),
+            htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/999',
+          },
+        ]),
+      )
 
       fireEvent.click(screen.getByRole('button', { name: /run now/i }))
       await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
@@ -690,22 +728,24 @@ describe('TaskList', () => {
     it('stops polling and clears Queued badge when run completes successfully', async () => {
       vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
       const runsMock = vi.spyOn(workflows, 'getWorkflowRuns')
-      runsMock.mockResolvedValue([])
+      runsMock.mockResolvedValue(asResult([]))
 
       render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
       await act(async () => {
         await Promise.resolve()
       })
 
-      runsMock.mockResolvedValue([
-        {
-          id: 999,
-          status: 'completed',
-          conclusion: 'success',
-          createdAt: new Date().toISOString(),
-          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/999',
-        },
-      ])
+      runsMock.mockResolvedValue(
+        asResult([
+          {
+            id: 999,
+            status: 'completed',
+            conclusion: 'success',
+            createdAt: new Date().toISOString(),
+            htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/999',
+          },
+        ]),
+      )
 
       fireEvent.click(screen.getByRole('button', { name: /run now/i }))
       await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
@@ -723,7 +763,7 @@ describe('TaskList', () => {
 
     it('disables the trigger button while polling', async () => {
       vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
-      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue([])
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(asResult([]))
       render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
       fireEvent.click(screen.getByRole('button', { name: /run now/i }))
       await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
@@ -746,7 +786,7 @@ describe('TaskList', () => {
     it('shows output inline after poll detects success for new_issue task', async () => {
       vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
       const runsMock = vi.spyOn(workflows, 'getWorkflowRuns')
-      runsMock.mockResolvedValue([])
+      runsMock.mockResolvedValue(asResult([]))
       vi.spyOn(workflows, 'fetchRunOutput').mockResolvedValue({
         type: 'issue',
         title: 'Weekly Report',
@@ -760,15 +800,17 @@ describe('TaskList', () => {
         await Promise.resolve()
       })
 
-      runsMock.mockResolvedValue([
-        {
-          id: 999,
-          status: 'completed',
-          conclusion: 'success',
-          createdAt: new Date().toISOString(),
-          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/999',
-        },
-      ])
+      runsMock.mockResolvedValue(
+        asResult([
+          {
+            id: 999,
+            status: 'completed',
+            conclusion: 'success',
+            createdAt: new Date().toISOString(),
+            htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/999',
+          },
+        ]),
+      )
 
       fireEvent.click(screen.getByRole('button', { name: /run now/i }))
       await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
@@ -786,7 +828,7 @@ describe('TaskList', () => {
     it('does not fetch output when run fails', async () => {
       vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
       const runsMock = vi.spyOn(workflows, 'getWorkflowRuns')
-      runsMock.mockResolvedValue([])
+      runsMock.mockResolvedValue(asResult([]))
       const fetchOutput = vi.spyOn(workflows, 'fetchRunOutput')
 
       render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
@@ -794,15 +836,17 @@ describe('TaskList', () => {
         await Promise.resolve()
       })
 
-      runsMock.mockResolvedValue([
-        {
-          id: 999,
-          status: 'completed',
-          conclusion: 'failure',
-          createdAt: new Date().toISOString(),
-          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/999',
-        },
-      ])
+      runsMock.mockResolvedValue(
+        asResult([
+          {
+            id: 999,
+            status: 'completed',
+            conclusion: 'failure',
+            createdAt: new Date().toISOString(),
+            htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/999',
+          },
+        ]),
+      )
 
       fireEvent.click(screen.getByRole('button', { name: /run now/i }))
       await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
@@ -823,7 +867,7 @@ describe('TaskList', () => {
       }
       vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
       const runsMock = vi.spyOn(workflows, 'getWorkflowRuns')
-      runsMock.mockResolvedValue([])
+      runsMock.mockResolvedValue(asResult([]))
       vi.spyOn(workflows, 'fetchRunOutput').mockResolvedValue({
         type: 'file_link',
         title: 'reports/weekly.md',
@@ -835,15 +879,17 @@ describe('TaskList', () => {
         await Promise.resolve()
       })
 
-      runsMock.mockResolvedValue([
-        {
-          id: 999,
-          status: 'completed',
-          conclusion: 'success',
-          createdAt: new Date().toISOString(),
-          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/999',
-        },
-      ])
+      runsMock.mockResolvedValue(
+        asResult([
+          {
+            id: 999,
+            status: 'completed',
+            conclusion: 'success',
+            createdAt: new Date().toISOString(),
+            htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/999',
+          },
+        ]),
+      )
 
       fireEvent.click(screen.getByRole('button', { name: /run now/i }))
       await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
@@ -865,7 +911,7 @@ describe('TaskList', () => {
       }
       vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
       const runsMock = vi.spyOn(workflows, 'getWorkflowRuns')
-      runsMock.mockResolvedValue([])
+      runsMock.mockResolvedValue(asResult([]))
       vi.spyOn(workflows, 'fetchRunOutput').mockResolvedValue({
         type: 'pr',
         title: '#7 chore: update deps',
@@ -879,15 +925,17 @@ describe('TaskList', () => {
         await Promise.resolve()
       })
 
-      runsMock.mockResolvedValue([
-        {
-          id: 999,
-          status: 'completed',
-          conclusion: 'success',
-          createdAt: new Date().toISOString(),
-          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/999',
-        },
-      ])
+      runsMock.mockResolvedValue(
+        asResult([
+          {
+            id: 999,
+            status: 'completed',
+            conclusion: 'success',
+            createdAt: new Date().toISOString(),
+            htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/999',
+          },
+        ]),
+      )
 
       fireEvent.click(screen.getByRole('button', { name: /run now/i }))
       await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
@@ -905,7 +953,7 @@ describe('TaskList', () => {
     it('dismissing the output panel clears it', async () => {
       vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
       const runsMock = vi.spyOn(workflows, 'getWorkflowRuns')
-      runsMock.mockResolvedValue([])
+      runsMock.mockResolvedValue(asResult([]))
       vi.spyOn(workflows, 'fetchRunOutput').mockResolvedValue({
         type: 'issue',
         title: 'Sprint Report',
@@ -919,15 +967,17 @@ describe('TaskList', () => {
         await Promise.resolve()
       })
 
-      runsMock.mockResolvedValue([
-        {
-          id: 999,
-          status: 'completed',
-          conclusion: 'success',
-          createdAt: new Date().toISOString(),
-          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/999',
-        },
-      ])
+      runsMock.mockResolvedValue(
+        asResult([
+          {
+            id: 999,
+            status: 'completed',
+            conclusion: 'success',
+            createdAt: new Date().toISOString(),
+            htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/999',
+          },
+        ]),
+      )
 
       fireEvent.click(screen.getByRole('button', { name: /run now/i }))
       await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
@@ -945,7 +995,7 @@ describe('TaskList', () => {
     it('clears stale output from run 1 immediately when run 2 is triggered', async () => {
       vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
       const runsMock = vi.spyOn(workflows, 'getWorkflowRuns')
-      runsMock.mockResolvedValue([])
+      runsMock.mockResolvedValue(asResult([]))
       const fetchOutput = vi
         .spyOn(workflows, 'fetchRunOutput')
         .mockResolvedValueOnce({
@@ -962,15 +1012,17 @@ describe('TaskList', () => {
         await Promise.resolve()
       })
 
-      runsMock.mockResolvedValue([
-        {
-          id: 100,
-          status: 'completed',
-          conclusion: 'success',
-          createdAt: new Date().toISOString(),
-          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/100',
-        },
-      ])
+      runsMock.mockResolvedValue(
+        asResult([
+          {
+            id: 100,
+            status: 'completed',
+            conclusion: 'success',
+            createdAt: new Date().toISOString(),
+            htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/100',
+          },
+        ]),
+      )
 
       // Trigger run 1 and wait for its output to appear
       fireEvent.click(screen.getByRole('button', { name: /run now/i }))
@@ -984,15 +1036,17 @@ describe('TaskList', () => {
       // The 3s setTriggered(false) setTimeout is a real timer — not yet fired at this point.
       // Button shows "Triggered!" (triggered=true) but is enabled (polling=false, triggering=false).
       // Clicking it must clear triggeredOutput immediately before the new trigger resolves.
-      runsMock.mockResolvedValue([
-        {
-          id: 101,
-          status: 'in_progress',
-          conclusion: null,
-          createdAt: new Date().toISOString(),
-          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/101',
-        },
-      ])
+      runsMock.mockResolvedValue(
+        asResult([
+          {
+            id: 101,
+            status: 'in_progress',
+            conclusion: null,
+            createdAt: new Date().toISOString(),
+            htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/101',
+          },
+        ]),
+      )
       fireEvent.click(screen.getByRole('button', { name: /triggered!/i }))
       expect(screen.queryByText('Run 1 Output')).not.toBeInTheDocument()
       expect(fetchOutput).toHaveBeenCalledOnce()
@@ -1018,7 +1072,7 @@ describe('TaskList', () => {
     ]
 
     it('discards stale output when a second click fires before the first resolves', async () => {
-      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(TWO_RUNS)
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(asResult(TWO_RUNS))
 
       let resolveRun1!: (v: { type: 'issue'; title: string; htmlUrl: string } | null) => void
       let resolveRun2!: (v: { type: 'issue'; title: string; htmlUrl: string } | null) => void
@@ -1073,7 +1127,7 @@ describe('TaskList', () => {
     })
 
     it('shows output correctly when single View output click resolves normally', async () => {
-      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(TWO_RUNS)
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(asResult(TWO_RUNS))
 
       vi.spyOn(workflows, 'fetchRunOutput').mockResolvedValue({
         type: 'issue',
@@ -1109,20 +1163,20 @@ describe('TaskList', () => {
     }
 
     it('discards stale run list when StrictMode effect fires fetchRuns twice concurrently', async () => {
-      let resolveFirst!: (v: WorkflowRun[]) => void
-      let resolveSecond!: (v: WorkflowRun[]) => void
-      const p1 = new Promise<WorkflowRun[]>((r) => {
+      let resolveFirst!: (v: WorkflowRunsResult) => void
+      let resolveSecond!: (v: WorkflowRunsResult) => void
+      const p1 = new Promise<WorkflowRunsResult>((r) => {
         resolveFirst = r
       })
-      const p2 = new Promise<WorkflowRun[]>((r) => {
+      const p2 = new Promise<WorkflowRunsResult>((r) => {
         resolveSecond = r
       })
 
       // StrictMode doubles all effects. TaskRow.useEffect fires twice (calls 1+2) on initial
       // render; RunHistoryPanel.fetchRuns fires twice (calls 3+4) after History is clicked.
       vi.spyOn(workflows, 'getWorkflowRuns')
-        .mockResolvedValueOnce([]) // TaskRow StrictMode effect — call 1
-        .mockResolvedValueOnce([]) // TaskRow StrictMode effect — call 2
+        .mockResolvedValueOnce(asResult([])) // TaskRow StrictMode effect — call 1
+        .mockResolvedValueOnce(asResult([])) // TaskRow StrictMode effect — call 2
         .mockImplementationOnce(() => p1) // RunHistoryPanel first effect (stale)
         .mockImplementationOnce(() => p2) // RunHistoryPanel second effect (current)
 
@@ -1137,14 +1191,14 @@ describe('TaskList', () => {
 
       // Resolve p2 first (the current/second request — "Success" run)
       await act(async () => {
-        resolveSecond([CURRENT_RUN])
+        resolveSecond(asResult([CURRENT_RUN]))
       })
 
       await waitFor(() => expect(screen.getByText('Success')).toBeInTheDocument())
 
       // Resolve p1 (stale — should be discarded)
       await act(async () => {
-        resolveFirst([STALE_RUN])
+        resolveFirst(asResult([STALE_RUN]))
       })
 
       // Stale "failure" conclusion must not overwrite the current "Success"
@@ -1170,12 +1224,12 @@ describe('TaskList', () => {
     }
 
     it('discards stale last-run when StrictMode fires initial fetch twice', async () => {
-      let resolveFirst!: (v: WorkflowRun[]) => void
-      let resolveSecond!: (v: WorkflowRun[]) => void
-      const p1 = new Promise<WorkflowRun[]>((r) => {
+      let resolveFirst!: (v: WorkflowRunsResult) => void
+      let resolveSecond!: (v: WorkflowRunsResult) => void
+      const p1 = new Promise<WorkflowRunsResult>((r) => {
         resolveFirst = r
       })
-      const p2 = new Promise<WorkflowRun[]>((r) => {
+      const p2 = new Promise<WorkflowRunsResult>((r) => {
         resolveSecond = r
       })
 
@@ -1192,13 +1246,13 @@ describe('TaskList', () => {
 
       // Resolve p2 first (current — failure → "Failed" badge)
       await act(async () => {
-        resolveSecond([CURRENT_RUN])
+        resolveSecond(asResult([CURRENT_RUN]))
       })
       await waitFor(() => expect(screen.getByText('Failed')).toBeInTheDocument())
 
       // Resolve p1 (stale — success → no badge — must not overwrite current failure)
       await act(async () => {
-        resolveFirst([STALE_RUN])
+        resolveFirst(asResult([STALE_RUN]))
       })
 
       expect(screen.getByText('Failed')).toBeInTheDocument()
@@ -1221,8 +1275,8 @@ describe('TaskList', () => {
       }
 
       vi.spyOn(workflows, 'getWorkflowRuns')
-        .mockResolvedValueOnce([firstRun])
-        .mockResolvedValueOnce([secondRun])
+        .mockResolvedValueOnce(asResult([firstRun]))
+        .mockResolvedValueOnce(asResult([secondRun]))
 
       const { rerender } = render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
 

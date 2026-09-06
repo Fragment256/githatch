@@ -341,9 +341,14 @@ export async function fetchRunOutput(params: {
   return null
 }
 
+export interface WorkflowRunsResult {
+  runs: WorkflowRun[]
+  totalCount: number
+}
+
 export async function getWorkflowRuns(
   params: WorkflowParams & { perPage?: number },
-): Promise<WorkflowRun[]> {
+): Promise<WorkflowRunsResult> {
   const { token, owner, repo, workflowId, perPage = 20 } = params
   const res = await fetch(
     `${API}/repos/${owner}/${repo}/actions/workflows/${workflowId}/runs?per_page=${perPage}`,
@@ -353,6 +358,7 @@ export async function getWorkflowRuns(
     throw new Error(`Failed to fetch workflow runs: ${res.status}`)
   }
   const data = (await res.json()) as {
+    total_count: number
     workflow_runs: Array<{
       id: number
       status: string
@@ -361,11 +367,14 @@ export async function getWorkflowRuns(
       html_url: string
     }>
   }
-  return data.workflow_runs.map((r) => ({
-    id: r.id,
-    status: r.status,
-    conclusion: r.conclusion,
-    createdAt: r.created_at,
-    htmlUrl: r.html_url,
-  }))
+  return {
+    runs: data.workflow_runs.map((r) => ({
+      id: r.id,
+      status: r.status,
+      conclusion: r.conclusion,
+      createdAt: r.created_at,
+      htmlUrl: r.html_url,
+    })),
+    totalCount: data.total_count,
+  }
 }

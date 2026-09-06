@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ActivityPanel } from './ActivityPanel'
 import * as workflows from '@/lib/workflows'
 import * as github from '@/lib/github'
-import type { GithatchTask, WorkflowRun } from '@/lib/workflows'
+import type { GithatchTask, WorkflowRunsResult } from '@/lib/workflows'
 import type { CommitSummary } from '@/lib/github'
 
 vi.mock('@/lib/workflows', () => ({
@@ -39,12 +39,12 @@ describe('ActivityPanel', () => {
   })
 
   it('ignores a stale task-run response that resolves after the repo changes', async () => {
-    let resolveStale: (runs: WorkflowRun[]) => void = () => {}
-    const stalePromise = new Promise<WorkflowRun[]>((resolve) => {
+    let resolveStale: (result: WorkflowRunsResult) => void = () => {}
+    const stalePromise = new Promise<WorkflowRunsResult>((resolve) => {
       resolveStale = resolve
     })
     mockGetWorkflowRuns.mockReturnValueOnce(stalePromise)
-    mockGetWorkflowRuns.mockResolvedValueOnce([])
+    mockGetWorkflowRuns.mockResolvedValueOnce({ runs: [], totalCount: 0 })
     mockGetRecentCommits.mockResolvedValue([])
     mockGetRecentPRs.mockResolvedValue([])
     mockGetPRCounts.mockResolvedValue({ open: 0, merged: 0 })
@@ -63,15 +63,18 @@ describe('ActivityPanel', () => {
     await waitFor(() => expect(screen.getByText(/0 runs/)).toBeInTheDocument())
 
     await act(async () => {
-      resolveStale([
-        {
-          id: 1,
-          status: 'completed',
-          conclusion: 'success',
-          createdAt: new Date().toISOString(),
-          htmlUrl: '',
-        },
-      ])
+      resolveStale({
+        runs: [
+          {
+            id: 1,
+            status: 'completed',
+            conclusion: 'success',
+            createdAt: new Date().toISOString(),
+            htmlUrl: '',
+          },
+        ],
+        totalCount: 1,
+      })
     })
 
     expect(screen.getByText('task-b')).toBeInTheDocument()
@@ -80,15 +83,18 @@ describe('ActivityPanel', () => {
 
   it('fetches workflow runs when tasks arrive after initial empty render', async () => {
     const task = makeTask('task-a', 1)
-    mockGetWorkflowRuns.mockResolvedValue([
-      {
-        id: 1,
-        status: 'completed',
-        conclusion: 'success',
-        createdAt: new Date().toISOString(),
-        htmlUrl: '',
-      },
-    ])
+    mockGetWorkflowRuns.mockResolvedValue({
+      runs: [
+        {
+          id: 1,
+          status: 'completed',
+          conclusion: 'success',
+          createdAt: new Date().toISOString(),
+          htmlUrl: '',
+        },
+      ],
+      totalCount: 1,
+    })
     mockGetRecentCommits.mockResolvedValue([])
     mockGetRecentPRs.mockResolvedValue([])
     mockGetPRCounts.mockResolvedValue({ open: 0, merged: 0 })
@@ -116,7 +122,7 @@ describe('ActivityPanel', () => {
     mockGetRecentCommits.mockResolvedValueOnce([])
     mockGetRecentPRs.mockResolvedValue([])
     mockGetPRCounts.mockResolvedValue({ open: 0, merged: 0 })
-    mockGetWorkflowRuns.mockResolvedValue([])
+    mockGetWorkflowRuns.mockResolvedValue({ runs: [], totalCount: 0 })
 
     const { rerender } = render(
       <ActivityPanel tasks={[]} token="t" owner="o" repo="repo-a" defaultBranch="main" />,
@@ -161,7 +167,7 @@ describe('ActivityPanel', () => {
   })
 
   it('does not show 0 for PR counts when repo API calls fail', async () => {
-    mockGetWorkflowRuns.mockResolvedValue([])
+    mockGetWorkflowRuns.mockResolvedValue({ runs: [], totalCount: 0 })
     mockGetRecentCommits.mockRejectedValue(new Error('network error'))
     mockGetRecentPRs.mockRejectedValue(new Error('network error'))
     mockGetPRCounts.mockRejectedValue(new Error('network error'))

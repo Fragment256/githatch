@@ -1012,6 +1012,7 @@ describe('getWorkflowRuns', () => {
 
   it('returns parsed run objects', async () => {
     const raw = {
+      total_count: 42,
       workflow_runs: [
         {
           id: 100,
@@ -1034,7 +1035,7 @@ describe('getWorkflowRuns', () => {
       vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(raw) }),
     )
 
-    const runs = await getWorkflowRuns({
+    const { runs, totalCount } = await getWorkflowRuns({
       token: 'gho_test',
       owner: 'testuser',
       repo: 'my-repo',
@@ -1043,6 +1044,7 @@ describe('getWorkflowRuns', () => {
     })
 
     expect(runs).toHaveLength(2)
+    expect(totalCount).toBe(42)
     expect(runs[0].id).toBe(100)
     expect(runs[0].status).toBe('completed')
     expect(runs[0].conclusion).toBe('success')

@@ -52,13 +52,14 @@ function Sparkline({ buckets }: { buckets: number[] }) {
 interface TaskActivity {
   task: GithatchTask
   runs: WorkflowRun[]
+  totalCount: number
   loading: boolean
   error: string | null
 }
 
 export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Props) {
   const [taskActivity, setTaskActivity] = useState<TaskActivity[]>(
-    tasks.map((task) => ({ task, runs: [], loading: true, error: null })),
+    tasks.map((task) => ({ task, runs: [], totalCount: 0, loading: true, error: null })),
   )
   const [commits, setCommits] = useState<CommitSummary[] | null>(null)
   const [prs, setPRs] = useState<PRSummary[] | null>(null)
@@ -70,7 +71,9 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
 
   useEffect(() => {
     const id = ++taskRequestId.current
-    setTaskActivity(tasks.map((task) => ({ task, runs: [], loading: true, error: null })))
+    setTaskActivity(
+      tasks.map((task) => ({ task, runs: [], totalCount: 0, loading: true, error: null })),
+    )
 
     tasks.forEach((task, idx) => {
       if (!task.workflowId) {
@@ -85,10 +88,10 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
         defaultBranch,
         perPage: 100,
       })
-        .then((runs) => {
+        .then(({ runs, totalCount }) => {
           if (id !== taskRequestId.current) return
           setTaskActivity((prev) =>
-            prev.map((a, i) => (i === idx ? { ...a, runs, loading: false } : a)),
+            prev.map((a, i) => (i === idx ? { ...a, runs, totalCount, loading: false } : a)),
           )
         })
         .catch((err: unknown) => {
@@ -134,7 +137,7 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
   }, [token, owner, repo])
 
   const DAYS = 14
-  const totalRuns = taskActivity.reduce((s, a) => s + a.runs.length, 0)
+  const totalRuns = taskActivity.reduce((s, a) => s + a.totalCount, 0)
   const runsThisWeek = taskActivity.reduce(
     (s, a) =>
       s + a.runs.filter((r) => Date.now() - new Date(r.createdAt).getTime() < 7 * 86400_000).length,

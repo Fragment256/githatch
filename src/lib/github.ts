@@ -160,22 +160,43 @@ export async function fetchRepoAgentConfig(params: {
       fetch(`${base}/.codex/hooks.json`, { headers }),
     ])
 
-  const hasClaude = claudeRes.status === 'fulfilled' && claudeRes.value.ok
-  const hasSettings = settingsRes.status === 'fulfilled' && settingsRes.value.ok
+  // 404 means the file doesn't exist (expected); any other non-ok status is an unexpected
+  // error (e.g. 403 SAML SSO not authorized) that we surface instead of silently lying.
+  function assertOkOrNotFound(r: PromiseSettledResult<Response>): void {
+    if (r.status === 'fulfilled' && !r.value.ok && r.value.status !== 404) {
+      throw new Error(`GitHub API error: ${r.value.status}`)
+    }
+  }
+  function isPresent(r: PromiseSettledResult<Response>): boolean {
+    return r.status === 'fulfilled' && r.value.ok
+  }
 
-  const skills =
-    skillsRes.status === 'fulfilled' && skillsRes.value.ok
-      ? parseNames((await skillsRes.value.json()) as Array<{ name: string; type: string }>)
-      : []
+  for (const r of [
+    claudeRes,
+    settingsRes,
+    skillsRes,
+    agentsRes,
+    agentsMdRes,
+    codexConfigRes,
+    codexHooksRes,
+  ]) {
+    assertOkOrNotFound(r)
+  }
 
-  const agents =
-    agentsRes.status === 'fulfilled' && agentsRes.value.ok
-      ? parseNames((await agentsRes.value.json()) as Array<{ name: string; type: string }>)
-      : []
+  const hasClaude = isPresent(claudeRes)
+  const hasSettings = isPresent(settingsRes)
 
-  const hasAgentsMd = agentsMdRes.status === 'fulfilled' && agentsMdRes.value.ok
-  const hasCodexConfig = codexConfigRes.status === 'fulfilled' && codexConfigRes.value.ok
-  const hasCodexHooks = codexHooksRes.status === 'fulfilled' && codexHooksRes.value.ok
+  const skills = isPresent(skillsRes)
+    ? parseNames((await skillsRes.value.json()) as Array<{ name: string; type: string }>)
+    : []
+
+  const agents = isPresent(agentsRes)
+    ? parseNames((await agentsRes.value.json()) as Array<{ name: string; type: string }>)
+    : []
+
+  const hasAgentsMd = isPresent(agentsMdRes)
+  const hasCodexConfig = isPresent(codexConfigRes)
+  const hasCodexHooks = isPresent(codexHooksRes)
 
   return { hasClaude, hasSettings, skills, agents, hasAgentsMd, hasCodexConfig, hasCodexHooks }
 }

@@ -354,13 +354,18 @@ describe('fetchRepoAgentConfig', () => {
             { name: 'not-md', type: 'file' },
           ]),
       }) // skills
-      .mockResolvedValueOnce({ ok: false }) // agents
-      .mockResolvedValueOnce({ ok: false }) // AGENTS.md
-      .mockResolvedValueOnce({ ok: false }) // codex config
-      .mockResolvedValueOnce({ ok: false }) // codex hooks
+      .mockResolvedValueOnce({ ok: false, status: 404 }) // agents
+      .mockResolvedValueOnce({ ok: false, status: 404 }) // AGENTS.md
+      .mockResolvedValueOnce({ ok: false, status: 404 }) // codex config
+      .mockResolvedValueOnce({ ok: false, status: 404 }) // codex hooks
     vi.stubGlobal('fetch', fetchMock)
     const config = await fetchRepoAgentConfig(params)
     expect(config.skills).toEqual(['my-skill', 'readme'])
+  })
+
+  it('throws on a 403 response instead of silently reporting files as absent', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 403 }))
+    await expect(fetchRepoAgentConfig(params)).rejects.toThrow('GitHub API error: 403')
   })
 })
 
