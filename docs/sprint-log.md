@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-06 (sprint 24)
+
+- Action: bug-fix
+- Summary: CI green on main (82a098f HEAD, post-sprint-23 baseline). No open PRs. Both open issues (#44 severed git history, #46 credential-stealing payload) unchanged — still OPEN, human-gated. ROADMAP Backlog empty. Day 3 of dry streak — unscoped Explore audit ran per precedent. Explore surfaced 6 bugs; 4 confirmed real and fixed via TDD. (1) HIGH: `nextCronRun` `*/N hours` cross-midnight rollover — when `curHour + (n - remainder) >= 24`, JS Date wrapped the value mod 24 giving an invalid fire time (e.g. 01:00 instead of midnight for `*/5` from 22:30). Fix: detect overflow and advance to next-day 00:00. (2) MEDIUM: `nextCronRun` + `describeCron` rejected DOW=7 (GitHub Actions' Sunday alias) — `nextCronRun` returned null, `describeCron` rendered "Every 7 at X AM UTC". Fix: normalise 7→0 in `nextCronRun` comparison; use `% 7` in `describeCron` DAYS lookup. (3) MEDIUM: `TaskRow` `enabled` state initialised from prop at mount but never synced when parent refreshes task list with updated task — could show stale Pause/Resume button. Fix: `useEffect(() => setEnabled(task.enabled), [task.enabled])`. (4) LOW: `SecretsView` did not reset statuses to `checking` when repo changed — old repo's Set/Not set stayed visible until new checks resolved. Fix: reset to `checking` at top of useEffect. 4 regression tests (RED→GREEN). 443/443 passing (up from 439). Commit `1ddfe31` pushed. Dry streak resets to 0.
+- Rationale: Day 3 audit found 4 genuine correctness bugs: (1) wrong next-run time for non-divisor-of-24 hour intervals late in the day; (2) DOW=7 (a valid GitHub Actions schedule) silently broken; (3) enabled toggle reverts to stale state after refresh; (4) secrets UI shows stale repo's status briefly on switch.
+- PR: —
+- ROADMAP updated: no
+
+---
+
 ## 2026-09-06 (sprint 23)
 
 - Action: baseline
