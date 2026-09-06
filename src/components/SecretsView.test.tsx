@@ -38,11 +38,11 @@ describe('SecretsView', () => {
     })
   })
 
-  it('shows Not set when checkSecretExists rejects', async () => {
+  it('shows Check failed when checkSecretExists rejects', async () => {
     vi.spyOn(secrets, 'checkSecretExists').mockRejectedValue(new Error('Network error'))
     render(<SecretsView {...BASE_PROPS} />)
     await waitFor(() => {
-      expect(screen.getAllByText('Not set').length).toBeGreaterThan(0)
+      expect(screen.getAllByText('Check failed').length).toBeGreaterThan(0)
     })
   })
 

@@ -239,6 +239,47 @@ describe('TaskList', () => {
       )
       expect(screen.queryByText(/tasks failed last run/i)).not.toBeInTheDocument()
     })
+
+    it('removes deleted task from banner denominator after re-render', async () => {
+      const okTask: GithatchTask = {
+        ...TASK,
+        slug: 'ok-task',
+        displayName: 'OK Task',
+        workflowId: 99,
+      }
+      vi.spyOn(workflows, 'getWorkflowRuns').mockImplementation(({ workflowId }) => {
+        if (workflowId === TASK.workflowId) {
+          return Promise.resolve([
+            {
+              id: 1,
+              status: 'completed',
+              conclusion: 'failure',
+              createdAt: '2024-01-01T09:00:00Z',
+              htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/1',
+            },
+          ])
+        }
+        return Promise.resolve([
+          {
+            id: 2,
+            status: 'completed',
+            conclusion: 'success',
+            createdAt: '2024-01-01T09:00:00Z',
+            htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/2',
+          },
+        ])
+      })
+      const { rerender } = render(<TaskList {...BASE_PROPS} tasks={[TASK, okTask]} />)
+      await waitFor(() =>
+        expect(screen.getByText(/1 of 2 tasks failed last run/i)).toBeInTheDocument(),
+      )
+
+      // okTask deleted — only TASK remains; stale entry for ok-task must not inflate denominator
+      rerender(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      await waitFor(() =>
+        expect(screen.getByText(/1 of 1 tasks? failed last run/i)).toBeInTheDocument(),
+      )
+    })
   })
 
   describe('last-run status badge', () => {

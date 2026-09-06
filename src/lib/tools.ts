@@ -105,6 +105,8 @@ export async function installTool(params: ToolParams & { tool: Tool }): Promise<
   if (getRes.ok) {
     const data = (await getRes.json()) as { sha: string }
     sha = data.sha
+  } else if (getRes.status !== 404) {
+    throw new Error(`Failed to fetch tool file: ${getRes.status}`)
   }
 
   const content = btoa(unescape(encodeURIComponent(tool.workflowYaml)))

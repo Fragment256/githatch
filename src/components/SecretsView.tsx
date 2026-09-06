@@ -13,7 +13,7 @@ const SECRETS: SecretEntry[] = [
   { name: 'SYNTHETIC_API_KEY', description: 'Synthetic provider' },
 ]
 
-type Status = 'checking' | 'set' | 'unset'
+type Status = 'checking' | 'set' | 'unset' | 'error'
 
 interface Props {
   token: string
@@ -47,7 +47,7 @@ export function SecretsView({ token, owner, repo, onDone }: Props) {
         })
         .catch(() => {
           if (id !== requestIdRef.current) return
-          setStatuses((s) => ({ ...s, [name]: 'unset' }))
+          setStatuses((s) => ({ ...s, [name]: 'error' }))
         })
     })
   }, [token, owner, repo])
@@ -94,6 +94,9 @@ export function SecretsView({ token, owner, repo, onDone }: Props) {
               )}
               {statuses[name] === 'unset' && (
                 <span className="font-mono text-xs text-gray-400">Not set</span>
+              )}
+              {statuses[name] === 'error' && (
+                <span className="font-mono text-xs text-red-600">Check failed</span>
               )}
               <button
                 onClick={() => setConfiguring(name)}

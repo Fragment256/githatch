@@ -112,4 +112,14 @@ describe('installTool', () => {
       installTool({ token: 'gho_test', owner: 'testuser', repo: 'my-repo', tool: sendGmail }),
     ).rejects.toThrow()
   })
+
+  it('throws when GET returns a non-404 error and does not attempt PUT', async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce({ ok: false, status: 500 })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(
+      installTool({ token: 'gho_test', owner: 'testuser', repo: 'my-repo', tool: sendGmail }),
+    ).rejects.toThrow('500')
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
 })

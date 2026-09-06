@@ -42,7 +42,9 @@ export async function checkSecretExists(params: SecretParams): Promise<boolean> 
   const response = await fetch(`${API}/repos/${owner}/${repo}/actions/secrets/${secretName}`, {
     headers: authHeaders(token),
   })
-  return response.ok
+  if (response.ok) return true
+  if (response.status === 404) return false
+  throw new Error(`Failed to check secret: ${response.status}`)
 }
 
 export interface PutSecretParams extends SecretParams {

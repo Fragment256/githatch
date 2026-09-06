@@ -55,6 +55,18 @@ describe('checkSecretExists', () => {
     })
     expect(exists).toBe(false)
   })
+
+  it('throws on 403 instead of silently returning false', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 403 }))
+    await expect(
+      checkSecretExists({
+        token: 'gho_test',
+        owner: 'testuser',
+        repo: 'my-repo',
+        secretName: 'CLAUDE_CODE_OAUTH_TOKEN',
+      }),
+    ).rejects.toThrow('403')
+  })
 })
 
 describe('putRepoSecret', () => {

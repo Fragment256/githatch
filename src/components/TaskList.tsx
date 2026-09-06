@@ -650,7 +650,11 @@ export function TaskList({
     )
   }
 
-  const failedCount = Object.values(lastRuns).filter(hasFailed).length
+  const taskSlugs = new Set(tasks.map((t) => t.slug))
+  const currentLastRuns = Object.fromEntries(
+    Object.entries(lastRuns).filter(([slug]) => taskSlugs.has(slug)),
+  )
+  const failedCount = Object.values(currentLastRuns).filter(hasFailed).length
   const filteredTasks = tasks.filter((task) =>
     task.displayName.toLowerCase().includes(filterQuery.trim().toLowerCase()),
   )
@@ -683,7 +687,7 @@ export function TaskList({
       </div>
       {failedCount > 0 && (
         <div className="mb-3 border-2 border-black bg-black px-4 py-2 font-mono text-xs tracking-widest text-white uppercase">
-          {failedCount} of {Object.keys(lastRuns).length} tasks failed last run
+          {failedCount} of {Object.keys(currentLastRuns).length} tasks failed last run
         </div>
       )}
       {filteredTasks.length === 0 ? (
