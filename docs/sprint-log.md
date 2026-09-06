@@ -4,6 +4,36 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-06 (sprint 30)
+
+- Action: bug-fix
+- Summary: CI green on main (1e59341 HEAD, post-sprint-29 baseline). No open PRs. Both open issues (#44 severed git history, #46 credential-stealing payload) unchanged — still OPEN, human-gated. ROADMAP Backlog empty. Day 3 of fresh dry streak — unscoped Explore audit ran per precedent. Explore surfaced 6 bugs; 4 confirmed real (1 HIGH, 3 MEDIUM) plus 1 LOW fixed. (1) HIGH: `fetchRunOutput` `issue_comment` branch lacked `created_at >= run.createdAt` filter — a pre-existing bot comment recently reacted-to or edited would appear in the GitHub `since=` query (which filters by `updated_at`) and be returned as the run's output. Fix: filter before `.find()`. (2) MEDIUM: `nextCronRun` hardcoded DOW range handling to `'1-5'` only — any other valid range (e.g. `2-4`, `1-3`, `0-2`) fell through all branches and returned null, showing no rows in SchedulePreview. Fix: generalize to `/^\d+-\d+$/`. (3) MEDIUM: `parseDayList` rejected DOW value 7 (GitHub Actions Sunday alias) with `n > 6` guard — comma-lists like `0,7` or `1,7` caused `nextCronRun` to exit early. Fix: raise bound to `> 7`, normalize 7 → 0 at parse time. (4) MEDIUM: `+ New task` button and `GettingStarted onNewTask` prop called `setView` without `setSaveError(null)` — a stale error from a failed Edit/Duplicate was carried into the new-task form where `saveError` rendered unconditionally. Fix: clear on both entry paths. (5) LOW: `TaskList` failure banner used `tasks.length` as denominator before all runs had loaded. Fix: use `Object.keys(lastRuns).length`. 5 regression tests (RED→GREEN). 451/451 passing (up from 446). Commit `565ac19` pushed. Dry streak resets to 0.
+- Rationale: Day 3 of dry streak per precedent triggers unscoped Explore audit. All bugs confirmed via manual code inspection before writing tests.
+- PR: —
+- ROADMAP updated: no
+
+---
+
+## 2026-09-06 (sprint 29)
+
+- Action: baseline
+- Summary: CI green on main (1e59341 HEAD, post-sprint-28 baseline). No open PRs. Both open issues (#44 severed git history, #46 credential-stealing payload) unchanged — still OPEN, human-gated. ROADMAP Backlog empty. Day 2 of fresh dry streak (sprint 28 = day 1). Full local baseline: `format:check` clean, `lint` (0 warnings, `--max-warnings=0`), `type-check` clean, `test` 446/446. No drift from sprint 28. Per precedent, unscoped Explore audit reserved for day 3.
+- Rationale: Sprint 28 was the mandatory day-1 baseline after sprint 27 reset the dry streak; today is day 2. All structured queue items exhausted. Logging verified-clean baseline outranks manufacturing scope.
+- PR: —
+- ROADMAP updated: no
+
+---
+
+## 2026-09-06 (sprint 28)
+
+- Action: baseline
+- Summary: CI green on main (96ecfbd HEAD, post-sprint-27 bug-fixes). No open PRs. Both open issues unchanged — OPEN, human-gated. ROADMAP Backlog empty. Day 1 of fresh dry streak (sprint 27 reset to 0 after 4 bug-fixes). Full local baseline: `format:check` clean, `lint` (0 warnings, `--max-warnings=0`), `type-check` clean, `test` 446/446. No drift. Per precedent, unscoped Explore audit reserved for day 3.
+- Rationale: Sprint 27 reset the dry streak to 0; this is the mandatory day-1 baseline.
+- PR: —
+- ROADMAP updated: no
+
+---
+
 ## 2026-09-06 (sprint 26)
 
 - Action: baseline
