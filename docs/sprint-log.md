@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-06 (sprint 33)
+
+- Action: correctness-bugs-fixed
+- Summary: Day 3 of dry streak — unscoped Explore audit ran per precedent. Full baseline first: format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 451/451. Explore surfaced 7 findings; 3 confirmed real bugs fixed via TDD. (1) HIGH: `nextCronRun` DOW range with upper bound 7 (Sunday alias) skipped Sunday — `getUTCDay()` returns 0 for Sunday, but `day >= a && day <= b` with `a >= 1` always failed for `day=0`. Fix: when `b >= 7`, also accept `day === 0`. 2 regression tests. (2) MEDIUM: `parseOutputDestination` used `/path=(\S+)/` — stopped at first whitespace, silently truncating file paths containing spaces on every round-trip (e.g. `'my report/file.md'` became `'my'`, corrupting the agent's output command). Fix: `/path=(.+)/` with `.trim()`. 1 regression test. (3) LOW: `TaskForm` accepted names composed entirely of special characters (e.g. `'!!! ~~~'`) — `!values.name.trim()` passed but `slugify()` returned `''`, causing `upsertWorkflowFile` to be called with `slug=''` creating `.github/workflows/githatch-.yml`. Fix: validate `slugCandidate` is non-empty after `slugify`. 1 regression test. Final: 455/455 passing (up from 451). Commit `b5077e0` pushed. Dry streak resets to 0.
+- Rationale: Day-3 dry streak unscoped audit is established precedent (sprints 10, 12, 15, 18, 21, 24, 27, 30 all found real bugs). All 3 bugs confirmed against actual code before writing tests.
+- PR: n/a (direct push to main)
+- ROADMAP updated: no
+
+---
+
 ## 2026-09-06 (sprint 32)
 
 - Action: baseline
