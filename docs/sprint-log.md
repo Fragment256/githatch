@@ -4,6 +4,26 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-06 (sprint 11)
+
+- Action: baseline
+- Summary: CI green on main (a9b6e16 HEAD, post-sprint-10). No open PRs. Both open issues (#44 severed git history, #46 credential-stealing payload) unchanged — still OPEN, human-gated. ROADMAP Backlog empty. Day 1 of fresh dry streak (sprint 10 reset to 0). Mandatory baseline: `format:check` clean, `lint` (0 warnings), `type-check` clean, `test` 430/430. Also updated sprint-log.md for sprint 10 (was missing — commit a9b6e16 updated ROADMAP.md but omitted the sprint-log entry). No new findings from baseline.
+- Rationale: Day 1 of dry streak — per project precedent, unscoped audit reserved for day 3. Baseline confirms 430/430 still holds after sprint 10 fixes. Sprint-log backfill is the only administrative gap.
+- PR: —
+- ROADMAP updated: no
+
+---
+
+## 2026-09-06 (sprint 10)
+
+- Action: bug-fix
+- Summary: CI green on main (91caf53 HEAD, post-baseline). No open PRs. Both open issues (#44 severed git history, #46 credential-stealing payload) unchanged — still OPEN, human-gated. ROADMAP Backlog empty. This was day 3 of the dry streak (day 1: 2026-09-04 sprint 3, day 2: 2026-09-05 PR #58, day 3: today), so dispatched an Explore agent for an unscoped audit. It found 5 potential issues; fixed 2 MEDIUM-priority bugs via TDD: (1) `setActiveRepo` Switch-repo onClick and `RepoPicker.onSelect` never called `setSaveError(null)` — a stale error banner from repo A would reappear after selecting repo B, even though repo B had no error. Fix: added `setSaveError(null)` to both handlers. Regression test: trigger duplicate-load error, click Switch repo, assert error text gone. (2) `parsePromptFromYaml` used `.split('\n\nWhen done,')[0]` to strip the appended instruction suffix — if the user's own prompt contained that sequence, the split fired early and silently discarded the remainder of the prompt. Fix: `lastIndexOf('\n\nWhen done,')` + `slice(0, idx)`. Regression test: round-trip a prompt that contains the marker sequence, assert recovered prompt equals original. 2 new tests (RED→GREEN). 430/430 passing. Full baseline: `format:check`, `lint` (0 warnings), `type-check`, `test` all clean. Dry streak resets to 0. Commits `fab2e1a` (fix) + `a9b6e16` (roadmap/sprint-log update) pushed to main.
+- Rationale: Day 3 of dry streak triggered unscoped Explore audit per project precedent. Both fixed bugs are correctness issues: (1) user sees a phantom error after switching context (stale state class, same root cause as PR #55 Bug 2 but triggered by context-switch rather than back-navigation); (2) user-supplied prompt silently truncated on round-trip (data-loss class, non-obvious because `.split()[0]` looks correct in isolation). Both were confirmed MEDIUM severity — narrower triggers than the prior HIGH/CRITICAL bugs but genuine data-integrity or UX-correctness failures.
+- PR: —
+- ROADMAP updated: yes
+
+---
+
 ## 2026-09-06
 
 - Action: baseline
