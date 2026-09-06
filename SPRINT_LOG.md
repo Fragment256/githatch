@@ -1,3 +1,7 @@
+## Sprint 61 — 2026-09-06 (day 1 of new cycle)
+
+**Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 486/486. No drift from sprint 60. Unscoped Explore audit reserved for day 3 (sprint 63).
+
 ## Sprint 60 — 2026-09-06 (day 3 of dry streak → 2 bugs fixed)
 
 **Audit:** Unscoped Explore audit ran per precedent. Full baseline first: format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 482/482. Explore surfaced 3 findings; 2 confirmed real bugs fixed via TDD. (1) HIGH: `fetchRunOutput` returned `null` on non-OK HTTP responses (401/403/500) in all three output-type branches (pull_request, new_issue, issue_comment) — callers treated null as "output not yet found" and showed "No output found" on real API failures. Fix: throw `Error` with status code so catch handlers show the actual error. (2) MEDIUM: `ActivityPanel` catch block zeroed out `prCounts`/`commits`/`prs` on API failure — showed "Open PRs: 0" / "Merged PRs: 0" when API calls failed, falsely implying zero activity. Fix: add `repoError` state; catch sets error message instead of zeros; renders error text in PR/commits sections. 4 regression tests added (3 for fetchRunOutput non-OK branches, 1 for ActivityPanel error state). 486/486 passing (up from 482). Dry streak resets to 0. Commit `29e7444` pushed to Fragment256/githatch.
