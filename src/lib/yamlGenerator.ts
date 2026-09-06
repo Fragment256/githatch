@@ -97,7 +97,7 @@ export function parseOutputDestination(yaml: string): OutputDestination {
     return { type: 'issue_comment', issueNumber: n }
   }
   if (type === 'file') {
-    const filePath = params?.match(/path=(\S+)/)?.[1] ?? ''
+    const filePath = params?.match(/path=(.+)/)?.[1]?.trim() ?? ''
     return { type: 'file', filePath }
   }
   if (type === 'pull_request') return { type: 'pull_request' }

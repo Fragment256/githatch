@@ -68,6 +68,14 @@ describe('TaskForm', () => {
     expect(mockSubmit).not.toHaveBeenCalled()
   })
 
+  it('shows validation error when name yields an empty slug (all special characters)', () => {
+    render(<TaskForm onSubmit={mockSubmit} />)
+    fillMinimal({ name: '!!! ~~~' })
+    fireEvent.click(screen.getByRole('button', { name: /create task/i }))
+    expect(screen.getByText(/must contain at least one letter/i)).toBeInTheDocument()
+    expect(mockSubmit).not.toHaveBeenCalled()
+  })
+
   it('shows validation error when prompt is empty', () => {
     render(<TaskForm onSubmit={mockSubmit} />)
     fillMinimal({ prompt: '' })

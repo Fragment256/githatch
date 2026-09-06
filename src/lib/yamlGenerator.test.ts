@@ -31,6 +31,11 @@ describe('slugify', () => {
     const long = 'a'.repeat(50)
     expect(slugify(long).length).toBeLessThanOrEqual(40)
   })
+
+  it('returns empty string for names composed entirely of special characters', () => {
+    expect(slugify('!!! ~~~')).toBe('')
+    expect(slugify('---')).toBe('')
+  })
 })
 
 describe('generateWorkflowYaml — Claude OAuth provider', () => {
@@ -237,6 +242,13 @@ describe('parseOutputDestination', () => {
     // Manually edited YAML: type declared but issue=#N is missing
     const yaml = '# githatch:output_type=issue_comment\nname: test'
     expect(parseOutputDestination(yaml)).toEqual({ type: 'new_issue' })
+  })
+
+  it('parses file paths containing spaces', () => {
+    const yaml = '# githatch:output_type=file path=my report/file.md\nname: test'
+    const dest = parseOutputDestination(yaml)
+    expect(dest.type).toBe('file')
+    if (dest.type === 'file') expect(dest.filePath).toBe('my report/file.md')
   })
 })
 

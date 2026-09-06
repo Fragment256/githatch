@@ -75,7 +75,8 @@ export function nextCronRun(expr: string, from: Date = new Date()): Date | null 
     if (/^\d+-\d+$/.test(dow)) {
       const [a, b] = dow.split('-').map(Number)
       const day = c.getUTCDay()
-      if (day >= a && day <= b) return c
+      // b >= 7 means range includes Sunday alias 7; getUTCDay() returns 0 for Sunday
+      if ((day >= a && day <= b) || (b >= 7 && day === 0)) return c
     } else if (dowList) {
       if (dowList.includes(c.getUTCDay())) return c
     } else if (/^\d+$/.test(dow)) {

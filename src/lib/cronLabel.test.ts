@@ -192,6 +192,15 @@ describe('nextCronRun', () => {
     // 1,7 = Mon + Sun; next Sun comes before Mon from Wed
     expect(nextCronRun('0 9 * * 1,7', REF)).toEqual(new Date('2026-01-18T09:00:00Z'))
   })
+
+  it('includes Sunday when DOW range upper bound is 7 (GitHub Actions Sunday alias)', () => {
+    // Saturday 14:00 UTC: Jan 17 at 09:00 is already past
+    const SAT_PM = new Date('2026-01-17T14:00:00Z')
+    // '1-7' = Mon–Sun (7=Sunday alias in GHA): next after Sat 14:00 is Sunday Jan 18, not Monday Jan 19
+    expect(nextCronRun('0 9 * * 1-7', SAT_PM)).toEqual(new Date('2026-01-18T09:00:00Z'))
+    // '5-7' = Fri–Sun: from Sat 14:00 (Sat 09:00 past), next is Sunday Jan 18
+    expect(nextCronRun('0 9 * * 5-7', SAT_PM)).toEqual(new Date('2026-01-18T09:00:00Z'))
+  })
 })
 
 describe('nextCronRuns', () => {
