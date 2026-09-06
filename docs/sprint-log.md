@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-06 (sprint 36)
+
+- Action: correctness-bugs-fixed
+- Summary: Day 3 of dry streak — unscoped Explore audit ran per precedent. Full baseline first: format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 455/455. Explore surfaced 6 findings; 4 confirmed real bugs fixed via TDD. (1) HIGH: `parseGithatchYaml` cron regex `/cron: '([^']+)'/` matched text inside the block-scalar prompt field — manual-only tasks whose prompt mentioned a cron expression displayed a phantom schedule. Fix: anchor to `^ {4}- cron: '...'` (4-space schedule-block indentation); same fix in `parseScheduleFromYaml` (templates.ts). (2) HIGH: `TemplatePicker.onSelect` set `selectedTemplate` but left `duplicatingConfig` set, keeping the `TaskForm` key stable so React never remounted; template content silently ignored. Fix: clear `duplicatingConfig` alongside `selectedTemplate`. (3) MEDIUM: `listGithatchTasks` fetched only one page of actions/workflows (`per_page=100`, no pagination); repos with >100 workflow files left githatch tasks stuck at "Registering…". Fix: paginate until `workflows.length < 100` or `all.length >= total_count`. (4) MEDIUM/LOW: `fetchRunOutput` used `per_page=5` for new_issue/pull_request and `per_page=10` for issue_comment — concurrent runs creating ≥6 issues or ≥11 comments caused "View output" to return null. Fix: all three increased to `per_page=100`. Final: 460/460 passing (up from 455). Dry streak resets to 0.
+- Rationale: Day-3 dry streak unscoped audit is established precedent. All 4 bugs confirmed against actual code before fixing; no speculative changes.
+- PR: n/a (direct push to main)
+- ROADMAP updated: no
+
+---
+
 ## 2026-09-06 (sprint 35)
 
 - Action: baseline
