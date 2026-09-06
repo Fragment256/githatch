@@ -57,6 +57,7 @@ export function useAuth() {
           })
         })
         .catch((err: unknown) => {
+          clearToken()
           const message = err instanceof Error ? err.message : 'Login failed. Please try again.'
           setState({ token: null, user: null, loading: false, error: message })
         })

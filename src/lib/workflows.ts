@@ -349,9 +349,9 @@ export interface WorkflowRunsResult {
 export async function getWorkflowRuns(
   params: WorkflowParams & { perPage?: number },
 ): Promise<WorkflowRunsResult> {
-  const { token, owner, repo, workflowId, perPage = 20 } = params
+  const { token, owner, repo, workflowId, defaultBranch, perPage = 20 } = params
   const res = await fetch(
-    `${API}/repos/${owner}/${repo}/actions/workflows/${workflowId}/runs?per_page=${perPage}`,
+    `${API}/repos/${owner}/${repo}/actions/workflows/${workflowId}/runs?branch=${encodeURIComponent(defaultBranch)}&per_page=${perPage}`,
     { headers: authHeaders(token) },
   )
   if (!res.ok) {

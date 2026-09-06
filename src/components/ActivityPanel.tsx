@@ -138,10 +138,21 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
 
   const DAYS = 14
   const totalRuns = taskActivity.reduce((s, a) => s + a.totalCount, 0)
-  const runsThisWeek = taskActivity.reduce(
-    (s, a) =>
-      s + a.runs.filter((r) => Date.now() - new Date(r.createdAt).getTime() < 7 * 86400_000).length,
-    0,
+  const weekMs = 7 * 86400_000
+  const { runsThisWeek, runsThisWeekTruncated } = taskActivity.reduce(
+    (acc, a) => {
+      const filtered = a.runs.filter((r) => Date.now() - new Date(r.createdAt).getTime() < weekMs)
+      const oldestRun = a.runs[a.runs.length - 1]
+      // Page covers the full week if we fetched all runs, or the oldest fetched run is > 7 days old
+      const pageCoversWeek =
+        a.runs.length >= a.totalCount ||
+        (oldestRun !== undefined && Date.now() - new Date(oldestRun.createdAt).getTime() >= weekMs)
+      return {
+        runsThisWeek: acc.runsThisWeek + filtered.length,
+        runsThisWeekTruncated: acc.runsThisWeekTruncated || !pageCoversWeek,
+      }
+    },
+    { runsThisWeek: 0, runsThisWeekTruncated: false },
   )
   const openPRs = prCounts?.open ?? '…'
   const mergedPRs = prCounts?.merged ?? '…'
@@ -151,11 +162,11 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
       {/* Summary row */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { label: 'Runs this week', value: runsThisWeek },
+          { label: 'Runs this week', value: runsThisWeek, truncated: runsThisWeekTruncated },
           { label: 'Total runs', value: totalRuns },
           { label: 'Open PRs', value: openPRs },
           { label: 'Merged PRs', value: mergedPRs },
-        ].map(({ label, value }) => (
+        ].map(({ label, value, truncated }) => (
           <div key={label} className="border-2 border-black bg-white p-3">
             <p className="font-mono text-xs tracking-widest text-black/40 uppercase">{label}</p>
             <p className="mt-1 font-mono text-2xl font-bold text-black">
@@ -164,7 +175,9 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
                   taskActivity.some((a) => a.error !== null) ||
                   repoLoading
                   ? '…'
-                  : value
+                  : truncated
+                    ? `${value}+`
+                    : value
                 : value}
             </p>
           </div>

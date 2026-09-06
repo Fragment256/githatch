@@ -147,6 +147,19 @@ describe('useAuth — OAuth callback (code in URL)', () => {
     await waitFor(() => expect(result.current.loading).toBe(false))
     expect(result.current.error).toBe('Exchange failed')
     expect(result.current.token).toBeNull()
+    expect(mockClearToken).toHaveBeenCalledOnce()
+  })
+
+  it('clears stale token when getAuthenticatedUser rejects after storeToken', async () => {
+    setSearch({ code: 'auth-code', state: 'test-state' })
+    mockExchangeCodeForToken.mockResolvedValue('gho_new_token')
+    mockGetAuthenticatedUser.mockRejectedValue(new Error('503 Service Unavailable'))
+    const { result } = renderHook(() => useAuth())
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(mockStoreToken).toHaveBeenCalledWith('gho_new_token')
+    expect(mockClearToken).toHaveBeenCalledOnce()
+    expect(result.current.token).toBeNull()
+    expect(result.current.error).toBe('503 Service Unavailable')
   })
 
   it('clears the URL code param on callback', async () => {
