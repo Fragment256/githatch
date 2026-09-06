@@ -4,6 +4,36 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-06 (sprint 23)
+
+- Action: baseline
+- Summary: CI green on main (b9553dd HEAD, post-sprint-22 baseline). No open PRs. Both open issues (#44 severed git history, #46 credential-stealing payload) unchanged — still OPEN, human-gated. ROADMAP Backlog empty. Day 2 of dry streak (sprint 22 = day 1). Full local baseline: `format:check` clean, `lint` (0 warnings, `--max-warnings=0`), `type-check` clean, `test` 439/439. No drift from sprint 22. Per precedent, unscoped Explore audit reserved for day 3.
+- Rationale: Sprint 22 was a baseline-only run (day 1 of fresh streak after sprint 21 bug-fixes), so today is day 2. No new actionable queue items. Logging a verified clean baseline outranks manufacturing scope; unscoped audit reserved for day 3.
+- PR: —
+- ROADMAP updated: no
+
+---
+
+## 2026-09-06 (sprint 22)
+
+- Action: baseline
+- Summary: CI green on main (d9579d3 HEAD, post-sprint-21 bug-fixes). No open PRs. Both open issues (#44 severed git history, #46 credential-stealing payload) unchanged — still OPEN, human-gated. ROADMAP Backlog empty. Day 1 of fresh dry streak (sprint 21 reset to 0). Full local baseline: `format:check` clean, `lint` (0 warnings, `--max-warnings=0`), `type-check` clean, `test` 439/439. No drift. Per precedent, unscoped Explore audit reserved for day 3.
+- Rationale: Sprint 21 was actionable (3 bugs fixed, dry streak reset), so today is day 1 of a fresh streak. No manufactured scope.
+- PR: —
+- ROADMAP updated: no
+
+---
+
+## 2026-09-06 (sprint 21)
+
+- Action: bug-fix
+- Summary: CI green on main (cf95eb3 HEAD, post-sprint-20 baseline). No open PRs. Both open issues (#44 severed git history, #46 credential-stealing payload) unchanged — still OPEN, human-gated. ROADMAP Backlog empty. Day 3 of dry streak — unscoped Explore audit ran per precedent. Explore agent surfaced bugs; 3 confirmed real (MEDIUM). Fixed all 3 via TDD. (1) `yamlGenerator`: `agent_managed` prompts containing the "When done," phrase silently truncated on edit/re-open — `lastIndexOf` trim fired unconditionally; fix: skip when YAML header marks `output_type=agent_managed`. (2) `cronLabel` `nextCronRun`: `*/n` minute intervals where next aligned minute overflows 60 called `setUTCMinutes` with >60, JS Date wraps silently; fix: advance to HH+1:00 when target >= 60. (3) `cronLabel` `isValidCronField`: accepted `*/n` step values exceeding field max (e.g. `*/100` for minutes); fix: add `n <= max` guard. 3 regression tests (RED→GREEN). 439/439 passing (up from 437). Commits `d9579d3` pushed to main. Dry streak resets to 0.
+- Rationale: Day 3 audit found 3 genuine correctness bugs — all user-visible: (1) silent data loss on edit, (2) wrong next-run time shown, (3) valid cron accepted but preview computed incorrectly.
+- PR: —
+- ROADMAP updated: no
+
+---
+
 ## 2026-09-06 (sprint 20)
 
 - Action: baseline
