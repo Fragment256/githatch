@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-06 (sprint 12)
+
+- Action: bug-fix
+- Summary: CI green on main (d5eaa22 HEAD, post-sprint-11 baseline). No open PRs. Both open issues (#44 severed git history, #46 credential-stealing payload) unchanged — still OPEN, human-gated. ROADMAP Backlog empty. Day 2 of fresh dry streak (sprint 11 reset to 0); ran the unscoped audit early after the Explore agent surfaced two real correctness bugs. Fixed both via TDD: (1) `upsertWorkflowFile` in `github.ts` — GET returning 403/500 was silently ignored; `sha` remained `undefined` and the PUT proceeded, failing with a misleading 422. Fix: throw immediately for any non-404 GET failure, matching `deleteWorkflowFile`'s existing behaviour. (2) `fetchRunOutput` `new_issue` branch in `workflows.ts` — took `items[0]` unconditionally from GitHub's issues endpoint, which returns both issues and PRs; if a bot-created PR appeared first, the run output viewer would show a PR where an issue was expected. Fix: `.find(i => !i.pull_request)`, consistent with the `pull_request` branch above it. Regression test for each. Full baseline: `format:check` clean, `lint` 0 warnings, `type-check` clean, `test` 432/432 (up from 430). Commit `f59394c` pushed to main. Dry streak resets to 0.
+- Rationale: Unscoped audit surfaced two correctness bugs: (1) a misleading error message that hides the real failure cause (GET 403/500 swallowed); (2) silent wrong-content display when both a PR and an issue appear in the same API response window. Both are user-visible defects with no workaround. Day 2 is slightly earlier than day 3 precedent, but real findings override the day-3 gate — the Explore agent confirmed genuine correctness failures, not polish items.
+- PR: —
+- ROADMAP updated: no
+
+---
+
 ## 2026-09-06 (sprint 11)
 
 - Action: baseline
