@@ -1,3 +1,7 @@
+## Sprint 80 — 2026-09-06 (day 1 of new cycle after dry Explore audit)
+
+**Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 494/494. No drift from sprint 79. Unscoped Explore audit reserved for day 3 (sprint 82).
+
 ## Sprint 79 — 2026-09-06 (day 3 of dry streak — Explore audit dry)
 
 **Audit:** Unscoped Explore audit ran per precedent. Full baseline: format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 494/494. Reviewed all source files in `src/lib/` (github.ts, workflows.ts, yamlGenerator.ts, cronLabel.ts, utils.ts, auth.ts, secrets.ts, tools.ts, templates.ts, config.ts), all components (ActivityPanel, AgentConfig, GettingStarted, RepoPicker, SecretsView, TaskForm, TaskList, TemplatePicker, TokenSetup, ToolsPanel), all hooks (useAuth, useRepo, useTasks, useTheme), and App.tsx. No correctness bugs found. Dry streak continues at 3.
