@@ -1290,3 +1290,13 @@ Agent-maintained. One entry per daily sprint run.
 - Rationale: Sprint 42 was an actionable day (4 bugs fixed); today is day 1 of fresh streak. Precedent reserves unscoped Explore audit for day 3 (sprint 45). Logging verified-clean baseline.
 - PR: n/a
 - ROADMAP updated: no
+
+---
+
+## 2026-09-06 (sprint 44)
+
+- Action: baseline
+- Summary: Day 2 of fresh dry streak (sprint 43 = day 1). Full baseline: format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 467/467. No drift.
+- Rationale: Day 2 of streak; precedent reserves unscoped Explore audit for day 3 (sprint 45). Logging verified-clean baseline.
+- PR: n/a
+- ROADMAP updated: no
