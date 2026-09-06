@@ -426,6 +426,12 @@ describe('patchScheduleInYaml', () => {
     expect(result).toContain("cron: '0 8 * * *'")
     expect(result).toContain('permissions:')
   })
+
+  it('throws when the on:/permissions: block pattern is absent from the YAML', () => {
+    const malformedYaml =
+      '# Githatch — Test\nname: githatch-test\njobs:\n  run:\n    runs-on: ubuntu-latest\n'
+    expect(() => patchScheduleInYaml(malformedYaml, '0 8 * * *')).toThrow(/could not locate/i)
+  })
 })
 
 describe('updateWorkflowSchedule', () => {

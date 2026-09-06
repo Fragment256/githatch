@@ -49,6 +49,16 @@ describe('TaskForm', () => {
     expect(screen.getByPlaceholderText(/e\.g\. 0 9/i)).toBeInTheDocument()
   })
 
+  it('shows a preview-unavailable note for valid dom/month-specific crons', () => {
+    render(<TaskForm onSubmit={mockSubmit} />)
+    fireEvent.change(screen.getByLabelText(/schedule/i), { target: { value: 'custom' } })
+    fireEvent.change(screen.getByPlaceholderText(/e\.g\. 0 9/i), {
+      target: { value: '0 8 15 * *' },
+    })
+    expect(screen.getByText(/preview not available/i)).toBeInTheDocument()
+    expect(screen.queryByText(/invalid cron/i)).not.toBeInTheDocument()
+  })
+
   it('shows issue number input when output is "issue_comment"', () => {
     render(<TaskForm onSubmit={mockSubmit} />)
     expect(screen.getByPlaceholderText(/issue number/i)).toBeInTheDocument()

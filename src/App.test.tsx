@@ -288,6 +288,15 @@ describe('App — view navigation', () => {
     expect(mockSetActiveRepo).toHaveBeenCalledWith(null)
   })
 
+  it('resets navigation to task list when the user logs out from the new-task form', () => {
+    authWithRepo()
+    render(<App />, { wrapper })
+    fireEvent.click(screen.getAllByRole('button', { name: /\+ new task/i })[0])
+    expect(screen.getByText(/start from template/i)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /logout/i }))
+    expect(screen.queryByText(/start from template/i)).not.toBeInTheDocument()
+  })
+
   it('ignores a stale secret-status response that resolves after the repo changes', async () => {
     let resolveStale: (names: string[]) => void = () => {}
     const stale = new Promise<string[]>((resolve) => {

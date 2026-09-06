@@ -131,6 +131,13 @@ function SchedulePreview({ expr }: { expr: string }) {
   }
 
   const runs = nextCronRuns(expr, 3)
+  if (runs.length === 0) {
+    return (
+      <p className="mt-2 font-mono text-xs text-black/60">
+        Schedule preview not available for day-of-month or month-specific expressions.
+      </p>
+    )
+  }
   const localTz = Intl.DateTimeFormat().resolvedOptions().timeZone
   const showLocal = localTz !== 'UTC'
 

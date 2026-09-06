@@ -150,7 +150,13 @@ export function patchScheduleInYaml(yaml: string, schedule: string | undefined):
   const onBlock = schedule
     ? `on:\n  schedule:\n    - cron: '${schedule}'\n  workflow_dispatch:`
     : `on:\n  workflow_dispatch:`
-  return yaml.replace(/\non:[\s\S]*?\n+permissions:/, `\n${onBlock}\n\npermissions:`)
+  const updated = yaml.replace(/\non:[\s\S]*?\n+permissions:/, `\n${onBlock}\n\npermissions:`)
+  if (updated === yaml) {
+    throw new Error(
+      'Could not locate on:/permissions: block in workflow YAML — schedule not updated',
+    )
+  }
+  return updated
 }
 
 export async function updateWorkflowSchedule(params: {

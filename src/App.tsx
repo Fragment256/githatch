@@ -204,6 +204,13 @@ export default function App() {
                 onLogout={() => {
                   logout()
                   setActiveRepo(null)
+                  setView('tasks')
+                  setEditingTask(null)
+                  setEditingConfig(null)
+                  setEditingOriginalYaml(null)
+                  setSaveError(null)
+                  setDuplicatingConfig(null)
+                  setSelectedTemplate(null)
                 }}
               />
             ) : (
