@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-06 (sprint 39)
+
+- Action: correctness-bugs-fixed
+- Summary: Day 3 of dry streak — unscoped Explore audit ran per precedent. Full baseline first: format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 460/460. Explore surfaced 4 findings; 3 confirmed real bugs fixed via TDD. (1) MEDIUM: `installTool` GET 403/500 silently fell through — sha remained undefined, PUT attempted as create-new-file; confusing 422/403 error surfaced. Fix: `else if (status !== 404) throw`, mirroring `upsertWorkflowFile`. (2) MEDIUM: `TaskList.lastRuns` accumulated stale entries after task deletion — denominator in "N of M tasks failed last run" banner included deleted task slugs indefinitely. Fix: filter `lastRuns` to current task slugs before computing `failedCount` and denominator. (3) LOW-MEDIUM: `checkSecretExists` returned `false` on 403 (non-admin push user) — SecretsView showed "Not set" and offered a "Set" button that also 403'd; real error never surfaced. Fix: throw on non-ok, non-404; SecretsView catch maps to new `'error'` status displaying "Check failed". Skipped finding 4 (latent regex on `updateWorkflowSchedule` with no UI caller). 3 regression tests added. 463/463 passing (up from 460). Dry streak resets to 0.
+- Rationale: Day-3 dry streak unscoped audit is established precedent (sprints 10, 12, 15, 18, 21, 24, 27, 30, 33, 36 all found real bugs). All 3 bugs confirmed against actual code before fixing; no speculative changes.
+- PR: n/a (direct push to main)
+- ROADMAP updated: no
+
+---
+
 ## 2026-09-06 (sprint 38)
 
 - Action: baseline
