@@ -1410,3 +1410,13 @@ Agent-maintained. One entry per daily sprint run.
 - Rationale: Sprint 54 was an actionable day (3 bugs fixed); this is the mandatory day-1 baseline verification. Precedent reserves unscoped audit for day 3.
 - PR: —
 - ROADMAP updated: no
+
+---
+
+## 2026-09-07 (sprint 82)
+
+- Action: correctness-bugs-fixed
+- Summary: Day 3 of dry streak — unscoped Explore audit ran per precedent. Full baseline first: format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 494/494. Explore surfaced 2 confirmed bugs fixed via TDD. (1) MEDIUM: `TaskForm.tsx` `isEditing` flag was `true` when duplicating a task — `duplicatingConfig` was passed as `initialConfig`, so `!!initialConfig` evaluated to `true`; form showed "Edit task"/"Save changes" instead of "New task"/"Create task", misleading the user into thinking they were editing an existing task. Fix: add `isDuplicating?: boolean` prop; `isEditing = !!initialConfig && !isDuplicating`; App.tsx passes `isDuplicating={!!duplicatingConfig}` in new-task view. (2) LOW-MEDIUM: `github.ts` `assertOkOrNotFound` only guarded `fulfilled` results — when `fetch()` itself rejected (network error, CORS, DNS failure), `Promise.allSettled` produced `{ status: 'rejected' }` entries that the guard silently skipped; all 7 agent-config checks then returned `false`/`[]`, displaying every config item as "Not found" with no error surfaced to the user (companion to sprint 70 HTTP 403 fix). Fix: add `r.status === 'rejected'` branch that throws `r.reason`. 2 regression tests added (RED→GREEN). 496/496 passing (up from 494). Dry streak resets to 0.
+- Rationale: Day-3 dry streak unscoped audit is established precedent (sprints 10, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54, 63, 67, 70, 73, 76 all found real bugs; 79 was dry). Both bugs confirmed against actual source before fixing; no speculative changes.
+- PR: n/a (direct push to main)
+- ROADMAP updated: no
