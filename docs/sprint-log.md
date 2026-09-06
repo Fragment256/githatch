@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-06 (sprint 37)
+
+- Action: baseline
+- Summary: Day 1 of fresh dry streak (sprint 36 reset to 0 — 4 bugs fixed). Full baseline: format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 460/460. No drift. No open PRs; both open issues (#44 severed git history, #46 credential-stealing payload) unchanged, human-gated. ROADMAP Backlog empty. Per precedent, unscoped Explore audit reserved for day 3 (sprint 39).
+- Rationale: Sprint 36 reset the dry streak to 0; this is the mandatory day-1 baseline verification.
+- PR: —
+- ROADMAP updated: no
+
+---
+
 ## 2026-09-06 (sprint 36)
 
 - Action: correctness-bugs-fixed
