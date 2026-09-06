@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-07 (sprint 85)
+
+- Action: bug-fixes (Explore audit — day 3 of dry streak)
+- Summary: Unscoped Explore audit found 3 bugs; all fixed via TDD. (1) MEDIUM: `nextCronRun` and `describeCron` used `minute === '0'` strict equality — leading-zero form `'00 */N * * *'` returned null / raw expression; fix: `parseInt(minute, 10) === 0`. (2) MEDIUM: `ActivityPanel` "Executions — last 14 days" label computed `total`/`successes`/`failures` from all fetched runs (up to 100), inconsistent with sparkline which correctly shows 14-day window; fix: filter `runs` to window before computing stats. (3) LOW: `ToolCard.handleInstall` missing stale-response guard — mid-install repo switch left window where stale completion set `installed=true` for new repo; fix: `++requestIdRef.current` + id guard. 4 regression tests (RED→GREEN). 500/500 passing (up from 496). Dry streak resets to 0.
+- Rationale: Day 3 of streak; precedent mandates unscoped Explore audit.
+- Commit: 04cdaee
+- ROADMAP updated: no
+
+---
+
 ## 2026-09-07 (sprint 84)
 
 - Action: baseline
