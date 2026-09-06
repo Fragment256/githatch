@@ -157,7 +157,9 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
             <p className="font-mono text-xs tracking-widest text-black/40 uppercase">{label}</p>
             <p className="mt-1 font-mono text-2xl font-bold text-black">
               {typeof value === 'number'
-                ? taskActivity.some((a) => a.loading) || repoLoading
+                ? taskActivity.some((a) => a.loading) ||
+                  taskActivity.some((a) => a.error !== null) ||
+                  repoLoading
                   ? '…'
                   : value
                 : value}

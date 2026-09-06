@@ -344,7 +344,10 @@ function TaskRow({
         setLastRun(run)
         onLastRunChangeRef.current(task.slug, run)
       })
-      .catch(() => {})
+      .catch(() => {
+        if (id !== fetchLastRunRequestId.current) return
+        onLastRunChangeRef.current(task.slug, null)
+      })
   }, [task.workflowId, task.slug, token, owner, repo, defaultBranch])
 
   useEffect(() => {

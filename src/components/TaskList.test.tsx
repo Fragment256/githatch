@@ -240,6 +240,34 @@ describe('TaskList', () => {
       expect(screen.queryByText(/tasks failed last run/i)).not.toBeInTheDocument()
     })
 
+    it('counts errored-fetch tasks in banner denominator', async () => {
+      const errorTask: GithatchTask = {
+        ...TASK,
+        slug: 'error-task',
+        displayName: 'Error Task',
+        workflowId: 77,
+      }
+      vi.spyOn(workflows, 'getWorkflowRuns').mockImplementation(({ workflowId }) => {
+        if (workflowId === TASK.workflowId) {
+          return Promise.resolve([
+            {
+              id: 1,
+              status: 'completed',
+              conclusion: 'failure',
+              createdAt: '2024-01-01T09:00:00Z',
+              htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/1',
+            },
+          ])
+        }
+        // errorTask fetch fails — denominator must still include it
+        return Promise.reject(new Error('rate limited'))
+      })
+      render(<TaskList {...BASE_PROPS} tasks={[TASK, errorTask]} />)
+      await waitFor(() =>
+        expect(screen.getByText(/1 of 2 tasks failed last run/i)).toBeInTheDocument(),
+      )
+    })
+
     it('removes deleted task from banner denominator after re-render', async () => {
       const okTask: GithatchTask = {
         ...TASK,

@@ -138,6 +138,28 @@ describe('ActivityPanel', () => {
     expect(screen.queryByText('stale commit')).not.toBeInTheDocument()
   })
 
+  it('shows … for run counts when a task workflow fetch errors', async () => {
+    const task = makeTask('task-a', 1)
+    mockGetWorkflowRuns.mockRejectedValue(new Error('rate limited'))
+    mockGetRecentCommits.mockResolvedValue([])
+    mockGetRecentPRs.mockResolvedValue([])
+    mockGetPRCounts.mockResolvedValue({ open: 0, merged: 0 })
+
+    render(<ActivityPanel tasks={[task]} token="t" owner="o" repo="r" defaultBranch="main" />)
+
+    // Wait for loading to complete
+    await waitFor(() => {
+      expect(screen.queryByText('Loading…')).not.toBeInTheDocument()
+    })
+
+    // After a task fetch error, "Runs this week" and "Total runs" must show … not a (wrong) number
+    const allStatValues = screen.getAllByText((_, el) => {
+      return el?.tagName === 'P' && el.classList.contains('text-2xl')
+    })
+    expect(allStatValues[0].textContent).toBe('…')
+    expect(allStatValues[1].textContent).toBe('…')
+  })
+
   it('does not show 0 for PR counts when repo API calls fail', async () => {
     mockGetWorkflowRuns.mockResolvedValue([])
     mockGetRecentCommits.mockRejectedValue(new Error('network error'))
