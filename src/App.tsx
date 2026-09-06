@@ -230,7 +230,10 @@ export default function App() {
               activeRepo={activeRepo}
               loading={reposLoading}
               error={reposError}
-              onSelect={setActiveRepo}
+              onSelect={(r) => {
+                setSaveError(null)
+                setActiveRepo(r)
+              }}
             />
           </div>
         )}
@@ -274,7 +277,10 @@ export default function App() {
                     Secrets
                   </button>
                   <button
-                    onClick={() => setActiveRepo(null)}
+                    onClick={() => {
+                      setSaveError(null)
+                      setActiveRepo(null)
+                    }}
                     className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white"
                   >
                     Switch repo

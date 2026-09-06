@@ -128,7 +128,9 @@ export function parsePromptFromYaml(yaml: string): string {
       .map((line) => (line.startsWith(' '.repeat(indent)) ? line.slice(indent) : line))
       .join('\n')
       .trimEnd()
-    return full.split('\n\nWhen done,')[0].trimEnd()
+    const marker = '\n\nWhen done,'
+    const idx = full.lastIndexOf(marker)
+    return idx === -1 ? full.trimEnd() : full.slice(0, idx).trimEnd()
   }
   const singleMatch = yaml.match(/ {10}prompt: '(.*)'$/m)
   if (singleMatch) return singleMatch[1].replace(/''/g, "'")

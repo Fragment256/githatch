@@ -275,6 +275,14 @@ describe('parsePromptFromYaml', () => {
     expect(parsePromptFromYaml('name: test')).toBe('')
   })
 
+  it('preserves user prompt containing the When done marker sequence', () => {
+    const prompt = 'Check things.\n\nWhen done, report your findings here.'
+    const yaml = generateWorkflowYaml(
+      makeConfig({ prompt, outputDestination: { type: 'issue_comment', issueNumber: 42 } }),
+    )
+    expect(parsePromptFromYaml(yaml)).toBe(prompt)
+  })
+
   it('generates block scalar with content indented deeper than the prompt key', () => {
     // GitHub rejects workflow_dispatch if YAML is malformed — content must be
     // indented more than the `prompt:` key (which sits at 10 spaces).
