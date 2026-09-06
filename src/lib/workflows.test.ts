@@ -1064,3 +1064,57 @@ describe('getWorkflowRuns', () => {
     ).rejects.toThrow()
   })
 })
+
+describe('fetchRunOutput — HTTP error propagation', () => {
+  beforeEach(() => vi.restoreAllMocks())
+
+  const baseRun: WorkflowRun = {
+    id: 1,
+    status: 'completed',
+    conclusion: 'success',
+    createdAt: '2024-01-01T09:00:00Z',
+    htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/1',
+  }
+
+  it('throws on non-OK response for pull_request output type instead of silently returning null', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 401 }))
+
+    await expect(
+      fetchRunOutput({
+        token: 'gho_test',
+        owner: 'testuser',
+        repo: 'my-repo',
+        run: baseRun,
+        outputDestination: { type: 'pull_request' },
+      }),
+    ).rejects.toThrow()
+  })
+
+  it('throws on non-OK response for new_issue output type instead of silently returning null', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 403 }))
+
+    await expect(
+      fetchRunOutput({
+        token: 'gho_test',
+        owner: 'testuser',
+        repo: 'my-repo',
+        run: baseRun,
+        outputDestination: { type: 'new_issue' },
+      }),
+    ).rejects.toThrow()
+  })
+
+  it('throws on non-OK response for issue_comment output type instead of silently returning null', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 500 }))
+
+    await expect(
+      fetchRunOutput({
+        token: 'gho_test',
+        owner: 'testuser',
+        repo: 'my-repo',
+        run: baseRun,
+        outputDestination: { type: 'issue_comment', issueNumber: 5 },
+      }),
+    ).rejects.toThrow()
+  })
+})

@@ -64,6 +64,7 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
   const [prs, setPRs] = useState<PRSummary[] | null>(null)
   const [prCounts, setPRCounts] = useState<PRCounts | null>(null)
   const [repoLoading, setRepoLoading] = useState(true)
+  const [repoError, setRepoError] = useState<string | null>(null)
   const taskRequestId = useRef(0)
   const repoRequestId = useRef(0)
 
@@ -110,6 +111,7 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
   useEffect(() => {
     const id = ++repoRequestId.current
     setRepoLoading(true)
+    setRepoError(null)
     Promise.all([
       getRecentCommits({ token, owner, repo, days: 30 }),
       getRecentPRs({ token, owner, repo }),
@@ -123,9 +125,7 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
       })
       .catch(() => {
         if (id !== repoRequestId.current) return
-        setCommits([])
-        setPRs([])
-        setPRCounts({ open: 0, merged: 0 })
+        setRepoError('Failed to load repository activity')
       })
       .finally(() => {
         if (id !== repoRequestId.current) return
@@ -216,6 +216,8 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
         </h2>
         {repoLoading ? (
           <p className="font-mono text-xs text-black/40">Loading…</p>
+        ) : repoError ? (
+          <p className="font-mono text-xs text-red-600">{repoError}</p>
         ) : !prs || prs.length === 0 ? (
           <p className="font-mono text-xs text-black/40">No pull requests found.</p>
         ) : (
@@ -254,6 +256,8 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
         </h2>
         {repoLoading ? (
           <p className="font-mono text-xs text-black/40">Loading…</p>
+        ) : repoError ? (
+          <p className="font-mono text-xs text-red-600">{repoError}</p>
         ) : !commits || commits.length === 0 ? (
           <p className="font-mono text-xs text-black/40">No commits in the last 30 days.</p>
         ) : (

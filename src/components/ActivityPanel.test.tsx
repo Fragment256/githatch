@@ -137,4 +137,27 @@ describe('ActivityPanel', () => {
     expect(screen.getByText('No commits in the last 30 days.')).toBeInTheDocument()
     expect(screen.queryByText('stale commit')).not.toBeInTheDocument()
   })
+
+  it('does not show 0 for PR counts when repo API calls fail', async () => {
+    mockGetWorkflowRuns.mockResolvedValue([])
+    mockGetRecentCommits.mockRejectedValue(new Error('network error'))
+    mockGetRecentPRs.mockRejectedValue(new Error('network error'))
+    mockGetPRCounts.mockRejectedValue(new Error('network error'))
+
+    render(<ActivityPanel tasks={[]} token="t" owner="o" repo="repo-a" defaultBranch="main" />)
+
+    // Wait for loading to complete (loading spinner disappears means API call finished)
+    await waitFor(() => {
+      expect(screen.queryByText('Loading…')).not.toBeInTheDocument()
+    })
+
+    // After the error, PR counts must NOT show 0 — showing 0 implies "no PRs" which is factually wrong.
+    // "Runs this week" and "Total runs" may legitimately be 0 (no tasks), but
+    // "Open PRs" and "Merged PRs" (indices 2 and 3 in the stat grid) must not be 0 after an API failure.
+    const allStatValues = screen.getAllByText((_, el) => {
+      return el?.tagName === 'P' && el.classList.contains('text-2xl')
+    })
+    expect(allStatValues[2].textContent).not.toBe('0')
+    expect(allStatValues[3].textContent).not.toBe('0')
+  })
 })

@@ -262,7 +262,7 @@ export async function fetchRunOutput(params: {
       `${API}/repos/${owner}/${repo}/issues?creator=github-actions%5Bbot%5D&since=${encodeURIComponent(run.createdAt)}&per_page=100&sort=created&direction=desc&state=all`,
       { headers },
     )
-    if (!res.ok) return null
+    if (!res.ok) throw new Error(`GitHub API error ${res.status}`)
     const items = (await res.json()) as Array<{
       number: number
       title: string
@@ -290,7 +290,7 @@ export async function fetchRunOutput(params: {
       `${API}/repos/${owner}/${repo}/issues?creator=github-actions%5Bbot%5D&since=${encodeURIComponent(run.createdAt)}&per_page=100&sort=created&direction=desc&state=all`,
       { headers },
     )
-    if (!res.ok) return null
+    if (!res.ok) throw new Error(`GitHub API error ${res.status}`)
     const items = (await res.json()) as Array<{
       number: number
       title: string
@@ -317,7 +317,7 @@ export async function fetchRunOutput(params: {
       `${API}/repos/${owner}/${repo}/issues/${issueNumber}/comments?since=${encodeURIComponent(run.createdAt)}&per_page=100&direction=desc`,
       { headers },
     )
-    if (!res.ok) return null
+    if (!res.ok) throw new Error(`GitHub API error ${res.status}`)
     const comments = (await res.json()) as Array<{
       id: number
       body: string
