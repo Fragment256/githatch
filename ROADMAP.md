@@ -86,3 +86,4 @@ Items deliberately on hold — not prioritised but not abandoned.
 | Guard TokenSetup checkSecretExists against stale mid-flight secretName changes          | —   | 2026-09-04 |
 | RepoPicker: guard ArrowDown against -1 highlightedIndex when filtered list is empty     | —   | 2026-09-04 |
 | Fix TaskRow last-run effect missing task.slug dep; enforce zero-warning lint            | #58 | 2026-09-05 |
+| Clear stale saveError on Switch repo; fix parsePromptFromYaml early truncation          | —   | 2026-09-06 |
