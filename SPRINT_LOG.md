@@ -1,3 +1,7 @@
+## Sprint 114 — 2026-09-07 (day 2 of new cycle)
+
+**Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 524/524. No drift from sprint 113. Unscoped Explore audit scheduled for sprint 115 (day 3, next heartbeat).
+
 ## Sprint 113 — 2026-09-07 (day 1 of new cycle after sprint 112 bug-fixes)
 
 **Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 524/524. No drift from sprint 112. Unscoped Explore audit reserved for day 3 (sprint 115).
