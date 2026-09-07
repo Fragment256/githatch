@@ -1,3 +1,11 @@
+## Sprint 95 — 2026-09-07 (day 1 of new cycle after sprint 94 bugs)
+
+**Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 505/505. No drift from sprint 94. Unscoped Explore audit reserved for day 3 (sprint 97).
+
+## Sprint 94 — 2026-09-07 (Explore audit — day 3 of new cycle, 2 bugs fixed)
+
+**Audit:** Unscoped Explore audit ran per precedent. Full baseline first: format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 503/503. Explore surfaced 7 findings; 2 fixed via TDD: (1) HIGH: `ToolsPanel` `handleInstall` `finally` block unguarded — on repo switch mid-install, `setInstalling(false)` fired unconditionally even when a newer install was in-flight for the new repo, prematurely clearing the spinner and leaving the Install button stuck as disabled. Fix: reset `installing` in `useEffect` on dep change + guard `finally` with `if (id === requestIdRef.current)`. 1 regression test. (2) MEDIUM: `TaskList` `handleDelete` success path missing `setDeleting(false)` / `setConfirmDelete(false)` — relied on `onRefresh()` to unmount `TaskRow`; if refresh was slow or returned the deleted file transiently, ConfirmDialog stayed open in "Deleting…" with both buttons disabled, no way to cancel. Fix: `finally` block always resets. 1 regression test. Remaining 5 findings LOW/LOW-MEDIUM deferred. 505/505 passing (up from 503). Dry streak resets to 0. Commits `cc30f5b` + `7a47713`.
+
 ## Sprint 93 — 2026-09-07 (day 2 of new cycle after sprint 91 bugs)
 
 **Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 503/503. No drift from sprint 92. Unscoped Explore audit scheduled for sprint 94 (day 3).
