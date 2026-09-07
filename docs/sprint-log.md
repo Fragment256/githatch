@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-07 (sprint 106)
+
+- Action: bug-fix (Explore audit — day 3 of dry streak)
+- Summary: Unscoped Explore audit found 1 HIGH bug; fixed via TDD. HIGH: `useAuth` initialized `loading: false` unconditionally even when a stored token was present. During the first render (before `useEffect` fires), `!loading && !user && token !== null` was momentarily true — App.tsx would flash the Landing page and `useRepo` would begin fetching with a potentially expired token before auth validation completed. Fix: `loading: !!getStoredToken()` so the first render already reflects the pending-validation state. Regression test uses `useLayoutEffect` (fires before `useEffect`) to capture the initial loading flag. 514/514 passing (up from 513). Commit `dca656f`. Dry streak resets to 0.
+- Rationale: HIGH severity — visible flash of Landing page on every app load with a stored token.
+- PR: n/a (direct push to main)
+- ROADMAP updated: no
+
+---
+
 ## 2026-09-07 (sprint 93)
 
 - Action: ci-fix
