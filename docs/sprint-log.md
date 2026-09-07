@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-07 (sprint 109)
+
+- Action: bug-fixes (Explore audit — day 3 of new cycle, 3 MEDIUM bugs fixed)
+- Summary: Unscoped Explore audit found 3 MEDIUM bugs; all fixed via TDD. (1) MEDIUM: `isValidCron` accepted `*/N` day-of-week — `nextCronRun` has no `*/N` DOW branch so the next-run preview was permanently blank, and GitHub Actions itself does not support `*/N` DOW syntax. Fix: guard `if (dow.startsWith('*/')) return false`. 1 regression test. (2) MEDIUM: `useRepo` did not clear `activeRepo`/sessionStorage when `token` transitioned to `null` — the prior user's repo persisted and was pre-populated for the next user on the same tab. Fix: `useEffect(() => { if (!token) setActiveRepo(null) }, [token])`. 1 regression test. (3) MEDIUM: `App` did not re-trigger the `listRepoSecrets` effect after `SecretsView.onDone` — `GettingStarted` showed the secret as still absent after the user completed token setup. Fix: `secretStatusVersion` counter state, bumped on `onDone`, added to effect deps. 1 regression test. 517/517 passing (up from 514). Dry streak resets to 0. Commit `de8854d`.
+- Rationale: Day 3 audit (sprint 109); all 3 bugs were reachable in normal user flows.
+- PR: n/a (direct push to main)
+- ROADMAP updated: no
+
+---
+
 ## 2026-09-07 (sprint 108)
 
 - Action: baseline (day 2 of new cycle)
