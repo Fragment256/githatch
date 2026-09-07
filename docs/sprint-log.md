@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-07 (sprint 124)
+
+- Action: bug-fixes (Explore audit — day 3 of new cycle, 2 bugs fixed)
+- Summary: Unscoped Explore audit ran per precedent. Full baseline first: format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 528/528. Explore surfaced 7 findings; 2 confirmed real bugs fixed via TDD. (1) HIGH: `App` logo button `onClick` only called `setView('tasks')` — missing `setDuplicatingConfig(null)` and `setSelectedTemplate(null)`. All other exits from new-task view cleared both. After clicking the logo during a duplicate flow, clicking `+ New task` again silently pre-filled the form with the duplicated task's data. Fix: add both resets to the logo button handler. 1 regression test. (2) LOW-MEDIUM: `canPreviewCron` did not guard `dom` or `month` — returned `true` for expressions like `0 0 */5 * *` even though `nextCronRun` returns `null` for any non-`*` dom/month (line 70). SchedulePreview's `runs.length === 0` fallback saved the UX but `canPreviewCron` violated its own contract. Fix: add `if (dom !== '* ' || month !== '*') return false`. 5 regression tests. Remaining 5 findings: finding 2 (`fetchRunOutput` 100-item cap, no pagination) — already acknowledged in sprint 63/64, deferred; finding 4 (no `loadTasks()` after new task creation) — intentional trade-off from sprint 97 (removing it prevented blank flash; `workflowId: undefined` correctly shows "Registering…"); finding 5 (`patchScheduleInYaml` regex) — false positive, prompt lines are indented 12 spaces so `\n+permissions:` never matches prompt content; findings 6–7 LOW deferred. 530/530 passing (up from 528). Dry streak resets to 0. Commit `0daad75`.
+- Rationale: Day-3 unscoped audit is established precedent. Both bugs confirmed against actual source before fixing; no speculative changes.
+- PR: n/a (direct push to main)
+- ROADMAP updated: no
+
+---
+
 ## 2026-09-07 (sprint 123)
 
 - Action: baseline (day 2 of new cycle after sprint 121 dry Explore audit)
