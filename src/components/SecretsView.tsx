@@ -24,6 +24,7 @@ interface Props {
 
 export function SecretsView({ token, owner, repo, onDone }: Props) {
   const [configuring, setConfiguring] = useState<string | null>(null)
+  const [configuringIsUpdate, setConfiguringIsUpdate] = useState(false)
   const [statuses, setStatuses] = useState<Record<string, Status>>({
     CLAUDE_CODE_OAUTH_TOKEN: 'checking',
     OPENAI_API_KEY: 'checking',
@@ -59,9 +60,11 @@ export function SecretsView({ token, owner, repo, onDone }: Props) {
         owner={owner}
         repo={repo}
         secretName={configuring}
+        forceSetup={configuringIsUpdate}
         onDone={() => {
           setStatuses((s) => ({ ...s, [configuring]: 'set' }))
           setConfiguring(null)
+          setConfiguringIsUpdate(false)
         }}
       />
     )
@@ -99,7 +102,10 @@ export function SecretsView({ token, owner, repo, onDone }: Props) {
                 <span className="font-mono text-xs text-red-600">Check failed</span>
               )}
               <button
-                onClick={() => setConfiguring(name)}
+                onClick={() => {
+                  setConfiguringIsUpdate(statuses[name] === 'set')
+                  setConfiguring(name)
+                }}
                 className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white"
               >
                 {statuses[name] === 'set' ? 'Update' : 'Set'}

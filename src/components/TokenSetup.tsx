@@ -72,11 +72,12 @@ interface Props {
   repo: string
   secretName: string
   onDone: () => void
+  forceSetup?: boolean
 }
 
 type Phase = 'checking' | 'not-needed' | 'setup' | 'saving' | 'done' | 'error'
 
-export function TokenSetup({ token, owner, repo, secretName, onDone }: Props) {
+export function TokenSetup({ token, owner, repo, secretName, onDone, forceSetup }: Props) {
   const [phase, setPhase] = useState<Phase>('checking')
   const [value, setValue] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -89,13 +90,13 @@ export function TokenSetup({ token, owner, repo, secretName, onDone }: Props) {
     checkSecretExists({ token, owner, repo, secretName })
       .then((exists) => {
         if (reqId !== requestIdRef.current) return
-        setPhase(exists ? 'not-needed' : 'setup')
+        setPhase(exists && !forceSetup ? 'not-needed' : 'setup')
       })
       .catch(() => {
         if (reqId !== requestIdRef.current) return
         setPhase('setup')
       })
-  }, [token, owner, repo, secretName])
+  }, [token, owner, repo, secretName, forceSetup])
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()

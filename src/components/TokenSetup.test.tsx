@@ -193,3 +193,26 @@ describe('TokenSetup — unknown secret', () => {
     await waitFor(() => expect(screen.getByText(/set up api key/i)).toBeInTheDocument())
   })
 })
+
+describe('TokenSetup — forceSetup (Update path)', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+    BASE_PROPS.onDone.mockReset()
+  })
+
+  it('shows setup form when forceSetup=true even though secret already exists', async () => {
+    vi.spyOn(secrets, 'checkSecretExists').mockResolvedValue(true)
+    render(<TokenSetup {...BASE_PROPS} forceSetup />)
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /save to repo/i })).toBeInTheDocument(),
+    )
+    expect(screen.queryByText(/already set on this repo/i)).not.toBeInTheDocument()
+  })
+
+  it('still shows not-needed when forceSetup is omitted and secret exists', async () => {
+    vi.spyOn(secrets, 'checkSecretExists').mockResolvedValue(true)
+    render(<TokenSetup {...BASE_PROPS} />)
+    await waitFor(() => expect(screen.getByText(/already set on this repo/i)).toBeInTheDocument())
+    expect(screen.queryByRole('button', { name: /save to repo/i })).not.toBeInTheDocument()
+  })
+})

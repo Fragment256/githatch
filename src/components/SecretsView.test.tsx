@@ -155,4 +155,15 @@ describe('SecretsView', () => {
     fireEvent.click(screen.getByRole('button', { name: /continue/i }))
     expect(screen.getByText('CLAUDE_CODE_OAUTH_TOKEN')).toBeInTheDocument()
   })
+
+  it('shows the update form (not "already set") when Update is clicked on an existing secret', async () => {
+    vi.spyOn(secrets, 'checkSecretExists').mockResolvedValue(true)
+    render(<SecretsView {...BASE_PROPS} />)
+    await waitFor(() => screen.getAllByRole('button', { name: /update/i }))
+    fireEvent.click(screen.getAllByRole('button', { name: /update/i })[0])
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /save to repo/i })).toBeInTheDocument(),
+    )
+    expect(screen.queryByText(/already set on this repo/i)).not.toBeInTheDocument()
+  })
 })
