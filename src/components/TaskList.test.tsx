@@ -1374,6 +1374,76 @@ describe('TaskList', () => {
     })
   })
 
+  describe('RunHistoryPanel re-fetches on token change', () => {
+    it('re-fetches run list when token changes while history panel is open', async () => {
+      const firstRun: WorkflowRun = {
+        id: 1,
+        status: 'completed',
+        conclusion: 'success',
+        createdAt: '2024-01-01T09:00:00Z',
+        htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/1',
+      }
+
+      // All calls resolve immediately with firstRun
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(asResult([firstRun]))
+
+      const { rerender } = render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+
+      // Open history panel — triggers RunHistoryPanel initial fetchRuns (no perPage) with token-A
+      fireEvent.click(screen.getAllByRole('button', { name: /^history$/i })[0])
+      await waitFor(() => expect(screen.getByText('Success')).toBeInTheDocument())
+
+      // Change token — RunHistoryPanel must re-fetch because fetchRuns is useCallback([token,...])
+      rerender(<TaskList {...BASE_PROPS} token="gho_new_token" tasks={[TASK]} />)
+
+      // Wait for a RunHistoryPanel call (no perPage) with the new token.
+      // TaskRow re-fetches with perPage:1 — this distinguishes the two callers.
+      await waitFor(() => {
+        const calls = (workflows.getWorkflowRuns as ReturnType<typeof vi.fn>).mock.calls
+        const panelCalls = calls.filter((c) => !c[0].perPage)
+        expect(panelCalls.some((c) => c[0].token === 'gho_new_token')).toBe(true)
+      })
+    })
+  })
+
+  describe('TaskList failure banner cleared on token change', () => {
+    it('clears failure count banner immediately when token changes', async () => {
+      let resolveNewToken!: (v: WorkflowRunsResult) => void
+      const pNewToken = new Promise<WorkflowRunsResult>((r) => {
+        resolveNewToken = r
+      })
+      const failedRun: WorkflowRun = {
+        id: 20,
+        status: 'completed',
+        conclusion: 'failure',
+        createdAt: '2024-01-01T09:00:00Z',
+        htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/20',
+      }
+
+      // token-A initial fetch (TaskRow perPage:1) → failedRun populates lastRuns banner
+      // token-B re-fetch (TaskRow perPage:1) → deferred so banner stays cleared long enough to assert
+      vi.spyOn(workflows, 'getWorkflowRuns')
+        .mockResolvedValueOnce(asResult([failedRun])) // initial fetch — perPage:1
+        .mockImplementationOnce(() => pNewToken) // token-B re-fetch — perPage:1 (deferred)
+
+      const { rerender } = render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+
+      // Wait for failure banner ("1 of 1 tasks failed last run") via onLastRunChange
+      await waitFor(() => expect(screen.getByText(/1 of 1 tasks failed/)).toBeInTheDocument())
+
+      // Change token — TaskList effect clears lastRuns (banner data) immediately
+      rerender(<TaskList {...BASE_PROPS} token="gho_new_token" tasks={[TASK]} />)
+
+      // Banner must disappear before the deferred new-token fetch resolves
+      await waitFor(() => expect(screen.queryByText(/tasks failed/)).not.toBeInTheDocument())
+
+      // Resolve deferred fetch to prevent act warning
+      await act(async () => {
+        resolveNewToken(asResult([]))
+      })
+    })
+  })
+
   describe('TaskRow last-run fetch race condition', () => {
     const STALE_RUN: WorkflowRun = {
       id: 10,

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import type { GithatchTask, WorkflowRun } from '@/lib/workflows'
 import type { OutputDestination } from '@/lib/yamlGenerator'
 import { describeCron, nextCronRun, formatRelativeTime } from '@/lib/cronLabel'
@@ -151,7 +151,7 @@ function RunHistoryPanel({
   const outputRequestId = useRef(0)
   const fetchRunsRequestId = useRef(0)
 
-  const fetchRuns = () => {
+  const fetchRuns = useCallback(() => {
     if (!task.workflowId) return
     const id = ++fetchRunsRequestId.current
     setLoadingRuns(true)
@@ -167,12 +167,11 @@ function RunHistoryPanel({
       .finally(() => {
         if (id === fetchRunsRequestId.current) setLoadingRuns(false)
       })
-  }
+  }, [token, owner, repo, task.workflowId, defaultBranch])
 
   useEffect(() => {
     fetchRuns()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [fetchRuns])
 
   const canViewOutput =
     task.outputDestination.type === 'new_issue' ||
@@ -638,7 +637,7 @@ export function TaskList({
   useEffect(() => {
     setLastRuns({})
     setFilterQuery('')
-  }, [owner, repo])
+  }, [owner, repo, token])
 
   const handleLastRunChange = (slug: string, run: WorkflowRun | null) => {
     setLastRuns((prev) => ({ ...prev, [slug]: run }))
