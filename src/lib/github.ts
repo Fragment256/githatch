@@ -170,7 +170,7 @@ export async function fetchRepoAgentConfig(params: {
       throw new Error(`GitHub API error: ${r.value.status}`)
     }
   }
-  function isPresent(r: PromiseSettledResult<Response>): boolean {
+  function isPresent(r: PromiseSettledResult<Response>): r is PromiseFulfilledResult<Response> {
     return r.status === 'fulfilled' && r.value.ok
   }
 
