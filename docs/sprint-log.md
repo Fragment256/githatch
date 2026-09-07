@@ -1651,3 +1651,13 @@ Agent-maintained. One entry per daily sprint run.
 - Rationale: Day-3 dry streak unscoped audit is established precedent. Both bugs confirmed against actual source before fixing; no speculative changes.
 - PR: n/a (direct push to main)
 - ROADMAP updated: no
+
+---
+
+## 2026-09-07 (sprint 121)
+
+- Action: explore-audit-dry
+- Summary: Day 3 of new cycle — unscoped Explore audit ran per precedent (day 1 = sprint 119 baseline, day 2 = sprint 120 baseline, day 3 = this audit). Full baseline first: format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 528/528. Audited all 32 source files. No bugs found — dry audit. Files reviewed: App.tsx, TaskList.tsx, TaskForm.tsx, ActivityPanel.tsx, AgentConfig.tsx, SecretsView.tsx, TokenSetup.tsx, ToolsPanel.tsx, GettingStarted.tsx, RepoPicker.tsx, TemplatePicker.tsx, ErrorBoundary.tsx, ConfirmDialog.tsx, UserMenu.tsx, LoginButton.tsx, Landing.tsx, AboutPage.tsx, useTasks.ts, useAuth.ts, useRepo.ts, useTheme.ts, github.ts, workflows.ts, cronLabel.ts, yamlGenerator.ts, secrets.ts, tools.ts, utils.ts, templates.ts, auth.ts, config.ts. Codebase remains clean after sprint 118 fixes.
+- Rationale: Day-3 dry streak unscoped audit is established precedent. Dry audits do occur (sprints 79, 91, 95, 103, 108 were dry); baseline count remains 528/528.
+- PR: n/a
+- ROADMAP updated: no
