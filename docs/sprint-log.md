@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-07 (sprint 91)
+
+- Action: bug-fixes (Explore audit — day 3 of dry streak)
+- Summary: Unscoped Explore audit found 2 bugs; both fixed via TDD. (1) HIGH: `ActivityPanel` `prCounts`/`commits`/`prs` not reset to `null` at start of repo-switch effect — when new repo `getPRCounts` failed, stale PR counts from the previous repo showed in the stat tiles because `prCounts` was non-null and the tile condition checked `repoLoading` but not `repoError`; fix: reset all three to `null` at top of `[token, owner, repo]` effect so `openPRs`/`mergedPRs` fall back to `'…'` during loading and on failure; 1 regression test. (2) LOW: `GettingStarted` `dismissed` flag not reset on repo change — lazy `useState` initializer runs only at mount; re-render (not remount) on repo switch kept `dismissed=true` from the previous repo, silently skipping the "You're set up" banner for the new repo; fix: `useEffect` resets `dismissed` from `sessionStorage` when `repoFullName` changes; 1 regression test. 503/503 passing (up from 501). Dry streak resets to 0. Commit `bca6be4`.
+- Rationale: Day 3 of streak; Explore audit is scheduled for day 3 per precedent.
+- PR: —
+- ROADMAP updated: no
+
+---
+
 ## 2026-09-07 (sprint 90)
 
 - Action: baseline
