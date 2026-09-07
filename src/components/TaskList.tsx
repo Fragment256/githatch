@@ -715,7 +715,7 @@ export function TaskList({
         <ul className="space-y-3">
           {filteredTasks.map((task) => (
             <TaskRow
-              key={task.slug}
+              key={`${owner}/${repo}/${task.slug}`}
               task={task}
               token={token}
               owner={owner}

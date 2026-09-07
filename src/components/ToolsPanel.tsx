@@ -29,6 +29,7 @@ function ToolCard({
     const id = ++requestIdRef.current
     setInstalled(null)
     setInstalling(false)
+    setError(null)
     setCheckError(null)
     checkToolInstalled({ token, owner, repo, fileName: tool.workflowFileName })
       .then((result) => {

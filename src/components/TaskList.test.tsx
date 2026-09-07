@@ -567,6 +567,27 @@ describe('TaskList', () => {
       })
       expect(screen.queryByText(/tasks failed last run/i)).not.toBeInTheDocument()
     })
+
+    it('clears stale lastRun badge immediately on repo switch when slug is shared across repos', async () => {
+      const FAILED_RUN: WorkflowRun = {
+        id: 1,
+        status: 'completed',
+        conclusion: 'failure',
+        createdAt: '2024-01-01T09:00:00Z',
+        htmlUrl: 'https://github.com/testuser/repo-a/actions/runs/1',
+      }
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(asResult([FAILED_RUN]))
+
+      const { rerender } = render(<TaskList {...BASE_PROPS} repo="repo-a" tasks={[TASK]} />)
+      await waitFor(() => expect(screen.getByText(/^Failed$/i)).toBeInTheDocument())
+
+      // Switch to repo-b with same task slug — new fetch never resolves
+      vi.spyOn(workflows, 'getWorkflowRuns').mockReturnValue(new Promise(() => {}))
+      rerender(<TaskList {...BASE_PROPS} repo="repo-b" tasks={[TASK]} />)
+
+      // Stale "Failed" badge must be gone immediately — TaskRow remounts on repo change
+      expect(screen.queryByText(/^Failed$/i)).not.toBeInTheDocument()
+    })
   })
 
   describe('task filter', () => {

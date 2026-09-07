@@ -147,6 +147,23 @@ describe('ToolsPanel', () => {
     })
   })
 
+  it('clears install error from previous repo when switching repos', async () => {
+    vi.spyOn(tools, 'checkToolInstalled').mockResolvedValue(false)
+    vi.spyOn(tools, 'installTool').mockRejectedValue(new Error('Permission denied'))
+
+    const { rerender } = render(<ToolsPanel token="gho_test" owner="testuser" repo="repo-a" />)
+    await screen.findByRole('button', { name: 'Install' })
+    await userEvent.click(screen.getByRole('button', { name: 'Install' }))
+    await waitFor(() => expect(screen.getByText(/Permission denied/)).toBeDefined())
+
+    // Switch to repo-b — check never resolves so Install/Reinstall buttons are hidden
+    vi.spyOn(tools, 'checkToolInstalled').mockImplementation(() => new Promise(() => {}))
+    rerender(<ToolsPanel token="gho_test" owner="testuser" repo="repo-b" />)
+
+    // Error from repo-a must be cleared immediately on repo switch
+    expect(screen.queryByText(/Permission denied/)).toBeNull()
+  })
+
   it('Reinstall button is enabled when tool is already installed', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }))
     render(<ToolsPanel {...defaultProps} />)

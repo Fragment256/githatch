@@ -279,6 +279,12 @@ describe('isValidCron', () => {
     expect(isValidCron('0 9 * * 1,8')).toBe(false)
     expect(isValidCron('0 9 * * 1,')).toBe(false)
   })
+
+  it('returns false for */N hour with a specific DOW — nextCronRun cannot compute this pattern', () => {
+    expect(isValidCron('0 */4 * * 1-5')).toBe(false)
+    expect(isValidCron('0 */6 * * 1')).toBe(false)
+    expect(isValidCron('0 */12 * * 1,3')).toBe(false)
+  })
 })
 
 describe('formatRelativeTime', () => {

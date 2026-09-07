@@ -135,6 +135,7 @@ export function isValidCron(expr: string): boolean {
   const [minute, hour, dom, month, dow] = parts
   // Reject comma-separated minute/hour: UI can't preview next-fire time for multi-value fields
   if (minute.includes(',') || hour.includes(',')) return false
+  if (hour.startsWith('*/') && dow !== '*') return false
   return (
     isValidCronField(minute, 0, 59) &&
     isValidCronField(hour, 0, 23) &&
