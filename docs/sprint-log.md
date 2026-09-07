@@ -1745,3 +1745,13 @@ Agent-maintained. One entry per daily sprint run.
 - `workflows.ts:265,293,320` — MEDIUM: no pagination in fetchRunOutput; items beyond page 1 silently missed
 - `auth.ts:132` — LOW: `!data.id` falsy check (id=0 would false-positive)
 - `cronLabel.ts:205` — LOW: `describeCron` not guarded by `isValidCron`; invalid DOW wraps silently
+
+---
+
+## 2026-09-07 (sprint 128)
+
+- Action: baseline (day 1 of new cycle after sprint 127 bug-fixes)
+- Summary: Full baseline: format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 533/533. No drift from sprint 127. Unscoped Explore audit reserved for day 3 (sprint 130).
+- Rationale: Day 1 of post-127 cycle. Baseline confirms no drift after sprint 127 fixes (ConfirmDialog loading text, TaskForm slug-collision in edit mode). Audit reserved per 3-day cycle precedent.
+- PR: —
+- ROADMAP updated: no
