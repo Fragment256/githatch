@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { listPushableRepos, type GitHubRepo } from '@/lib/github'
 
@@ -31,6 +31,10 @@ export function useRepo(token: string | null) {
       sessionStorage.removeItem(STORAGE_KEY)
     }
   }
+
+  useEffect(() => {
+    if (!token) setActiveRepo(null)
+  }, [token])
 
   return {
     repos: reposQuery.data ?? [],

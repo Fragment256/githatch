@@ -285,6 +285,12 @@ describe('isValidCron', () => {
     expect(isValidCron('0 */6 * * 1')).toBe(false)
     expect(isValidCron('0 */12 * * 1,3')).toBe(false)
   })
+
+  it('returns false for */N day-of-week — nextCronRun has no branch for this pattern', () => {
+    expect(isValidCron('0 6 * * */2')).toBe(false)
+    expect(isValidCron('0 9 * * */3')).toBe(false)
+    expect(isValidCron('*/15 * * * */2')).toBe(false)
+  })
 })
 
 describe('formatRelativeTime', () => {

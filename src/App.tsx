@@ -46,6 +46,7 @@ export default function App() {
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null)
 
   const [secretStatus, setSecretStatus] = useState<SecretStatus>('loading')
+  const [secretStatusVersion, setSecretStatusVersion] = useState(0)
   const [duplicatingConfig, setDuplicatingConfig] = useState<TaskConfig | null>(null)
 
   const [owner, repo] = activeRepo ? activeRepo.full_name.split('/') : ['', '']
@@ -80,7 +81,7 @@ export default function App() {
         if (id !== secretStatusRequestId.current) return
         setSecretStatus('unknown')
       })
-  }, [token, owner, repo])
+  }, [token, owner, repo, secretStatusVersion])
 
   async function handleDuplicateTask(task: GithatchTask) {
     if (!token) return
@@ -420,7 +421,10 @@ export default function App() {
                   token={token}
                   owner={activeRepo.full_name.split('/')[0]}
                   repo={activeRepo.full_name.split('/')[1]}
-                  onDone={() => setView('tasks')}
+                  onDone={() => {
+                    setSecretStatusVersion((v) => v + 1)
+                    setView('tasks')
+                  }}
                 />
               </Suspense>
             </ErrorBoundary>

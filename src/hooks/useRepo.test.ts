@@ -76,6 +76,18 @@ describe('useRepo — sessionStorage', () => {
     expect(sessionStorage.getItem('active_repo')).toBeNull()
     expect(result.current.activeRepo).toBeNull()
   })
+
+  it('clears activeRepo and sessionStorage when token transitions to null', async () => {
+    sessionStorage.setItem('active_repo', JSON.stringify(REPO))
+    const { result, rerender } = renderHook(({ token }) => useRepo(token), {
+      wrapper: createWrapper(),
+      initialProps: { token: 'gho_test' as string | null },
+    })
+    expect(result.current.activeRepo?.full_name).toBe('testuser/my-repo')
+    rerender({ token: null })
+    await waitFor(() => expect(result.current.activeRepo).toBeNull())
+    expect(sessionStorage.getItem('active_repo')).toBeNull()
+  })
 })
 
 describe('useRepo — repos query', () => {

@@ -251,6 +251,17 @@ describe('App — view navigation', () => {
     expect(screen.getAllByRole('button', { name: /\+ new task/i }).length).toBeGreaterThan(0)
   })
 
+  it('re-checks secretStatus after SecretsView calls onDone', async () => {
+    const listRepoSecrets = vi.mocked(github.listRepoSecrets)
+    listRepoSecrets.mockResolvedValueOnce([]).mockResolvedValueOnce(['CLAUDE_CODE_OAUTH_TOKEN'])
+    render(<App />, { wrapper })
+    await waitFor(() => expect(listRepoSecrets).toHaveBeenCalledTimes(1))
+    fireEvent.click(screen.getByRole('button', { name: /secrets/i }))
+    await waitFor(() => screen.getByText('SecretsView'))
+    fireEvent.click(screen.getByRole('button', { name: /done/i }))
+    await waitFor(() => expect(listRepoSecrets).toHaveBeenCalledTimes(2))
+  })
+
   it('shows tools tab when Tools is clicked', () => {
     render(<App />, { wrapper })
     fireEvent.click(screen.getByRole('button', { name: /^tools$/i }))
