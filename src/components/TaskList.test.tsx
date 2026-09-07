@@ -884,6 +884,32 @@ describe('TaskList', () => {
       expect(screen.getByText(/polling timed out/i)).toBeInTheDocument()
     })
 
+    it('shows error message when getWorkflowRuns rejects during polling', async () => {
+      vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
+      const runsMock = vi.spyOn(workflows, 'getWorkflowRuns')
+      runsMock.mockResolvedValue(asResult([]))
+
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      await act(async () => {
+        await Promise.resolve()
+      })
+
+      // After trigger, polls will reject with a network error
+      runsMock.mockRejectedValue(new Error('rate limit exceeded'))
+
+      fireEvent.click(screen.getByRole('button', { name: /run now/i }))
+      await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
+
+      // Advance one poll interval (8 s)
+      await act(async () => {
+        vi.advanceTimersByTime(8000)
+        await Promise.resolve()
+      })
+
+      // Error message from the rejected poll must appear
+      await waitFor(() => expect(screen.getByText(/rate limit exceeded/i)).toBeInTheDocument())
+    })
+
     it('clears Queued badge when workflowId disappears during polling', async () => {
       vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
       vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(asResult([]))

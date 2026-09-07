@@ -40,7 +40,7 @@ export function nextCronRun(expr: string, from: Date = new Date()): Date | null 
 
   // Every N hours: 0 */N * * * (also accepts leading-zero form: 00 */N * * *)
   if (
-    parseInt(minute, 10) === 0 &&
+    (minute === '0' || minute === '00') &&
     hour.startsWith('*/') &&
     dom === '*' &&
     month === '*' &&
@@ -153,7 +153,7 @@ export function canPreviewCron(expr: string): boolean {
   if (dom !== '*' || month !== '*') return false
   if (minute.includes(',') || hour.includes(',')) return false
   if (hour.startsWith('*/') && dow !== '*') return false
-  if (hour.startsWith('*/') && parseInt(minute, 10) !== 0) return false
+  if (hour.startsWith('*/') && minute !== '0' && minute !== '00') return false
   return true
 }
 
@@ -185,7 +185,7 @@ export function describeCron(expr: string): string {
   }
 
   if (
-    parseInt(minute, 10) === 0 &&
+    (minute === '0' || minute === '00') &&
     hour.startsWith('*/') &&
     dom === '*' &&
     month === '*' &&

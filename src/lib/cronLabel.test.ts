@@ -73,6 +73,12 @@ describe('describeCron', () => {
     expect(describeCron('0 9 * * 1,8')).toBe('0 9 * * 1,8')
     expect(describeCron('0 9 * * 1,')).toBe('0 9 * * 1,')
   })
+
+  it('returns the raw expression for minute-range */N-hour patterns (parseInt false-positive)', () => {
+    // Without fix: parseInt('0-5',10)===0 causes describeCron to return 'Every 2 hours'
+    expect(describeCron('0-5 */2 * * *')).toBe('0-5 */2 * * *')
+    expect(describeCron('0-3 */6 * * *')).toBe('0-3 */6 * * *')
+  })
 })
 
 describe('nextCronRun', () => {
@@ -83,6 +89,13 @@ describe('nextCronRun', () => {
     expect(nextCronRun('0 9 1 * *', REF)).toBeNull()
     expect(nextCronRun('not a cron', REF)).toBeNull()
     expect(nextCronRun('* * * * * *', REF)).toBeNull()
+  })
+
+  it('returns null for minute-range */N-hour expressions (parseInt false-positive guard)', () => {
+    // '0-5 */2 * * *' is valid cron but nextCronRun cannot compute it
+    // Without fix: parseInt('0-5',10)===0 fires the every-N-hours branch producing a wrong Date
+    expect(nextCronRun('0-5 */2 * * *', REF)).toBeNull()
+    expect(nextCronRun('0-3 */6 * * *', REF)).toBeNull()
   })
 
   it('returns null for comma-separated hour/minute lists instead of silently using only the first value', () => {
@@ -332,6 +345,12 @@ describe('canPreviewCron', () => {
     expect(canPreviewCron('0 9 1 * *')).toBe(false) // specific dom
     expect(canPreviewCron('0 9 * 6 *')).toBe(false) // specific month
     expect(canPreviewCron('0 0 15 3 *')).toBe(false) // specific dom + month
+  })
+
+  it('returns false for minute-range */N-hour expressions (parseInt false-positive)', () => {
+    // '0-5 */2 * * *' is valid cron but nextCronRun cannot compute it; parseInt('0-5')===0 is a false-positive
+    expect(canPreviewCron('0-5 */2 * * *')).toBe(false)
+    expect(canPreviewCron('0-3 */6 * * *')).toBe(false)
   })
 })
 

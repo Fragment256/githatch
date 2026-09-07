@@ -405,7 +405,9 @@ function TaskRow({
             }
           }
         })
-        .catch(() => {})
+        .catch((err: unknown) => {
+          setTriggerError(err instanceof Error ? err.message : 'Failed to poll workflow runs')
+        })
     }, POLL_INTERVAL)
     return () => clearInterval(id)
   }, [polling, task.workflowId, task.slug, token, owner, repo, defaultBranch])

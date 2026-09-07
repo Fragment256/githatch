@@ -69,9 +69,19 @@ export function useAuth() {
       setState((s) => ({ ...s, loading: true }))
       getAuthenticatedUser(stored)
         .then((user) => setState({ token: stored, user, loading: false, error: null }))
-        .catch(() => {
-          clearToken()
-          setState({ token: null, user: null, loading: false, error: null })
+        .catch((err: unknown) => {
+          const message = err instanceof Error ? err.message : ''
+          if (message.includes('401')) {
+            clearToken()
+            setState({ token: null, user: null, loading: false, error: null })
+          } else {
+            setState({
+              token: stored,
+              user: null,
+              loading: false,
+              error: 'Could not reach GitHub. Check your connection and try again.',
+            })
+          }
         })
     }
   }, [])

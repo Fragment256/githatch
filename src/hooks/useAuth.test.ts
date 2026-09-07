@@ -86,12 +86,21 @@ describe('useAuth — stored token present', () => {
     expect(result.current.user?.login).toBe('testuser')
   })
 
-  it('clears token when getAuthenticatedUser rejects', async () => {
-    mockGetAuthenticatedUser.mockRejectedValue(new Error('Unauthorized'))
+  it('clears token when getAuthenticatedUser rejects with a 401 error', async () => {
+    mockGetAuthenticatedUser.mockRejectedValue(new Error('GitHub API error: 401'))
     const { result } = renderHook(() => useAuth())
     await waitFor(() => expect(result.current.loading).toBe(false))
     expect(result.current.token).toBeNull()
     expect(mockClearToken).toHaveBeenCalledOnce()
+  })
+
+  it('keeps token and sets error when getAuthenticatedUser fails with a network error', async () => {
+    mockGetAuthenticatedUser.mockRejectedValue(new TypeError('Failed to fetch'))
+    const { result } = renderHook(() => useAuth())
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.token).toBe('gho_stored')
+    expect(mockClearToken).not.toHaveBeenCalled()
+    expect(result.current.error).toBeTruthy()
   })
 
   it('loading is true on the initial render when token is stored (no loading=false flash)', () => {
