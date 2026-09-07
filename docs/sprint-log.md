@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-07 (sprint 93)
+
+- Action: ci-fix
+- Summary: Deploy to GitHub Pages had been failing on every push to main since commit 553c929 (`tsc -b` error TS2339: `isPresent()` returned plain `boolean` instead of narrowing `PromiseSettledResult<Response>`, so `.value` access on `skillsRes`/`agentsRes` in `fetchRepoAgentConfig` failed the build). Fixed by changing `isPresent`'s return type to the type predicate `r is PromiseFulfilledResult<Response>` in `src/lib/github.ts`. Verified full local suite (format, lint --max-warnings=0, type-check, test 513/513, build) before pushing directly to main per the trivial-fix path; confirmed the next Deploy run went green.
+- Rationale: Step 0 (CI health) takes priority over all other work — a broken deploy blocks every subsequent PR/merge from shipping, and the fix was a one-line, unambiguous type annotation.
+- PR: n/a (direct push to main, trivial fix)
+- ROADMAP updated: no
+
+---
+
 ## 2026-09-07 (sprint 92)
 
 - Action: baseline (day 1 of new cycle after sprint 91 bug-fixes)
