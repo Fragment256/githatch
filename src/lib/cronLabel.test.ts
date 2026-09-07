@@ -319,6 +319,12 @@ describe('canPreviewCron', () => {
     expect(canPreviewCron('0 */6 * * 1')).toBe(false)
     expect(canPreviewCron('0 */12 * * 1,3')).toBe(false)
   })
+
+  it('returns false for non-zero-minute step-hour expressions (nextCronRun returns null for these)', () => {
+    expect(canPreviewCron('30 */6 * * *')).toBe(false)
+    expect(canPreviewCron('15 */4 * * *')).toBe(false)
+    expect(canPreviewCron('45 */12 * * *')).toBe(false)
+  })
 })
 
 describe('formatRelativeTime', () => {

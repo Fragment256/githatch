@@ -308,6 +308,54 @@ describe('App — view navigation', () => {
     expect(screen.queryByText(/start from template/i)).not.toBeInTheDocument()
   })
 
+  it('cancels an in-flight edit fetch when the user clicks switch repo', async () => {
+    // User clicks Edit → slow YAML fetch starts → user clicks Switch repo → fetch resolves
+    // After selecting a new repo, the stale edit form must NOT be shown
+    const task: GithatchTask = {
+      slug: 'daily-digest',
+      displayName: 'Daily Digest',
+      schedule: '0 9 * * *',
+      workflowId: 1,
+      path: '.github/workflows/githatch-daily-digest.yml',
+      enabled: true,
+      outputDestination: { type: 'new_issue' },
+      prompt: 'Summarize.',
+    }
+    mockUseTasks.mockReturnValue({ ...defaultTasksState, tasks: [task] })
+
+    let resolveYaml: (yaml: string) => void = () => {}
+    vi.mocked(github.fetchFileContent).mockReturnValueOnce(
+      new Promise<string>((resolve) => {
+        resolveYaml = resolve
+      }),
+    )
+
+    const { rerender } = render(<App />, { wrapper })
+
+    // Click Edit — slow fetch; view stays 'tasks', Switch repo button is visible
+    const editBtn = await screen.findByRole('button', { name: /edit/i })
+    fireEvent.click(editBtn)
+
+    // Switch repo while fetch is in flight
+    fireEvent.click(screen.getByRole('button', { name: /switch repo/i }))
+
+    // Now resolve the stale YAML fetch
+    await act(async () => {
+      resolveYaml(
+        'name: Daily Digest\non:\n  schedule:\n    - cron: "0 9 * * *"\n  workflow_dispatch:\njobs:\n  run:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: anthropics/claude-code-action@v1\n        with:\n          prompt: |\n            Summarize.\n',
+      )
+    })
+
+    // Simulate the user selecting a new (other) repo
+    mockUseRepo.mockReturnValue({ ...defaultRepoState, activeRepo: OTHER_REPO })
+    rerender(<App />)
+
+    // The edit form must NOT have appeared — stale fetch was cancelled
+    expect(screen.queryByRole('button', { name: /← back/i })).not.toBeInTheDocument()
+    // We should be in tasks view (toolbar visible)
+    expect(screen.getByRole('button', { name: /^tasks$/i })).toBeInTheDocument()
+  })
+
   it('ignores a stale secret-status response that resolves after the repo changes', async () => {
     let resolveStale: (names: string[]) => void = () => {}
     const stale = new Promise<string[]>((resolve) => {

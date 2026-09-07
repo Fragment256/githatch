@@ -317,6 +317,13 @@ export default function App() {
                     onClick={() => {
                       setSaveError(null)
                       setSecretStatus('loading')
+                      setView('tasks')
+                      setEditingTask(null)
+                      setEditingConfig(null)
+                      setEditingOriginalYaml(null)
+                      setDuplicatingConfig(null)
+                      setSelectedTemplate(null)
+                      ++editLoadRequestId.current
                       setActiveRepo(null)
                     }}
                     className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white"
