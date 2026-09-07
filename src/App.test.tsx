@@ -396,6 +396,47 @@ describe('App — task form submission', () => {
     expect(screen.getByText(/start from template/i)).toBeInTheDocument()
   })
 
+  it('logo button click from new-task view after duplicate clears duplicatingConfig so next New task is blank', async () => {
+    const task: GithatchTask = {
+      slug: 'daily-digest',
+      displayName: 'Daily Digest',
+      schedule: '0 9 * * *',
+      workflowId: 1,
+      path: '.github/workflows/githatch-daily-digest.yml',
+      enabled: true,
+      outputDestination: { type: 'new_issue' },
+      prompt: 'Summarize.',
+    }
+    mockUseTasks.mockReturnValue({ ...defaultTasksState, tasks: [task] })
+    vi.mocked(github.fetchFileContent).mockResolvedValue(
+      "# Githatch — Daily Digest\n# githatch:output_type=new_issue\n# githatch:provider=claude\nname: githatch-daily-digest\n\non:\n  schedule:\n    - cron: '0 9 * * *'\n  workflow_dispatch:\n\npermissions:\n  contents: write\n  issues: write\n  id-token: write\n\njobs:\n  run:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: anthropics/claude-code-action@v1\n        with:\n          prompt: 'Summarize.'\n",
+    )
+
+    render(<App />, { wrapper })
+
+    // Trigger duplicate — sets duplicatingConfig.name = 'Daily Digest Copy'
+    const duplicateBtn = await screen.findByRole('button', { name: /duplicate/i })
+    fireEvent.click(duplicateBtn)
+
+    // Wait for new-task form with pre-filled name
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Daily Digest Copy')).toBeInTheDocument()
+    })
+
+    // Click the Githatch logo button — should clear duplicatingConfig
+    fireEvent.click(screen.getByRole('button', { name: /githatch/i }))
+
+    // Back on tasks view
+    await waitFor(() => {
+      expect(screen.getAllByRole('button', { name: /\+ new task/i }).length).toBeGreaterThan(0)
+    })
+
+    // Click + New task — duplicatingConfig must be null, so name input is blank
+    fireEvent.click(screen.getAllByRole('button', { name: /\+ new task/i })[0])
+    const nameInput = screen.getByRole('textbox', { name: /task name/i })
+    expect(nameInput).toHaveValue('')
+  })
+
   it('shows edit-task view when handleEditTask is called', async () => {
     const task: GithatchTask = {
       slug: 'daily-digest',

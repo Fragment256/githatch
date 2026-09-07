@@ -192,7 +192,11 @@ export default function App() {
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
             <button
-              onClick={() => setView('tasks')}
+              onClick={() => {
+                setDuplicatingConfig(null)
+                setSelectedTemplate(null)
+                setView('tasks')
+              }}
               className="font-display shrink-0 text-xl font-black tracking-tighter"
             >
               Githatch

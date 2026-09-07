@@ -325,6 +325,14 @@ describe('canPreviewCron', () => {
     expect(canPreviewCron('15 */4 * * *')).toBe(false)
     expect(canPreviewCron('45 */12 * * *')).toBe(false)
   })
+
+  it('returns false for non-star dom or month (nextCronRun cannot compute previews for these)', () => {
+    expect(canPreviewCron('0 0 */5 * *')).toBe(false) // step dom
+    expect(canPreviewCron('0 0 * */3 *')).toBe(false) // step month
+    expect(canPreviewCron('0 9 1 * *')).toBe(false) // specific dom
+    expect(canPreviewCron('0 9 * 6 *')).toBe(false) // specific month
+    expect(canPreviewCron('0 0 15 3 *')).toBe(false) // specific dom + month
+  })
 })
 
 describe('formatRelativeTime', () => {

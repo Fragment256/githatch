@@ -149,7 +149,8 @@ export function isValidCron(expr: string): boolean {
 export function canPreviewCron(expr: string): boolean {
   if (!isValidCron(expr)) return false
   const parts = expr.trim().split(/\s+/)
-  const [minute, hour, , , dow] = parts
+  const [minute, hour, dom, month, dow] = parts
+  if (dom !== '*' || month !== '*') return false
   if (minute.includes(',') || hour.includes(',')) return false
   if (hour.startsWith('*/') && dow !== '*') return false
   if (hour.startsWith('*/') && parseInt(minute, 10) !== 0) return false
