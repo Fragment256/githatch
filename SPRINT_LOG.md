@@ -1,3 +1,7 @@
+## Sprint 112 — 2026-09-07 (Explore audit — day 3 of new cycle, 3 bugs fixed)
+
+**Audit:** Unscoped Explore audit ran per precedent. Full baseline first: format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 517/517. Explore surfaced 3 findings; all 3 confirmed real bugs fixed via TDD. (1) MEDIUM: `isValidCron` rejected valid GitHub Actions crons like `0 */4 * * 1-5` — preview restrictions conflated with validity. Fix: separate `canPreviewCron()` from `isValidCron()`; `SchedulePreview` uses 3-way guard (invalid → error, valid-but-not-previewable → notice, valid → next runs). `customCronInvalid` now correctly allows weekday interval schedules. (2) LOW-MEDIUM: `fetchRunOutput` rejection silently swallowed in auto-display path after successful triggered run (`.catch(() => {})`). Fix: surface error via `setTriggerError`. (3) LOW: `polling` stuck at `true` when `task.workflowId` transitions to `undefined` during polling; Queued badge permanent, Run now permanently disabled. Fix: `setPolling(false)` when workflowId disappears while polling is active. 524/524 tests (up from 517). Commit `3fdf79b` pushed.
+
 ## Sprint 105 — 2026-09-07 (day 2 of dry streak)
 
 **Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 513/513. No drift from sprint 104. Unscoped Explore audit scheduled for sprint 106 (day 3, next heartbeat).
