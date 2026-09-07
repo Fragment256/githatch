@@ -116,6 +116,37 @@ describe('ToolsPanel', () => {
     })
   })
 
+  it('Install button is not stuck disabled after repo change during an in-flight install', async () => {
+    let resolveInstall!: () => void
+    const staleInstall = new Promise<void>((resolve) => {
+      resolveInstall = resolve
+    })
+    vi.spyOn(tools, 'checkToolInstalled')
+      .mockResolvedValueOnce(false) // repo-a: not installed
+      .mockResolvedValue(false) // repo-b: not installed
+    vi.spyOn(tools, 'installTool').mockReturnValueOnce(staleInstall)
+
+    const { rerender } = render(<ToolsPanel token="gho_test" owner="testuser" repo="repo-a" />)
+    await screen.findByRole('button', { name: 'Install' })
+
+    // Click Install — stale install is now in-flight, installing=true
+    await userEvent.click(screen.getByRole('button', { name: 'Install' }))
+
+    // Switch to repo-b — stale install is still in-flight
+    rerender(<ToolsPanel token="gho_test" owner="testuser" repo="repo-b" />)
+
+    // After repo-b check resolves (not installed), Install button must be enabled — not stuck "Installing…"
+    await waitFor(() => {
+      const btn = screen.getByRole('button', { name: 'Install' })
+      expect((btn as HTMLButtonElement).disabled).toBe(false)
+    })
+
+    // Cleanup: resolve stale install so the promise doesn't leak
+    await act(async () => {
+      resolveInstall()
+    })
+  })
+
   it('Reinstall button is enabled when tool is already installed', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }))
     render(<ToolsPanel {...defaultProps} />)

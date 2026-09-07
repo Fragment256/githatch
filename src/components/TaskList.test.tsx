@@ -133,6 +133,33 @@ describe('TaskList', () => {
     expect(onRefresh).toHaveBeenCalled()
   })
 
+  it('closes confirm dialog after successful delete without waiting for remount', async () => {
+    let resolveDelete!: () => void
+    vi.spyOn(github, 'deleteWorkflowFile').mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveDelete = resolve
+      }),
+    )
+    const onRefresh = vi.fn()
+    render(<TaskList {...BASE_PROPS} tasks={[TASK]} onRefresh={onRefresh} />)
+
+    // Open confirm dialog
+    fireEvent.click(screen.getByRole('button', { name: /delete task/i }))
+    expect(screen.getByText(/cannot be undone/i)).toBeInTheDocument()
+
+    // Confirm delete — dialog shows "Deleting…", buttons disabled
+    fireEvent.click(screen.getByRole('button', { name: /^delete$/i }))
+    await waitFor(() => expect(screen.getByRole('button', { name: /deleting/i })).toBeDisabled())
+
+    // Resolve delete — dialog must close and Delete button re-appear (not stuck in loading state)
+    await act(async () => {
+      resolveDelete()
+    })
+    await waitFor(() => expect(screen.queryByRole('button', { name: /deleting/i })).toBeNull())
+    expect(screen.getByRole('button', { name: /delete task/i })).toBeInTheDocument()
+    expect(onRefresh).toHaveBeenCalledOnce()
+  })
+
   it('shows Pause button for an enabled task and calls disableWorkflow on click', async () => {
     vi.spyOn(workflows, 'disableWorkflow').mockResolvedValue(undefined)
     render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)

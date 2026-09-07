@@ -28,6 +28,7 @@ function ToolCard({
   useEffect(() => {
     const id = ++requestIdRef.current
     setInstalled(null)
+    setInstalling(false)
     setCheckError(null)
     checkToolInstalled({ token, owner, repo, fileName: tool.workflowFileName })
       .then((result) => {
@@ -52,7 +53,7 @@ function ToolCard({
       if (id !== requestIdRef.current) return
       setError(err instanceof Error ? err.message : 'Install failed')
     } finally {
-      setInstalling(false)
+      if (id === requestIdRef.current) setInstalling(false)
     }
   }
 

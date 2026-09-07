@@ -446,6 +446,7 @@ function TaskRow({
       onRefresh()
     } catch (err) {
       setDeleteError(err instanceof Error ? err.message : 'Failed to delete')
+    } finally {
       setDeleting(false)
       setConfirmDelete(false)
     }
