@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-07 (sprint 118)
+
+- Action: bug-fixes (Explore audit — day 3 of new cycle, 2 bugs fixed)
+- Summary: Unscoped Explore audit ran per precedent. Full baseline first: format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 528/528. Explore surfaced 2 confirmed bugs fixed via TDD. (1) HIGH: `App` switch-repo handler did not reset `view`, `editingTask`, `editingConfig`, `editingOriginalYaml`, `duplicatingConfig`, or `selectedTemplate`. A YAML fetch in-flight at switch time could complete after the switch and set `view='edit-task'` with repo-A data; submitting the edit form would then write repo-A's YAML to repo B under the wrong slug. Fix: reset all six variables and increment `editLoadRequestId` in the handler so in-flight fetches are cancelled. (2) MEDIUM: `canPreviewCron` returned `true` for non-zero-minute step-hour expressions (e.g. `30 */6 * * *`). `nextCronRun` only handles `0 */N * * *` and falls through to `null` for any other minute — `canPreviewCron=true` produced an empty preview, showing the wrong "not available" message. Fix: add `parseInt(minute, 10) !== 0` guard when `hour.startsWith('*/')`. 528/528 passing (up from 526). Dry streak resets to 0. Commit `f3ce108`.
+- Rationale: Day-3 unscoped audit is established precedent. Both bugs confirmed against actual source before fixing; no speculative changes.
+- PR: n/a (direct push to main)
+- ROADMAP updated: no
+
+---
+
 ## 2026-09-07 (sprint 117)
 
 - Action: baseline (day 2 of new cycle)
