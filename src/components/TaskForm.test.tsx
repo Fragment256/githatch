@@ -237,6 +237,17 @@ describe('TaskForm', () => {
     expect(screen.queryByText(/invalid cron expression/i)).not.toBeInTheDocument()
   })
 
+  it('allows submit and shows preview-not-available for */N hour + DOW — valid but not previewable', () => {
+    render(<TaskForm onSubmit={mockSubmit} />)
+    fireEvent.change(screen.getByLabelText(/schedule/i), { target: { value: 'custom' } })
+    fireEvent.change(screen.getByPlaceholderText(/e\.g\. 0 9/i), {
+      target: { value: '0 */4 * * 1-5' },
+    })
+    expect(screen.queryByText(/invalid cron expression/i)).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /create task/i })).not.toBeDisabled()
+    expect(screen.getByText(/schedule preview not available/i)).toBeInTheDocument()
+  })
+
   // Commit button disabled during loading in preview state
   it('disables commit button when loading in preview state', () => {
     render(<TaskForm onSubmit={mockSubmit} loading={false} />)

@@ -351,7 +351,10 @@ function TaskRow({
   }, [task.workflowId, task.slug, token, owner, repo, defaultBranch])
 
   useEffect(() => {
-    if (!polling || !task.workflowId) return
+    if (!polling || !task.workflowId) {
+      if (polling && !task.workflowId) setPolling(false)
+      return
+    }
     const startedAt = Date.now()
     const POLL_INTERVAL = 8_000
     const MAX_DURATION = 5 * 60_000
@@ -394,7 +397,11 @@ function TaskRow({
                   .then((out) => {
                     if (out) setTriggeredOutput(out)
                   })
-                  .catch(() => {})
+                  .catch((err: unknown) => {
+                    setTriggerError(
+                      err instanceof Error ? err.message : 'Failed to fetch run output',
+                    )
+                  })
               }
             }
           }

@@ -5,6 +5,7 @@ import {
   formatRelativeTime,
   nextCronRuns,
   isValidCron,
+  canPreviewCron,
 } from './cronLabel'
 
 describe('describeCron', () => {
@@ -260,9 +261,9 @@ describe('isValidCron', () => {
     expect(isValidCron('0 9 * 13 *')).toBe(false)
   })
 
-  it('returns false for comma-separated hour/minute lists (not supported by the preview/description logic)', () => {
-    expect(isValidCron('0 9,17 * * *')).toBe(false)
-    expect(isValidCron('0,30 9 * * *')).toBe(false)
+  it('returns true for comma-separated hour/minute lists — valid GitHub Actions syntax', () => {
+    expect(isValidCron('0 9,17 * * *')).toBe(true)
+    expect(isValidCron('0,30 9 * * *')).toBe(true)
   })
 
   it('returns false for */n step where n exceeds the field maximum', () => {
@@ -280,16 +281,43 @@ describe('isValidCron', () => {
     expect(isValidCron('0 9 * * 1,')).toBe(false)
   })
 
-  it('returns false for */N hour with a specific DOW — nextCronRun cannot compute this pattern', () => {
-    expect(isValidCron('0 */4 * * 1-5')).toBe(false)
-    expect(isValidCron('0 */6 * * 1')).toBe(false)
-    expect(isValidCron('0 */12 * * 1,3')).toBe(false)
+  it('returns true for */N hour with a specific DOW — valid GitHub Actions syntax', () => {
+    expect(isValidCron('0 */4 * * 1-5')).toBe(true)
+    expect(isValidCron('0 */6 * * 1')).toBe(true)
+    expect(isValidCron('0 */12 * * 1,3')).toBe(true)
   })
 
   it('returns false for */N day-of-week — nextCronRun has no branch for this pattern', () => {
     expect(isValidCron('0 6 * * */2')).toBe(false)
     expect(isValidCron('0 9 * * */3')).toBe(false)
     expect(isValidCron('*/15 * * * */2')).toBe(false)
+  })
+})
+
+describe('canPreviewCron', () => {
+  it('returns true for standard previewable expressions', () => {
+    expect(canPreviewCron('0 8 * * *')).toBe(true)
+    expect(canPreviewCron('*/15 * * * *')).toBe(true)
+    expect(canPreviewCron('0 */6 * * *')).toBe(true)
+    expect(canPreviewCron('0 9 * * 1-5')).toBe(true)
+    expect(canPreviewCron('0 9 * * 1,3,5')).toBe(true)
+  })
+
+  it('returns false for invalid expressions', () => {
+    expect(canPreviewCron('99 99 * * *')).toBe(false)
+    expect(canPreviewCron('not a cron')).toBe(false)
+    expect(canPreviewCron('0 6 * * */2')).toBe(false)
+  })
+
+  it('returns false for comma-separated hour/minute (valid but not previewable)', () => {
+    expect(canPreviewCron('0 9,17 * * *')).toBe(false)
+    expect(canPreviewCron('0,30 9 * * *')).toBe(false)
+  })
+
+  it('returns false for */N hour with specific DOW (valid but not previewable)', () => {
+    expect(canPreviewCron('0 */4 * * 1-5')).toBe(false)
+    expect(canPreviewCron('0 */6 * * 1')).toBe(false)
+    expect(canPreviewCron('0 */12 * * 1,3')).toBe(false)
   })
 })
 

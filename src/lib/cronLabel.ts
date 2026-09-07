@@ -133,9 +133,7 @@ export function isValidCron(expr: string): boolean {
   const parts = expr.trim().split(/\s+/)
   if (parts.length !== 5) return false
   const [minute, hour, dom, month, dow] = parts
-  // Reject comma-separated minute/hour: UI can't preview next-fire time for multi-value fields
-  if (minute.includes(',') || hour.includes(',')) return false
-  if (hour.startsWith('*/') && dow !== '*') return false
+  // */N DOW is silently ignored by GitHub Actions — reject as genuinely invalid
   if (dow.startsWith('*/')) return false
   return (
     isValidCronField(minute, 0, 59) &&
@@ -144,6 +142,17 @@ export function isValidCron(expr: string): boolean {
     isValidCronField(month, 1, 12) &&
     isValidCronField(dow, 0, 7)
   )
+}
+
+// Returns true only when nextCronRun can compute a preview for the expression.
+// A subset of isValidCron: excludes comma-separated minute/hour and */N hour+DOW patterns.
+export function canPreviewCron(expr: string): boolean {
+  if (!isValidCron(expr)) return false
+  const parts = expr.trim().split(/\s+/)
+  const [minute, hour, , , dow] = parts
+  if (minute.includes(',') || hour.includes(',')) return false
+  if (hour.startsWith('*/') && dow !== '*') return false
+  return true
 }
 
 export function formatRelativeTime(future: Date, from: Date = new Date()): string {

@@ -883,6 +883,26 @@ describe('TaskList', () => {
       await waitFor(() => expect(screen.queryByText(/^Queued$/i)).not.toBeInTheDocument())
       expect(screen.getByText(/polling timed out/i)).toBeInTheDocument()
     })
+
+    it('clears Queued badge when workflowId disappears during polling', async () => {
+      vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(asResult([]))
+
+      const { rerender } = render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      await act(async () => {
+        await Promise.resolve()
+      })
+
+      fireEvent.click(screen.getByRole('button', { name: /run now/i }))
+      await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
+
+      // Simulate workflowId becoming undefined (e.g., after refresh mid-registration)
+      const taskWithoutWorkflow: GithatchTask = { ...TASK, workflowId: undefined }
+      rerender(<TaskList {...BASE_PROPS} tasks={[taskWithoutWorkflow]} />)
+
+      // Queued badge must clear when polling state is reset
+      await waitFor(() => expect(screen.queryByText(/^Queued$/i)).not.toBeInTheDocument())
+    })
   })
 
   describe('auto-output after successful trigger', () => {
@@ -1162,6 +1182,41 @@ describe('TaskList', () => {
       fireEvent.click(screen.getByRole('button', { name: /triggered!/i }))
       expect(screen.queryByText('Run 1 Output')).not.toBeInTheDocument()
       expect(fetchOutput).toHaveBeenCalledOnce()
+    })
+
+    it('shows trigger error when fetchRunOutput rejects after successful run', async () => {
+      vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
+      const runsMock = vi.spyOn(workflows, 'getWorkflowRuns')
+      runsMock.mockResolvedValue(asResult([]))
+      vi.spyOn(workflows, 'fetchRunOutput').mockRejectedValue(new Error('Rate limit exceeded'))
+
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      await act(async () => {
+        await Promise.resolve()
+      })
+
+      runsMock.mockResolvedValue(
+        asResult([
+          {
+            id: 999,
+            status: 'completed',
+            conclusion: 'success',
+            createdAt: new Date().toISOString(),
+            htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/999',
+          },
+        ]),
+      )
+
+      fireEvent.click(screen.getByRole('button', { name: /run now/i }))
+      await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
+
+      await act(async () => {
+        vi.advanceTimersByTime(8000)
+        await Promise.resolve()
+      })
+
+      await waitFor(() => expect(screen.queryByText(/^Queued$/i)).not.toBeInTheDocument())
+      await waitFor(() => expect(screen.getByText(/rate limit exceeded/i)).toBeInTheDocument())
     })
   })
 

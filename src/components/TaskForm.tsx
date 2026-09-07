@@ -7,7 +7,7 @@ import {
   type Provider,
   PROVIDER_MODELS,
 } from '@/lib/yamlGenerator'
-import { describeCron, nextCronRuns, isValidCron } from '@/lib/cronLabel'
+import { describeCron, nextCronRuns, isValidCron, canPreviewCron } from '@/lib/cronLabel'
 import { computeLineDiff } from '@/lib/utils'
 
 export interface TaskFormValues {
@@ -129,6 +129,14 @@ function SchedulePreview({ expr }: { expr: string }) {
 
   if (!isValidCron(expr)) {
     return <p className="mt-2 font-mono text-xs text-red-600">Invalid cron expression</p>
+  }
+
+  if (!canPreviewCron(expr)) {
+    return (
+      <p className="mt-2 font-mono text-xs text-black/60">
+        Schedule preview not available for this expression.
+      </p>
+    )
   }
 
   const runs = nextCronRuns(expr, 3)
