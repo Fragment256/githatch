@@ -598,6 +598,22 @@ describe('TaskList', () => {
       expect(screen.getByText('Daily Standup')).toBeInTheDocument()
       expect(screen.getByText('Ad Hoc Task')).toBeInTheDocument()
     })
+
+    it('clears filter query on repo switch so all tasks in new repo are visible', () => {
+      const { rerender } = render(<TaskList {...BASE_PROPS} tasks={[TASK, manualTask]} />)
+      // type a filter that hides Ad Hoc Task
+      fireEvent.change(screen.getByRole('textbox', { name: /filter/i }), {
+        target: { value: 'Daily' },
+      })
+      expect(screen.queryByText('Ad Hoc Task')).not.toBeInTheDocument()
+
+      // switch repo — filter must be cleared automatically
+      rerender(<TaskList {...BASE_PROPS} repo="other-repo" tasks={[TASK, manualTask]} />)
+      expect(screen.getByText('Daily Standup')).toBeInTheDocument()
+      expect(screen.getByText('Ad Hoc Task')).toBeInTheDocument()
+      // input should be empty
+      expect(screen.getByRole('textbox', { name: /filter/i })).toHaveValue('')
+    })
   })
 
   describe('duplicate task', () => {

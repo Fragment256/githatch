@@ -626,6 +626,7 @@ export function TaskList({
 
   useEffect(() => {
     setLastRuns({})
+    setFilterQuery('')
   }, [owner, repo])
 
   const handleLastRunChange = (slug: string, run: WorkflowRun | null) => {
