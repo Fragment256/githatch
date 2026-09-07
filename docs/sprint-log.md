@@ -4,6 +4,17 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-07 (sprint 88)
+
+- Action: bug-fixes (Explore audit — day 3 of dry streak)
+- Summary: Unscoped Explore audit found 2 bugs; both fixed via TDD. (1) MEDIUM: `TaskList` `filterQuery` not cleared on repo switch — `[owner, repo]` effect called `setLastRuns({})` but not `setFilterQuery('')`; filter typed in repo A persisted into repo B, silently hiding non-matching tasks; fix: add `setFilterQuery('')` to reset effect; 1 regression test. (2) MEDIUM: `AgentConfig` stale error from previous repo flashed on accordion open after repo switch — `[owner, repo]` reset effect cleared `config` and `open` but not `error`; one render frame with `open=true, error=stale` before second effect cleared it; fix: add `setError(null)` to reset effect. 501/501 passing (up from 500). Dry streak resets to 0.
+- Rationale: Day 3 of dry streak; precedent runs unscoped Explore audit.
+- PR: —
+- Commit: f995432
+- ROADMAP updated: no
+
+---
+
 ## 2026-09-07 (sprint 87)
 
 - Action: baseline
