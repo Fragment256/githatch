@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-07 (sprint 89)
+
+- Action: baseline
+- Summary: Day 1 of fresh dry streak (sprint 88 reset to 0 — 2 bugs fixed). Full baseline: format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 501/501. No drift from sprint 88. Unscoped Explore audit reserved for day 3 (sprint 91).
+- Rationale: Sprint 88 was an actionable day (2 bugs fixed); this is the mandatory day-1 baseline verification. Precedent reserves unscoped audit for day 3.
+- PR: —
+- ROADMAP updated: no
+
+---
+
 ## 2026-09-07 (sprint 88)
 
 - Action: bug-fixes (Explore audit — day 3 of dry streak)
