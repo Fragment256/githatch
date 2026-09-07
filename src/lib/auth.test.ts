@@ -154,6 +154,20 @@ describe('exchangeCodeForToken', () => {
     ).rejects.toThrow()
     expect(sessionStorage.getItem('pkce_verifier')).toBeNull()
   })
+
+  it('includes API error details in thrown error message', async () => {
+    sessionStorage.setItem('pkce_verifier', 'test-verifier')
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ error: 'invalid_grant' }),
+      }),
+    )
+    await expect(
+      exchangeCodeForToken('bad-code', 'test-client-id', 'http://localhost:5173/callback'),
+    ).rejects.toThrow(/invalid_grant/)
+  })
 })
 
 describe('getAuthenticatedUser', () => {

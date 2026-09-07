@@ -89,7 +89,8 @@ export async function exchangeCodeForToken(
   const data = (await response.json()) as { access_token?: string; error?: string }
   if (!data.access_token) {
     clearPkceSession()
-    throw new Error('Token exchange failed. Please try logging in again.')
+    const errorDetail = data.error ? ` (${data.error})` : ''
+    throw new Error(`Token exchange failed${errorDetail}. Please try logging in again.`)
   }
 
   clearPkceSession()

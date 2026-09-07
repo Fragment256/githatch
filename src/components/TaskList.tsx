@@ -361,6 +361,9 @@ function TaskRow({
       if (Date.now() - startedAt > MAX_DURATION) {
         clearInterval(id)
         setPolling(false)
+        setTriggerError(
+          'Workflow polling timed out after 5 minutes. Check the Actions tab to see if the workflow is still running.',
+        )
         return
       }
       void getWorkflowRuns({ token, owner, repo, workflowId, defaultBranch, perPage: 1 })

@@ -837,6 +837,31 @@ describe('TaskList', () => {
       const triggerBtn = screen.getByRole('button', { name: /^(run now|triggered!)$/i })
       expect(triggerBtn).toBeDisabled()
     })
+
+    it('shows timeout error message when polling times out after 5 minutes', async () => {
+      const startTime = Date.now()
+      let currentTime = startTime
+      vi.spyOn(Date, 'now').mockImplementation(() => currentTime)
+
+      vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(asResult([]))
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      fireEvent.click(screen.getByRole('button', { name: /run now/i }))
+      await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
+
+      // Simulate time passing beyond the 5-minute timeout
+      currentTime = startTime + 5 * 60_000 + 1000
+
+      // Trigger the next poll interval which will check the timeout
+      await act(async () => {
+        vi.advanceTimersByTime(8000)
+        await Promise.resolve()
+      })
+
+      // Polling should stop and error message should appear
+      await waitFor(() => expect(screen.queryByText(/^Queued$/i)).not.toBeInTheDocument())
+      expect(screen.getByText(/polling timed out/i)).toBeInTheDocument()
+    })
   })
 
   describe('auto-output after successful trigger', () => {
