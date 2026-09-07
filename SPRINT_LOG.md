@@ -1,3 +1,7 @@
+## Sprint 96 — 2026-09-07 (day 2 of new cycle after sprint 94 bugs)
+
+**Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 505/505. No drift from sprint 95. Unscoped Explore audit scheduled for sprint 97 (day 3, next heartbeat).
+
 ## Sprint 95 — 2026-09-07 (day 1 of new cycle after sprint 94 bugs)
 
 **Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 505/505. No drift from sprint 94. Unscoped Explore audit reserved for day 3 (sprint 97).
