@@ -1711,3 +1711,37 @@ Agent-maintained. One entry per daily sprint run.
 - Rationale: Day 1 of post-121 cycle. Baseline confirms no drift after dry audit sprint. Explore audit reserved for sprint 124 per 3-day cycle precedent.
 - PR: —
 - ROADMAP updated: no
+
+## Sprint 127 — Explore audit (day 3 of new cycle after sprint 124 bug-fixes)
+
+**Date:** 2026-09-07
+**Baseline:** format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 530/530
+**Bugs found:** 10 (2 HIGH/MEDIUM fixed, 8 noted)
+**Tests after:** 533/533 (+3)
+
+### Fixes
+
+**1. HIGH — ConfirmDialog: loading text hardcoded 'Deleting…' regardless of confirmLabel**
+
+- File: `src/components/ConfirmDialog.tsx:79`
+- Symptom: Any ConfirmDialog with a custom `confirmLabel` (e.g. "Archive", "Confirm") showed "Deleting…" while loading, not the appropriate label.
+- Fix: `{loading ? \`${confirmLabel}…\` : confirmLabel}`
+- Test: `ConfirmDialog.test.tsx` — verifies non-Delete labels show correct loading text.
+
+**2. MEDIUM — TaskForm: slug-collision check not exempting own slug in edit mode**
+
+- File: `src/components/TaskForm.tsx:208`
+- Symptom: Editing a task without renaming it always showed "A task already exists with this name" error when the parent passed all existing slugs (the natural behavior).
+- Fix: Compute `originalSlug = slugify(initialConfig.name)` when editing; skip collision error when `slugCandidate === originalSlug`.
+- Test: `TaskForm.test.tsx` — verifies edit mode allows saving with own slug in existingSlugs.
+
+### Other bugs noted (not fixed this sprint)
+
+- `ConfirmDialog.tsx:27` — MEDIUM: no cleanup in open-effect when component unmounts during open state (focus trap briefly)
+- `ActivityPanel.tsx:62` — LOW: initial useState stale by one render cycle
+- `TaskForm.tsx` (MEDIUM): slug collision doesn't block duplicating into an existing slug if existingSlugs includes the duplicate source (won't overwrite unless name unchanged)
+- `ToolsPanel.tsx:75` — MEDIUM: Install button not rendered when `checkToolInstalled` throws (`installed` stays null)
+- `useTheme.ts:8` — LOW: sessionStorage instead of localStorage (theme lost across tabs/sessions)
+- `workflows.ts:265,293,320` — MEDIUM: no pagination in fetchRunOutput; items beyond page 1 silently missed
+- `auth.ts:132` — LOW: `!data.id` falsy check (id=0 would false-positive)
+- `cronLabel.ts:205` — LOW: `describeCron` not guarded by `isValidCron`; invalid DOW wraps silently
