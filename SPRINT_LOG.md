@@ -1,3 +1,7 @@
+## Sprint 101 — 2026-09-07 (day 1 of new cycle after sprint 100 bugs)
+
+**Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 513/513. No drift from sprint 100. Unscoped Explore audit reserved for day 3 (sprint 103).
+
 ## Sprint 100 — 2026-09-07 (Explore audit — day 3 of new cycle, 3 bugs fixed)
 
 **Audit:** Unscoped Explore audit ran per precedent. Full baseline first: format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 508/508. Explore surfaced 5 findings; 3 confirmed real bugs fixed via TDD. (1) MEDIUM: `ToolCard` useEffect did not call `setError(null)` on repo switch — install error from Repo A persisted on Repo B's card. Fix: add `setError(null)` alongside the existing resets. 1 regression test. (2) MEDIUM: `TaskRow` keyed by `task.slug` — when Repo B contains a task with the same slug as Repo A, React reuses the component; `lastRun`, `polling`, `prevRunIdRef`, `triggeredOutput`, `triggerError`, `toggleError`, `deleteError` all carried over from old repo. Fix: change key to `${owner}/${repo}/${task.slug}` to force remount on repo switch. 1 regression test. (3) LOW: `isValidCron` accepted `*/N` hour with a specific DOW (e.g. `0 */4 * * 1-5`), but `nextCronRun` returns `null` for this pattern — UI showed a next-run preview that would never fire. Fix: add `if (hour.startsWith('*/') && dow !== '*') return false`. 1 regression test. 513/513 passing (up from 508). Dry streak resets to 0. Commit `e55a5d6`.
