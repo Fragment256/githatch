@@ -189,6 +189,39 @@ describe('ActivityPanel', () => {
     expect(allStatValues[3].textContent).not.toBe('0')
   })
 
+  it('does not show stale PR counts from previous repo when new repo API fails', async () => {
+    mockGetWorkflowRuns.mockResolvedValue({ runs: [], totalCount: 0 })
+    mockGetRecentCommits.mockResolvedValue([])
+    mockGetRecentPRs.mockResolvedValue([])
+    mockGetPRCounts.mockResolvedValueOnce({ open: 3, merged: 7 })
+    mockGetPRCounts.mockRejectedValueOnce(new Error('network error'))
+
+    const { rerender } = render(
+      <ActivityPanel tasks={[]} token="t" owner="o" repo="repo-a" defaultBranch="main" />,
+    )
+
+    // Wait for repo A PR counts to load (Open PRs tile shows 3)
+    await waitFor(() => {
+      const values = screen.getAllByText((_, el) => {
+        return el?.tagName === 'P' && el.classList.contains('text-2xl')
+      })
+      expect(values[2].textContent).toBe('3')
+    })
+
+    // Switch to repo B whose getPRCounts rejects
+    rerender(<ActivityPanel tasks={[]} token="t" owner="o" repo="repo-b" defaultBranch="main" />)
+
+    // Wait for repo B error to appear (shows in both PRs and commits sections)
+    await waitFor(() => screen.getAllByText('Failed to load repository activity'))
+
+    // Stat tiles must show '…' — not the stale '3'/'7' from repo A
+    const allStatValues = screen.getAllByText((_, el) => {
+      return el?.tagName === 'P' && el.classList.contains('text-2xl')
+    })
+    expect(allStatValues[2].textContent).toBe('…')
+    expect(allStatValues[3].textContent).toBe('…')
+  })
+
   it('counts run totals/successes/failures from within the 14-day window only', async () => {
     const now = Date.now()
     const task = makeTask('task-x', 1)

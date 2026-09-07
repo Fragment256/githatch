@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export type SecretStatus = 'loading' | 'present' | 'absent' | 'unknown'
 
@@ -24,6 +24,10 @@ export function GettingStarted({
   const [dismissed, setDismissed] = useState(
     () => sessionStorage.getItem(dismissKey(repoFullName)) === 'true',
   )
+
+  useEffect(() => {
+    setDismissed(sessionStorage.getItem(dismissKey(repoFullName)) === 'true')
+  }, [repoFullName])
 
   const allDone = secretStatus === 'present' && hasTasks
 

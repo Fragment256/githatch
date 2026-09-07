@@ -115,6 +115,9 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
     const id = ++repoRequestId.current
     setRepoLoading(true)
     setRepoError(null)
+    setPRCounts(null)
+    setCommits(null)
+    setPRs(null)
     Promise.all([
       getRecentCommits({ token, owner, repo, days: 30 }),
       getRecentPRs({ token, owner, repo }),

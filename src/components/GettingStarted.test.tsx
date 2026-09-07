@@ -117,6 +117,35 @@ describe('GettingStarted', () => {
     expect(onNewTask).toHaveBeenCalledOnce()
   })
 
+  it('resets dismissed state when repo changes — shows set up banner for new repo', () => {
+    const { rerender } = render(
+      <GettingStarted
+        {...BASE_PROPS}
+        repoFullName="alice/repo-a"
+        repoName="repo-a"
+        secretStatus="present"
+        hasTasks={true}
+      />,
+    )
+    // Dismiss for repo A
+    fireEvent.click(screen.getByRole('button', { name: /dismiss/i }))
+    expect(screen.queryByText(/you're set up/i)).not.toBeInTheDocument()
+
+    // Switch to repo B (also fully set up, not dismissed)
+    rerender(
+      <GettingStarted
+        {...BASE_PROPS}
+        repoFullName="alice/repo-b"
+        repoName="repo-b"
+        secretStatus="present"
+        hasTasks={true}
+      />,
+    )
+
+    // repo B's banner must show — dismissed flag is keyed to repo A
+    expect(screen.getByText(/you're set up/i)).toBeInTheDocument()
+  })
+
   it('shows checking state for step 2 while loading', () => {
     render(<GettingStarted {...BASE_PROPS} secretStatus="loading" hasTasks={false} />)
     expect(screen.getByText(/checking/i)).toBeInTheDocument()
