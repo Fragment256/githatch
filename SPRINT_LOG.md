@@ -1,3 +1,7 @@
+## Sprint 132 — 2026-09-07 (day 2 of new cycle after sprint 130 bug-fixes)
+
+**Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 538/538. No drift from sprint 131. Unscoped Explore audit scheduled for sprint 133 (day 3, next heartbeat).
+
 ## Sprint 131 — 2026-09-07 (day 1 of new cycle after sprint 130 bug-fixes)
 
 **Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 538/538. No drift from sprint 130. Unscoped Explore audit reserved for day 3 (sprint 133).
