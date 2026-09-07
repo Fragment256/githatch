@@ -257,6 +257,20 @@ describe('TaskForm', () => {
     expect(screen.getByRole('button', { name: /commit to repo/i })).not.toBeDisabled()
   })
 
+  // Edit mode: saving with the same slug as the task being edited must not trigger a collision error
+  it('allows submit in edit mode when existingSlugs contains the own slug', () => {
+    render(
+      <TaskForm onSubmit={mockSubmit} initialConfig={baseConfig} existingSlugs={['old-task']} />,
+    )
+    // Submit without changing name — slug stays 'old-task', which is in existingSlugs
+    fireEvent.change(screen.getByLabelText(/output destination/i), {
+      target: { value: 'new_issue' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
+    expect(screen.queryByText(/a task already exists with this name/i)).not.toBeInTheDocument()
+    expect(screen.getByTestId('yaml-preview')).toBeInTheDocument()
+  })
+
   // isDuplicating: shows "New task"/"Create task" even when initialConfig is provided
   it('shows "New task" heading and "Create task" button when isDuplicating is true', () => {
     render(<TaskForm onSubmit={mockSubmit} initialConfig={baseConfig} isDuplicating={true} />)

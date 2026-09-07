@@ -76,7 +76,7 @@ export function ConfirmDialog({
           disabled={loading}
           className="border-2 border-black bg-black px-4 py-2 font-mono text-xs tracking-widest text-white uppercase hover:bg-white hover:text-black disabled:opacity-50"
         >
-          {loading ? 'Deleting…' : confirmLabel}
+          {loading ? `${confirmLabel}…` : confirmLabel}
         </button>
       </div>
     </dialog>

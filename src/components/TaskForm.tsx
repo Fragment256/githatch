@@ -205,7 +205,8 @@ export function TaskForm({
     const slugCandidate = slugify(values.name.trim())
     if (!slugCandidate)
       return setError('Task name must contain at least one letter, number, or hyphen.')
-    if (existingSlugs.includes(slugCandidate)) {
+    const originalSlug = isEditing && initialConfig ? slugify(initialConfig.name) : null
+    if (existingSlugs.includes(slugCandidate) && slugCandidate !== originalSlug) {
       return setError(
         `A task already exists with this name ("${slugCandidate}"). Choose a different name — submitting would overwrite the existing task's workflow.`,
       )

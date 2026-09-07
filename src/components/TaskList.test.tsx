@@ -147,15 +147,15 @@ describe('TaskList', () => {
     fireEvent.click(screen.getByRole('button', { name: /delete task/i }))
     expect(screen.getByText(/cannot be undone/i)).toBeInTheDocument()
 
-    // Confirm delete — dialog shows "Deleting…", buttons disabled
+    // Confirm delete — dialog shows "Delete…", buttons disabled
     fireEvent.click(screen.getByRole('button', { name: /^delete$/i }))
-    await waitFor(() => expect(screen.getByRole('button', { name: /deleting/i })).toBeDisabled())
+    await waitFor(() => expect(screen.getByRole('button', { name: /^delete…$/i })).toBeDisabled())
 
     // Resolve delete — dialog must close and Delete button re-appear (not stuck in loading state)
     await act(async () => {
       resolveDelete()
     })
-    await waitFor(() => expect(screen.queryByRole('button', { name: /deleting/i })).toBeNull())
+    await waitFor(() => expect(screen.queryByRole('button', { name: /^delete…$/i })).toBeNull())
     expect(screen.getByRole('button', { name: /delete task/i })).toBeInTheDocument()
     expect(onRefresh).toHaveBeenCalledOnce()
   })
