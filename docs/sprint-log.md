@@ -1661,3 +1661,13 @@ Agent-maintained. One entry per daily sprint run.
 - Rationale: Day-3 dry streak unscoped audit is established precedent. Dry audits do occur (sprints 79, 91, 95, 103, 108 were dry); baseline count remains 528/528.
 - PR: n/a
 - ROADMAP updated: no
+
+---
+
+## 2026-09-07 (sprint 122)
+
+- Action: baseline (day 1 of new cycle after sprint 121 dry audit)
+- Summary: Full baseline: format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 528/528. No drift from sprint 121. Unscoped Explore audit reserved for day 3 (sprint 124).
+- Rationale: Day 1 of post-121 cycle. Baseline confirms no drift after dry audit sprint. Explore audit reserved for sprint 124 per 3-day cycle precedent.
+- PR: —
+- ROADMAP updated: no
