@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-07 (sprint 119)
+
+- Action: baseline (day 1 of new cycle after sprint 118 bug-fixes)
+- Summary: Full baseline: format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 528/528. No drift from sprint 118. Unscoped Explore audit reserved for day 3 (sprint 121).
+- Rationale: Day 1 of post-118 cycle. Baseline confirms no drift after the switch-repo reset and canPreviewCron fixes.
+- PR: —
+- ROADMAP updated: no
+
+---
+
 ## 2026-09-07 (sprint 118)
 
 - Action: bug-fixes (Explore audit — day 3 of new cycle, 2 bugs fixed)
