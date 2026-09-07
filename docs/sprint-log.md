@@ -1591,3 +1591,13 @@ Agent-maintained. One entry per daily sprint run.
 - Rationale: Day-3 dry streak unscoped audit is established precedent (sprints 10, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54, 63, 67, 70, 73, 76 all found real bugs; 79 was dry). Both bugs confirmed against actual source before fixing; no speculative changes.
 - PR: n/a (direct push to main)
 - ROADMAP updated: no
+
+---
+
+## 2026-09-07 (sprint 115)
+
+- Action: correctness-bugs-fixed
+- Summary: Day 3 of dry streak — unscoped Explore audit ran per precedent. Full baseline first: format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 524/524. Explore surfaced 2 confirmed bugs fixed via TDD. (1) HIGH: `RunHistoryPanel.fetchRuns` had an empty dep array with `eslint-disable` comment; token changes while the history panel is open did not trigger a re-fetch — the panel continued showing runs fetched with the old token. Fix: convert `fetchRuns` to `useCallback([token, owner, repo, task.workflowId, defaultBranch])` and add it to the effect dep array. (2) MEDIUM: `TaskList` reset effect cleared `lastRuns`/`filterQuery` on `[owner, repo]` change but not on `token` change; stale failure-count banner could persist after a token rotation. Fix: add `token` to the dep array. 2 regression tests (RED→GREEN). 526/526 passing (up from 524). Dry streak resets to 0.
+- Rationale: Day-3 dry streak unscoped audit is established precedent. Both bugs confirmed against actual source before fixing; no speculative changes.
+- PR: n/a (direct push to main)
+- ROADMAP updated: no
