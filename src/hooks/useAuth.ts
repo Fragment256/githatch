@@ -23,7 +23,7 @@ export function useAuth() {
   const [state, setState] = useState<AuthState>({
     token: getStoredToken(),
     user: null,
-    loading: false,
+    loading: !!getStoredToken(),
     error: null,
   })
 

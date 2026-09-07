@@ -1,4 +1,5 @@
-import { renderHook, act, waitFor } from '@testing-library/react'
+import { render, renderHook, act, waitFor } from '@testing-library/react'
+import { createElement, useLayoutEffect } from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { useAuth } from './useAuth'
 
@@ -91,6 +92,25 @@ describe('useAuth — stored token present', () => {
     await waitFor(() => expect(result.current.loading).toBe(false))
     expect(result.current.token).toBeNull()
     expect(mockClearToken).toHaveBeenCalledOnce()
+  })
+
+  it('loading is true on the initial render when token is stored (no loading=false flash)', () => {
+    // useLayoutEffect fires before useEffect, capturing the state from the first render.
+    // With the old bug (loading: false initial state), capturedLoading would be false here.
+    // With the fix (loading: !!getStoredToken()), capturedLoading is true from the first render.
+    let capturedLoading: boolean | undefined
+    mockGetAuthenticatedUser.mockReturnValue(new Promise<typeof MOCK_USER>(() => {}))
+
+    function Probe() {
+      const { loading } = useAuth()
+      useLayoutEffect(() => {
+        if (capturedLoading === undefined) capturedLoading = loading
+      })
+      return null
+    }
+
+    render(createElement(Probe))
+    expect(capturedLoading).toBe(true)
   })
 })
 
