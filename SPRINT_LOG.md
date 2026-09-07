@@ -1,3 +1,7 @@
+## Sprint 105 — 2026-09-07 (day 2 of dry streak)
+
+**Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 513/513. No drift from sprint 104. Unscoped Explore audit scheduled for sprint 106 (day 3, next heartbeat).
+
 ## Sprint 104 — 2026-09-07 (day 1 of new dry streak after sprint 103 dry)
 
 **Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 513/513. No drift from sprint 103. Unscoped Explore audit reserved for day 3 (sprint 106).
