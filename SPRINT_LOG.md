@@ -1,3 +1,9 @@
+## Sprint 137 — 2026-09-08 (day 1 of new cycle after sprint 136 bug-fix)
+
+**Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 539/539. No drift from sprint 136. Unscoped Explore audit reserved for day 3 (sprint 139).
+
+---
+
 ## Sprint 136 — 2026-09-08 (day 3 Explore audit — 1 MEDIUM bug fixed)
 
 **Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 538/538.
