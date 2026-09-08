@@ -341,6 +341,9 @@ function TaskRow({
         if (id !== fetchLastRunRequestId.current) return
         const run = runs[0] ?? null
         setLastRun(run)
+        // Initialize baseline so handleTrigger has a correct prevRunIdRef even if
+        // the user clicks Run now before this effect resolves.
+        prevRunIdRef.current = run?.id ?? null
         onLastRunChangeRef.current(task.slug, run)
       })
       .catch(() => {

@@ -929,6 +929,50 @@ describe('TaskList', () => {
       // Queued badge must clear when polling state is reset
       await waitFor(() => expect(screen.queryByText(/^Queued$/i)).not.toBeInTheDocument())
     })
+
+    it('does not show output from a pre-existing run when trigger fires before initial fetch resolves', async () => {
+      const PRE_EXISTING: WorkflowRun = {
+        id: 50,
+        status: 'completed',
+        conclusion: 'success',
+        createdAt: '2024-01-01T08:00:00Z',
+        htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/50',
+      }
+
+      // Initial mount fetch — deferred so lastRun stays null when Run now is clicked
+      let resolveInitialFetch!: (r: WorkflowRunsResult) => void
+      vi.spyOn(workflows, 'getWorkflowRuns')
+        .mockReturnValueOnce(
+          new Promise<WorkflowRunsResult>((resolve) => {
+            resolveInitialFetch = resolve
+          }),
+        )
+        .mockResolvedValue(asResult([PRE_EXISTING])) // poller returns pre-existing run
+
+      vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
+      vi.spyOn(workflows, 'fetchRunOutput').mockResolvedValue(null)
+
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+
+      // Trigger before initial fetch resolves (lastRun is null)
+      fireEvent.click(screen.getByRole('button', { name: /run now/i }))
+      await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
+
+      // Resolve initial fetch — fix sets prevRunIdRef.current = 50
+      await act(async () => {
+        resolveInitialFetch(asResult([PRE_EXISTING]))
+      })
+
+      // First poll tick — poller gets PRE_EXISTING (id=50)
+      // With fix: prevRunIdRef.current = 50 → run.id === 50 → SKIP
+      await act(async () => {
+        vi.advanceTimersByTime(8000)
+        await Promise.resolve()
+      })
+
+      // fetchRunOutput must NOT be called for the pre-existing run
+      expect(workflows.fetchRunOutput).not.toHaveBeenCalled()
+    })
   })
 
   describe('auto-output after successful trigger', () => {

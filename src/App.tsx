@@ -177,6 +177,7 @@ export default function App() {
       setDuplicatingConfig(null)
       setSelectedTemplate(null)
       setView('tasks')
+      loadTasks()
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Failed to save workflow')
     } finally {

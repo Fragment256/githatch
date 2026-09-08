@@ -682,4 +682,31 @@ describe('App — task form submission', () => {
     // loadTasks must have been called to refresh the task list with the actual repo state
     expect(mockLoad).toHaveBeenCalledTimes(1)
   })
+
+  it('calls load after successful new-task submission so workflowId is populated', async () => {
+    vi.mocked(github.upsertWorkflowFile).mockResolvedValue(undefined)
+    render(<App />, { wrapper })
+
+    // Clear the initial loadTasks call from mount effect
+    mockLoad.mockClear()
+
+    // Navigate to new-task view
+    fireEvent.click(screen.getAllByRole('button', { name: /\+ new task/i })[0])
+
+    // Fill in the form (issue_comment is default output, so issue number field is visible)
+    fireEvent.change(screen.getByLabelText(/task name/i), { target: { value: 'My Task' } })
+    fireEvent.change(screen.getByLabelText(/prompt/i), { target: { value: 'Do the thing.' } })
+    fireEvent.change(screen.getByPlaceholderText(/issue number/i), { target: { value: '1' } })
+
+    // Preview step
+    fireEvent.click(screen.getByRole('button', { name: /create task/i }))
+    expect(screen.getByRole('button', { name: /commit to repo/i })).toBeInTheDocument()
+
+    // Confirm — triggers handleTaskFormSubmit
+    fireEvent.click(screen.getByRole('button', { name: /commit to repo/i }))
+
+    await waitFor(() => expect(github.upsertWorkflowFile).toHaveBeenCalledOnce())
+    // load must be called to replace the optimistic workflowId:undefined entry
+    await waitFor(() => expect(mockLoad).toHaveBeenCalledOnce())
+  })
 })
