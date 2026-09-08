@@ -1,3 +1,17 @@
+## Sprint 142 — 2026-09-08 (day 3 Explore audit — 2 bugs fixed)
+
+**Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 541/541.
+**Bugs found:** 2 fixed.
+**Tests after:** 542/542 (+1)
+
+### Fixes
+
+1. **MEDIUM** `TaskList.tsx` — poll success path missing `setTriggerError(null)`. A transient network failure during polling set the error; the next successful poll left the stale message on-screen alongside the completed-run indicators. Fix: `setTriggerError(null)` at the top of the `.then()` handler. 1 regression test (RED→GREEN).
+
+2. **LOW** `App.tsx` — `← Back` button not disabled while `saving` is true. Clicking Back mid-save called `setSaveError(null)` immediately; if the in-flight PUT then failed, `setSaveError` fired with `view` already changed, silently dropping the error. Fix: `disabled={saving}` + `disabled:opacity-40 disabled:cursor-not-allowed` on the button.
+
+---
+
 ## Sprint 141 — 2026-09-08 (day 2 of cycle)
 
 **Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 541/541. No drift from sprint 140. Unscoped Explore audit reserved for day 3 (sprint 142).
