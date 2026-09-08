@@ -493,6 +493,7 @@ export default function App() {
         {user && activeRepo && view === 'edit-task' && editingConfig && (
           <div className="w-full max-w-lg">
             <button
+              disabled={saving}
               onClick={() => {
                 setView('tasks')
                 setEditingTask(null)
@@ -500,7 +501,7 @@ export default function App() {
                 setEditingOriginalYaml(null)
                 setSaveError(null)
               }}
-              className="mb-4 font-mono text-xs tracking-widest text-gray-500 uppercase hover:text-black"
+              className="mb-4 font-mono text-xs tracking-widest text-gray-500 uppercase hover:text-black disabled:cursor-not-allowed disabled:opacity-40"
             >
               ← Back
             </button>

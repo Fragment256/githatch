@@ -373,6 +373,7 @@ function TaskRow({
       }
       void getWorkflowRuns({ token, owner, repo, workflowId, defaultBranch, perPage: 1 })
         .then(({ runs }) => {
+          setTriggerError(null)
           const run = runs[0]
           if (!run || run.id === prevRunIdRef.current) return
           setLastRun(run)

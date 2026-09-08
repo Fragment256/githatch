@@ -910,6 +910,50 @@ describe('TaskList', () => {
       await waitFor(() => expect(screen.getByText(/rate limit exceeded/i)).toBeInTheDocument())
     })
 
+    it('clears poll error when a subsequent poll succeeds after a transient failure', async () => {
+      vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
+      const runsMock = vi.spyOn(workflows, 'getWorkflowRuns')
+      runsMock.mockResolvedValue(asResult([]))
+
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      await act(async () => {
+        await Promise.resolve()
+      })
+
+      // First poll after trigger will reject (transient failure)
+      runsMock.mockRejectedValueOnce(new Error('Network error'))
+      // Second poll returns a new in_progress run (recovery)
+      runsMock.mockResolvedValue(
+        asResult([
+          {
+            id: 999,
+            status: 'in_progress',
+            conclusion: null,
+            createdAt: new Date().toISOString(),
+            htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/999',
+          },
+        ]),
+      )
+
+      fireEvent.click(screen.getByRole('button', { name: /run now/i }))
+      await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
+
+      // First poll — fails, error message appears
+      await act(async () => {
+        vi.advanceTimersByTime(8000)
+        await Promise.resolve()
+      })
+      await waitFor(() => expect(screen.getByText(/Network error/i)).toBeInTheDocument())
+
+      // Second poll — succeeds, error must be cleared
+      await act(async () => {
+        vi.advanceTimersByTime(8000)
+        await Promise.resolve()
+      })
+      await waitFor(() => expect(screen.queryByText(/Network error/i)).not.toBeInTheDocument())
+      expect(screen.getByText(/^Running$/i)).toBeInTheDocument()
+    })
+
     it('clears Queued badge when workflowId disappears during polling', async () => {
       vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
       vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(asResult([]))
