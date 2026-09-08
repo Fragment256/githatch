@@ -1,3 +1,41 @@
+## Sprint 141 — 2026-09-08 (day 2 of cycle)
+
+**Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 541/541. No drift from sprint 140. Unscoped Explore audit reserved for day 3 (sprint 142).
+
+---
+
+## Sprint 140 — 2026-09-08 (day 1 of new cycle after sprint 139 bug-fix)
+
+**Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 541/541. No drift from sprint 139. Unscoped Explore audit reserved for day 3 (sprint 142).
+
+---
+
+## Sprint 139 — 2026-09-08 (day 3 Explore audit — 2 bugs fixed)
+
+**Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 539/539.
+**Bugs found:** 2 fixed.
+**Tests after:** 541/541 (+2)
+
+### Fixes
+
+**MEDIUM — App.tsx: handleTaskFormSubmit did not reload tasks after new-task submit**
+
+- Symptom: New task added optimistically with `workflowId: undefined`, causing all action buttons permanently disabled. No `loadTasks()` call in success branch so the stub entry was never replaced with the real one from the API.
+- Fix: Call `loadTasks()` in the success branch of `handleTaskFormSubmit` (the edit flow already did this on both paths).
+- Test: regression test (RED→GREEN).
+
+**LOW — App.tsx: prevRunIdRef.current unset before initial getWorkflowRuns resolved**
+
+- Symptom: Clicking "Run now" before the initial run fetch completed left `prevRunIdRef.current` at `null`. The poller guard (`run.id === prevRunIdRef.current`) never matched null, so any pre-existing completed run was treated as newly triggered and `fetchRunOutput` was called on it spuriously.
+- Fix: Initialise `prevRunIdRef.current` inside the initial fetch `.then()` so the baseline is set regardless of whether the user clicks Run first.
+- Test: 1 regression test (RED→GREEN).
+
+### Dry streak
+
+Resets to 0 (2 bugs found and fixed). Next: sprint 140 baseline (day 1 of new cycle).
+
+---
+
 ## Sprint 138 — 2026-09-08 (day 2 of cycle)
 
 **Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 539/539. No drift from sprint 137. Unscoped Explore audit reserved for day 3 (sprint 139).
