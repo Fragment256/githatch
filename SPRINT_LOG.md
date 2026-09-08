@@ -1,3 +1,9 @@
+## Sprint 144 — 2026-09-08 (day 2 of cycle)
+
+**Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 542/542. No drift from sprint 143. Unscoped Explore audit reserved for day 3 (sprint 145).
+
+---
+
 ## Sprint 143 — 2026-09-08 (day 1 of new cycle after sprint 142 bug-fix)
 
 **Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 542/542. No drift from sprint 142. Unscoped Explore audit reserved for day 3 (sprint 145).
