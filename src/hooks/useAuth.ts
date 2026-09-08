@@ -50,11 +50,28 @@ export function useAuth() {
       setState((s) => ({ ...s, loading: true, error: null }))
 
       exchangeCodeForToken(code, GITHUB_CLIENT_ID, getRedirectUri())
-        .then((token) => {
+        .then(async (token) => {
           storeToken(token)
-          return getAuthenticatedUser(token).then((user) => {
+          try {
+            const user = await getAuthenticatedUser(token)
             setState({ token, user, loading: false, error: null })
-          })
+          } catch (err: unknown) {
+            const message =
+              err instanceof Error
+                ? err.message
+                : 'Could not reach GitHub. Check your connection and try again.'
+            if (message.includes('401')) {
+              clearToken()
+              setState({ token: null, user: null, loading: false, error: message })
+            } else {
+              setState({
+                token,
+                user: null,
+                loading: false,
+                error: 'Could not reach GitHub. Check your connection and try again.',
+              })
+            }
+          }
         })
         .catch((err: unknown) => {
           clearToken()

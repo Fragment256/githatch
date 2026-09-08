@@ -179,16 +179,28 @@ describe('useAuth — OAuth callback (code in URL)', () => {
     expect(mockClearToken).toHaveBeenCalledOnce()
   })
 
-  it('clears stale token when getAuthenticatedUser rejects after storeToken', async () => {
+  it('clears token when getAuthenticatedUser rejects with 401 after storeToken', async () => {
     setSearch({ code: 'auth-code', state: 'test-state' })
     mockExchangeCodeForToken.mockResolvedValue('gho_new_token')
-    mockGetAuthenticatedUser.mockRejectedValue(new Error('503 Service Unavailable'))
+    mockGetAuthenticatedUser.mockRejectedValue(new Error('GitHub API error: 401'))
     const { result } = renderHook(() => useAuth())
     await waitFor(() => expect(result.current.loading).toBe(false))
     expect(mockStoreToken).toHaveBeenCalledWith('gho_new_token')
     expect(mockClearToken).toHaveBeenCalledOnce()
     expect(result.current.token).toBeNull()
-    expect(result.current.error).toBe('503 Service Unavailable')
+    expect(result.current.error).toBeTruthy()
+  })
+
+  it('keeps the freshly-exchanged token when getAuthenticatedUser fails with a transient error', async () => {
+    setSearch({ code: 'auth-code', state: 'test-state' })
+    mockExchangeCodeForToken.mockResolvedValue('gho_new_token')
+    mockGetAuthenticatedUser.mockRejectedValue(new TypeError('Failed to fetch'))
+    const { result } = renderHook(() => useAuth())
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(mockStoreToken).toHaveBeenCalledWith('gho_new_token')
+    expect(mockClearToken).not.toHaveBeenCalled()
+    expect(result.current.token).toBe('gho_new_token')
+    expect(result.current.error).toBeTruthy()
   })
 
   it('clears the URL code param on callback', async () => {

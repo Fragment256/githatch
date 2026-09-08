@@ -1,3 +1,24 @@
+## Sprint 136 — 2026-09-08 (day 3 Explore audit — 1 MEDIUM bug fixed)
+
+**Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 538/538.
+**Bugs found:** 1 MEDIUM fixed.
+**Tests after:** 539/539 (+1)
+
+### Fix
+
+**MEDIUM — useAuth.ts: code-exchange path always cleared token on transient `getAuthenticatedUser` failure**
+
+- File: `src/hooks/useAuth.ts:52–80`
+- Symptom: OAuth code exchange succeeds, token stored, but `getAuthenticatedUser` returns a transient error (503, network timeout). The single `.catch()` at the end of the chain unconditionally called `clearToken()` and set `token: null`. Since the auth code in the URL was already consumed by `replaceState`, the user had to click Login again and re-authorize from scratch — even though the token itself was valid. Sprint 130 fixed the stored-token path (lines 70–85) to only clear on 401; the code-exchange path was not given the same treatment.
+- Fix: Move `getAuthenticatedUser` into a nested `try/catch` inside the `.then()`. On 401 → `clearToken()` + null token. On transient error → keep token, show "Could not reach GitHub" error. The outer `.catch()` now only fires if `exchangeCodeForToken` itself throws, which still clears the (non-existent) token.
+- Test: `useAuth.test.ts` — updated 401-after-storeToken test to use 401 error; added new test verifying transient `Failed to fetch` keeps token and does not call `clearToken`. RED → GREEN.
+
+### Dry streak
+
+Resets to 0 (bug found and fixed this sprint). Next: sprint 137 baseline (day 1 of new cycle).
+
+---
+
 ## Sprint 135 — 2026-09-08 (day 2 of new cycle)
 
 **Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 538/538. No drift from sprint 134. Unscoped Explore audit scheduled for sprint 136 (day 3, next heartbeat).
