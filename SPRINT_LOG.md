@@ -1,3 +1,17 @@
+## Sprint 145 — 2026-09-08 (day 3 Explore audit — 2 bugs fixed)
+
+**Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 542/542.
+**Bugs found:** 2 fixed.
+**Tests after:** 543/543 (+1)
+
+### Fixes
+
+1. **MEDIUM** `TaskList.tsx` — polling `fetchRunOutput` had no request-ID guard. If run 1 completed and its output fetch was in-flight, then the user triggered run 2 and its output resolved first, the slower run 1 fetch would call `setTriggeredOutput(outA)` and overwrite run 2's output. Fix: `outputFetchRequestId` ref incremented in `handleTrigger` (to invalidate in-flight fetches on new trigger) and in the polling success branch (to stamp each dispatch); the `.then()` checks if the stamp is still current before applying output. 1 regression test added (RED→GREEN).
+
+2. **LOW** `TaskList.tsx` — `handleTrigger` called `setTimeout(() => setTriggered(false), 3000)` but never stored the handle. If `TaskRow` unmounted before the timer fired, the closure kept refs alive until GC; rapid double-triggers also stacked duplicate timers. Fix: `triggeredTimerRef` stores the handle; previous timer cancelled before scheduling a new one; cleanup effect cancels on unmount.
+
+---
+
 ## Sprint 144 — 2026-09-08 (day 2 of cycle)
 
 **Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 542/542. No drift from sprint 143. Unscoped Explore audit reserved for day 3 (sprint 145).

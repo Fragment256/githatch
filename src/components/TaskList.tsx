@@ -328,10 +328,18 @@ function TaskRow({
   const [triggeredOutput, setTriggeredOutput] = useState<RunOutput | null>(null)
   const prevRunIdRef = useRef<number | null>(null)
   const fetchLastRunRequestId = useRef(0)
+  const outputFetchRequestId = useRef(0)
+  const triggeredTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const outputDestRef = useRef(task.outputDestination)
   outputDestRef.current = task.outputDestination
   const onLastRunChangeRef = useRef(onLastRunChange)
   onLastRunChangeRef.current = onLastRunChange
+
+  useEffect(() => {
+    return () => {
+      if (triggeredTimerRef.current !== null) clearTimeout(triggeredTimerRef.current)
+    }
+  }, [])
 
   useEffect(() => {
     if (!task.workflowId) return
@@ -389,6 +397,7 @@ function TaskRow({
                 od.type === 'pull_request' ||
                 od.type === 'file'
               ) {
+                const outId = ++outputFetchRequestId.current
                 void fetchRunOutput({
                   token,
                   owner,
@@ -398,9 +407,11 @@ function TaskRow({
                   defaultBranch,
                 })
                   .then((out) => {
+                    if (outId !== outputFetchRequestId.current) return
                     if (out) setTriggeredOutput(out)
                   })
                   .catch((err: unknown) => {
+                    if (outId !== outputFetchRequestId.current) return
                     setTriggerError(
                       err instanceof Error ? err.message : 'Failed to fetch run output',
                     )
@@ -421,12 +432,14 @@ function TaskRow({
     setTriggering(true)
     setTriggerError(null)
     setTriggeredOutput(null)
+    ++outputFetchRequestId.current
     try {
       prevRunIdRef.current = lastRun?.id ?? null
       await triggerWorkflow({ token, owner, repo, workflowId: task.workflowId, defaultBranch })
       setTriggered(true)
       setPolling(true)
-      setTimeout(() => setTriggered(false), 3000)
+      if (triggeredTimerRef.current !== null) clearTimeout(triggeredTimerRef.current)
+      triggeredTimerRef.current = setTimeout(() => setTriggered(false), 3000)
     } catch (err) {
       setTriggerError(err instanceof Error ? err.message : 'Failed to trigger')
     } finally {

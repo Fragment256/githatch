@@ -2,7 +2,7 @@ import { StrictMode } from 'react'
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { TaskList } from './TaskList'
-import type { GithatchTask, WorkflowRun, WorkflowRunsResult } from '@/lib/workflows'
+import type { GithatchTask, WorkflowRun, WorkflowRunsResult, RunOutput } from '@/lib/workflows'
 import * as workflows from '@/lib/workflows'
 import * as github from '@/lib/github'
 
@@ -1296,6 +1296,92 @@ describe('TaskList', () => {
       fireEvent.click(screen.getByRole('button', { name: /triggered!/i }))
       expect(screen.queryByText('Run 1 Output')).not.toBeInTheDocument()
       expect(fetchOutput).toHaveBeenCalledOnce()
+    })
+
+    it('discards run 1 output when it resolves after run 2 output is already shown', async () => {
+      vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
+      const runsMock = vi.spyOn(workflows, 'getWorkflowRuns')
+      runsMock.mockResolvedValue(asResult([]))
+
+      let resolveRun1Output!: (v: RunOutput | null) => void
+      const run1OutputPromise = new Promise<RunOutput | null>((r) => {
+        resolveRun1Output = r
+      })
+
+      vi.spyOn(workflows, 'fetchRunOutput')
+        .mockImplementationOnce(() => run1OutputPromise) // run 1: deferred
+        .mockResolvedValue({
+          // run 2: immediate
+          type: 'issue',
+          title: 'Run 2 Output',
+          body: 'From run 2',
+          htmlUrl: 'https://github.com/testuser/my-repo/issues/2',
+          createdAt: new Date().toISOString(),
+        })
+
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      await act(async () => {
+        await Promise.resolve()
+      })
+
+      // First trigger: run 1 completes
+      runsMock.mockResolvedValue(
+        asResult([
+          {
+            id: 100,
+            status: 'completed',
+            conclusion: 'success',
+            createdAt: new Date().toISOString(),
+            htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/100',
+          },
+        ]),
+      )
+
+      fireEvent.click(screen.getByRole('button', { name: /run now/i }))
+      await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
+
+      // Advance interval: poll detects run 1 completed → fetchRunOutput(run1) dispatched (deferred)
+      await act(async () => {
+        vi.advanceTimersByTime(8000)
+        await Promise.resolve()
+      })
+      await waitFor(() => expect(screen.queryByText(/^Queued$/i)).not.toBeInTheDocument())
+
+      // Second trigger (button shows "Triggered!" — polling=false so it's enabled)
+      runsMock.mockResolvedValue(
+        asResult([
+          {
+            id: 101,
+            status: 'completed',
+            conclusion: 'success',
+            createdAt: new Date().toISOString(),
+            htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/101',
+          },
+        ]),
+      )
+      fireEvent.click(screen.getByRole('button', { name: /triggered!/i }))
+      await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
+
+      // Advance interval: poll detects run 2 completed → fetchRunOutput(run2) resolves immediately
+      await act(async () => {
+        vi.advanceTimersByTime(8000)
+        await Promise.resolve()
+      })
+      await waitFor(() => expect(screen.getByText('Run 2 Output')).toBeInTheDocument())
+
+      // Deferred run 1 output resolves — must be discarded; run 2 output must remain
+      await act(async () => {
+        resolveRun1Output({
+          type: 'issue',
+          title: 'Run 1 Output',
+          body: 'From run 1',
+          htmlUrl: 'https://github.com/testuser/my-repo/issues/1',
+          createdAt: new Date().toISOString(),
+        })
+      })
+
+      expect(screen.getByText('Run 2 Output')).toBeInTheDocument()
+      expect(screen.queryByText('Run 1 Output')).not.toBeInTheDocument()
     })
 
     it('shows trigger error when fetchRunOutput rejects after successful run', async () => {
