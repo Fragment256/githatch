@@ -196,6 +196,50 @@ describe('AgentConfig', () => {
     expect(screen.queryByText('repo-a-skill')).toBeNull()
   })
 
+  it('resets panel on token change so stale config is not shown when user reopens', async () => {
+    // Regression: token was absent from the reset useEffect's deps, so a token
+    // change (re-auth) left config non-null and the fetch effect bailed on
+    // `config !== null`, causing stale data from the old session to remain visible
+    // when the user reopened the panel.
+    const configA = {
+      hasClaude: true,
+      hasSettings: false,
+      skills: ['skill-a'],
+      agents: [],
+      hasAgentsMd: false,
+      hasCodexConfig: false,
+      hasCodexHooks: false,
+    }
+    const configB = {
+      hasClaude: false,
+      hasSettings: false,
+      skills: ['skill-b'],
+      agents: [],
+      hasAgentsMd: false,
+      hasCodexConfig: false,
+      hasCodexHooks: false,
+    }
+    const spy = vi
+      .spyOn(github, 'fetchRepoAgentConfig')
+      .mockResolvedValueOnce(configA)
+      .mockResolvedValue(configB)
+
+    const { rerender } = render(<AgentConfig {...BASE_PROPS} token="gho_token_a" />)
+    fireEvent.click(screen.getByRole('button', { name: /agent config/i }))
+    await waitFor(() => expect(screen.getByText('skill-a')).toBeInTheDocument())
+    expect(spy).toHaveBeenCalledOnce()
+
+    // Re-authenticate: token changes → panel must auto-close and clear stale config.
+    rerender(<AgentConfig {...BASE_PROPS} token="gho_token_b" />)
+    // Panel is now closed (stale data cleared). User reopens it.
+    fireEvent.click(screen.getByRole('button', { name: /agent config/i }))
+
+    // Must re-fetch with new token and show new config, not stale skill-a.
+    await waitFor(() => expect(screen.getByText('skill-b')).toBeInTheDocument())
+    expect(screen.queryByText('skill-a')).not.toBeInTheDocument()
+    expect(spy).toHaveBeenCalledTimes(2)
+  })
+
   it('resets and re-fetches when repo changes', async () => {
     const spy = vi.spyOn(github, 'fetchRepoAgentConfig').mockResolvedValue({
       hasClaude: false,

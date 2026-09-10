@@ -90,7 +90,7 @@ export function AgentConfig({ token, owner, repo }: Props) {
     setConfig(null)
     setOpen(false)
     setError(null)
-  }, [owner, repo])
+  }, [owner, repo, token])
 
   useEffect(() => {
     if (!open || config !== null) return

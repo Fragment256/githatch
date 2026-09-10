@@ -343,10 +343,11 @@ function TaskRow({
 
   useEffect(() => {
     if (!task.workflowId) return
+    let cancelled = false
     const id = ++fetchLastRunRequestId.current
     getWorkflowRuns({ token, owner, repo, workflowId: task.workflowId, defaultBranch, perPage: 1 })
       .then(({ runs }) => {
-        if (id !== fetchLastRunRequestId.current) return
+        if (cancelled || id !== fetchLastRunRequestId.current) return
         const run = runs[0] ?? null
         setLastRun(run)
         // Initialize baseline so handleTrigger has a correct prevRunIdRef even if
@@ -355,9 +356,12 @@ function TaskRow({
         onLastRunChangeRef.current(task.slug, run)
       })
       .catch(() => {
-        if (id !== fetchLastRunRequestId.current) return
+        if (cancelled || id !== fetchLastRunRequestId.current) return
         onLastRunChangeRef.current(task.slug, null)
       })
+    return () => {
+      cancelled = true
+    }
   }, [task.workflowId, task.slug, token, owner, repo, defaultBranch])
 
   useEffect(() => {

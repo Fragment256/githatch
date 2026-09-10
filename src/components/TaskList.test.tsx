@@ -568,6 +568,51 @@ describe('TaskList', () => {
       expect(screen.queryByText(/tasks failed last run/i)).not.toBeInTheDocument()
     })
 
+    it('does not write stale last-run to parent when TaskRow unmounts before its initial fetch resolves', async () => {
+      // Regression: missing cleanup in TaskRow's last-run useEffect meant that an
+      // in-flight getWorkflowRuns promise resolved after unmount and wrote stale data
+      // into the parent's lastRuns via onLastRunChangeRef, causing a phantom failure
+      // banner on the new repo before its own fetch completed.
+      const FAILED_RUN: WorkflowRun = {
+        id: 99,
+        status: 'completed',
+        conclusion: 'failure',
+        createdAt: '2024-01-01T09:00:00Z',
+        htmlUrl: 'https://github.com/testuser/repo-a/actions/runs/99',
+      }
+      let resolveRepoA!: (v: WorkflowRunsResult) => void
+      const repoAPromise = new Promise<WorkflowRunsResult>((r) => {
+        resolveRepoA = r
+      })
+      // repo-a initial fetch: deferred. repo-b fetch: immediate empty (no failure).
+      vi.spyOn(workflows, 'getWorkflowRuns')
+        .mockReturnValueOnce(repoAPromise)
+        .mockResolvedValue(asResult([]))
+
+      const { rerender } = render(<TaskList {...BASE_PROPS} repo="repo-a" tasks={[TASK]} />)
+      expect(workflows.getWorkflowRuns).toHaveBeenCalledWith(
+        expect.objectContaining({ repo: 'repo-a', perPage: 1 }),
+      )
+
+      // Switch repo — TaskRow for repo-a unmounts while its fetch is still in-flight.
+      rerender(<TaskList {...BASE_PROPS} repo="repo-b" tasks={[TASK]} />)
+
+      // Wait for repo-b's fetch to resolve so the timing is deterministic.
+      await waitFor(() =>
+        expect(workflows.getWorkflowRuns).toHaveBeenCalledWith(
+          expect.objectContaining({ repo: 'repo-b', perPage: 1 }),
+        ),
+      )
+
+      // Resolve the stale repo-a fetch with a failed run — must not reach parent.
+      await act(async () => {
+        resolveRepoA(asResult([FAILED_RUN]))
+      })
+
+      // No failure banner: stale callback must have been suppressed by the cleanup flag.
+      expect(screen.queryByText(/tasks failed last run/i)).not.toBeInTheDocument()
+    })
+
     it('clears stale lastRun badge immediately on repo switch when slug is shared across repos', async () => {
       const FAILED_RUN: WorkflowRun = {
         id: 1,

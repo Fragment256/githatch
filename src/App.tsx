@@ -533,6 +533,7 @@ export default function App() {
             )}
             <ErrorBoundary>
               <TaskForm
+                key={editingTask?.slug ?? 'edit'}
                 onSubmit={handleEditFormSubmit}
                 loading={saving}
                 initialConfig={editingConfig}
