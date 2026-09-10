@@ -77,6 +77,26 @@ describe('useRepo — localStorage', () => {
     expect(result.current.activeRepo).toBeNull()
   })
 
+  it('clears stored activeRepo when it is no longer accessible after repos load', async () => {
+    localStorage.setItem('active_repo', JSON.stringify(REPO))
+    // repos list does NOT include REPO (e.g. permission revoked)
+    mockListPushableRepos.mockResolvedValue([])
+    const { result } = renderHook(() => useRepo('gho_test'), { wrapper: createWrapper() })
+    // Initially restored from localStorage
+    expect(result.current.activeRepo?.full_name).toBe('testuser/my-repo')
+    // After repos query resolves with empty list, activeRepo should be cleared
+    await waitFor(() => expect(result.current.activeRepo).toBeNull())
+    expect(localStorage.getItem('active_repo')).toBeNull()
+  })
+
+  it('keeps activeRepo when it is still accessible after repos load', async () => {
+    localStorage.setItem('active_repo', JSON.stringify(REPO))
+    mockListPushableRepos.mockResolvedValue([REPO])
+    const { result } = renderHook(() => useRepo('gho_test'), { wrapper: createWrapper() })
+    await waitFor(() => expect(result.current.reposLoading).toBe(false))
+    expect(result.current.activeRepo?.full_name).toBe('testuser/my-repo')
+  })
+
   it('clears activeRepo and localStorage when token transitions to null', async () => {
     localStorage.setItem('active_repo', JSON.stringify(REPO))
     const { result, rerender } = renderHook(({ token }) => useRepo(token), {

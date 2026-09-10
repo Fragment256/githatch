@@ -36,6 +36,12 @@ export function useRepo(token: string | null) {
     if (!token) setActiveRepo(null)
   }, [token])
 
+  useEffect(() => {
+    if (!reposQuery.data || !activeRepo) return
+    const accessible = reposQuery.data.some((r) => r.full_name === activeRepo.full_name)
+    if (!accessible) setActiveRepo(null)
+  }, [reposQuery.data])
+
   return {
     repos: reposQuery.data ?? [],
     reposLoading: reposQuery.isLoading,

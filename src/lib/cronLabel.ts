@@ -205,7 +205,10 @@ export function describeCron(expr: string): string {
   if (/^\d+-\d+$/.test(dow)) {
     const [a, b] = dow.split('-').map(Number)
     const dayNames: string[] = []
-    for (let d = a; d <= b; d++) dayNames.push(DAYS[d >= 7 ? 0 : d])
+    const dayEnd = Math.min(b, 6)
+    for (let d = a; d <= dayEnd; d++) dayNames.push(DAYS[d])
+    // b=7 is the Sunday alias; only append if Sunday (0) wasn't already the range start
+    if (b >= 7 && a !== 0) dayNames.push(DAYS[0])
     if (dayNames.length > 0) return `Every ${dayNames.join(', ')} at ${time} UTC`
   }
   if (/^\d+$/.test(dow)) return `Every ${DAYS[+dow % 7] ?? dow} at ${time} UTC`

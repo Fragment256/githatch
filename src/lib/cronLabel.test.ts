@@ -93,6 +93,14 @@ describe('describeCron', () => {
     )
     // 1-5 is the existing 'Weekdays' special case — must remain unchanged
     expect(describeCron('0 9 * * 1-5')).toBe('Weekdays at 9 AM UTC')
+    // 0-7: all days — Sunday alias 7 must not cause 'Sunday' to appear twice
+    expect(describeCron('0 8 * * 0-7')).toBe(
+      'Every Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday at 8 AM UTC',
+    )
+    // 1-7: Mon–Sun via Sunday alias
+    expect(describeCron('0 8 * * 1-7')).toBe(
+      'Every Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday at 8 AM UTC',
+    )
   })
 })
 
