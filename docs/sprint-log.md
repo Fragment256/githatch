@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-10 (sprint 151)
+
+- Action: Explore audit (day 3 of new cycle after sprint 148 bug-fixes)
+- Summary: Full baseline first: format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 543/543. 3 correctness bugs fixed via TDD. (1) MEDIUM: `handleTaskFormSubmit` in App.tsx called `addTask()` before `loadTasks()` — React 18 batch applied `setTasks([])` after the functional updater, overwriting the optimistic insert to `[]`; fix: swap order so `loadTasks()` fires first. (2) MEDIUM: `SecretsView.tsx` captured `configuringIsUpdate` via stale closure at click time; if status was still `'checking'`, `forceSetup=false` was passed to `TokenSetup` even for an existing secret, showing "already set" instead of the update form; fix: remove `configuringIsUpdate` state, derive `forceSetup={statuses[configuring]==='set'}` reactively so `TokenSetup`'s `useEffect` re-fires when status resolves. (3) MEDIUM: `handleEditFormSubmit` called `setView('tasks')` unconditionally after `await`, snapping the user back from About or another tab if they navigated away during an in-flight save; fix: capture `editLoadRequestId.current` at function start, guard view/editing-state mutations with `id===editLoadRequestId.current`. 3 regression tests (RED→GREEN). 547/547 passing. Dry streak resets to 0.
+- Rationale: Day 3 Explore audit per 3-day cycle. All 3 bugs are user-visible correctness failures: optimistic insert loss, blocked update flow, and unsolicited navigation override.
+- PR: commit `2270bca`, pushed to Fragment256/githatch main
+- ROADMAP updated: no
+
+---
+
 ## 2026-09-10 (sprint 150)
 
 - Action: baseline (day 2 of new cycle after sprint 148 Explore audit)
