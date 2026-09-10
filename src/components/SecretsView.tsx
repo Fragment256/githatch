@@ -51,6 +51,10 @@ export function SecretsView({ token, owner, repo, onDone }: Props) {
           setStatuses((s) => ({ ...s, [name]: 'error' }))
         })
     })
+    return () => {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      ++requestIdRef.current
+    }
   }, [token, owner, repo, refreshCount])
 
   if (configuring) {

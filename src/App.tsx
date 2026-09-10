@@ -81,6 +81,10 @@ export default function App() {
         if (id !== secretStatusRequestId.current) return
         setSecretStatus('unknown')
       })
+    return () => {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      ++secretStatusRequestId.current
+    }
   }, [token, owner, repo, secretStatusVersion])
 
   async function handleDuplicateTask(task: GithatchTask) {

@@ -40,6 +40,10 @@ function ToolCard({
         if (id !== requestIdRef.current) return
         setCheckError(err instanceof Error ? err.message : 'Failed to check install status')
       })
+    return () => {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      ++requestIdRef.current
+    }
   }, [token, owner, repo, tool.workflowFileName])
 
   const handleInstall = async () => {

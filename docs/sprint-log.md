@@ -4,6 +4,15 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-10 (sprint 196)
+
+- Action: Explore audit (day 3 of new cycle after sprint 194/195 baselines)
+- Summary: Full baseline: format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 562/562 ✓. Audited all source files. 3 bugs fixed — all missing `useEffect` cleanup guards (unmount setState race): MEDIUM `ToolsPanel.tsx` (ToolCard check-install effect), MEDIUM `SecretsView.tsx` (checkSecretExists effect), LOW `App.tsx` (listRepoSecrets effect). All three missing `return () => { ++requestIdRef.current }` cleanup — same pattern as sprint 190 batch. Added `// eslint-disable-next-line react-hooks/exhaustive-deps` inline comment consistent with ActivityPanel pattern. 562/562 passing.
+- PR: —
+- ROADMAP updated: no
+
+---
+
 ## 2026-09-10 (sprint 195)
 
 - Action: day 2 baseline (cycle after sprint 193 Explore audit)
