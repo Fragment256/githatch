@@ -545,6 +545,27 @@ describe('updateWorkflowSchedule', () => {
       }),
     ).rejects.toThrow()
   })
+
+  it('throws a descriptive error when GitHub returns null content for a file >1 MB', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve({ content: null, sha: 'abc' }),
+        }),
+    )
+    await expect(
+      updateWorkflowSchedule({
+        token: 'gho_test',
+        owner: 'u',
+        repo: 'r',
+        task,
+        schedule: '0 9 * * 1',
+      }),
+    ).rejects.toThrow(/too large/i)
+  })
 })
 
 describe('enableWorkflow', () => {

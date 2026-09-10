@@ -177,8 +177,9 @@ export async function updateWorkflowSchedule(params: {
 
   const getRes = await fetch(url, { headers })
   if (!getRes.ok) throw new Error(`Failed to fetch workflow: ${getRes.status}`)
-  const { content: encoded, sha } = (await getRes.json()) as { content: string; sha: string }
-
+  const { content: encoded, sha } = (await getRes.json()) as { content: string | null; sha: string }
+  if (!encoded)
+    throw new Error(`Workflow file ${task.path} is too large to fetch via Contents API (>1 MB)`)
   const binary = atob(encoded.replace(/\s/g, ''))
   const bytes = new Uint8Array(binary.length)
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
