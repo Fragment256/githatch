@@ -356,6 +356,96 @@ describe('App — view navigation', () => {
     expect(screen.getByRole('button', { name: /^tasks$/i })).toBeInTheDocument()
   })
 
+  it('cancels an in-flight edit fetch when the user clicks the Secrets button', async () => {
+    // Regression: Secrets button called setView('token-setup') without incrementing
+    // editLoadRequestId, so a slow fetch could snap the user back to the edit form.
+    const task: GithatchTask = {
+      slug: 'daily-digest',
+      displayName: 'Daily Digest',
+      schedule: '0 9 * * *',
+      workflowId: 1,
+      path: '.github/workflows/githatch-daily-digest.yml',
+      enabled: true,
+      outputDestination: { type: 'new_issue' },
+      prompt: 'Summarize.',
+    }
+    mockUseTasks.mockReturnValue({ ...defaultTasksState, tasks: [task] })
+
+    let resolveYaml: (yaml: string) => void = () => {}
+    vi.mocked(github.fetchFileContent).mockReturnValueOnce(
+      new Promise<string>((resolve) => {
+        resolveYaml = resolve
+      }),
+    )
+
+    render(<App />, { wrapper })
+
+    // Click Edit — slow fetch; toolbar still visible
+    const editBtn = await screen.findByRole('button', { name: /edit/i })
+    fireEvent.click(editBtn)
+
+    // Click Secrets while fetch is in flight
+    fireEvent.click(screen.getByRole('button', { name: /^secrets$/i }))
+    await waitFor(() => expect(screen.getByText('SecretsView')).toBeInTheDocument())
+
+    // Resolve the stale YAML fetch
+    await act(async () => {
+      resolveYaml(
+        'name: Daily Digest\non:\n  schedule:\n    - cron: "0 9 * * *"\n  workflow_dispatch:\njobs:\n  run:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: anthropics/claude-code-action@v1\n        with:\n          prompt: |\n            Summarize.\n',
+      )
+    })
+
+    // Must remain on SecretsView — edit form must NOT have appeared
+    expect(screen.getByText('SecretsView')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /save changes/i })).not.toBeInTheDocument()
+  })
+
+  it('cancels an in-flight edit fetch when the user clicks + New task', async () => {
+    // Regression: + New task button called setView('new-task') without incrementing
+    // editLoadRequestId, so a slow fetch could snap the user from new-task to edit-task.
+    const task: GithatchTask = {
+      slug: 'daily-digest',
+      displayName: 'Daily Digest',
+      schedule: '0 9 * * *',
+      workflowId: 1,
+      path: '.github/workflows/githatch-daily-digest.yml',
+      enabled: true,
+      outputDestination: { type: 'new_issue' },
+      prompt: 'Summarize.',
+    }
+    mockUseTasks.mockReturnValue({ ...defaultTasksState, tasks: [task] })
+
+    let resolveYaml: (yaml: string) => void = () => {}
+    vi.mocked(github.fetchFileContent).mockReturnValueOnce(
+      new Promise<string>((resolve) => {
+        resolveYaml = resolve
+      }),
+    )
+
+    render(<App />, { wrapper })
+
+    // Click Edit — slow fetch; toolbar still visible
+    const editBtn = await screen.findByRole('button', { name: /edit/i })
+    fireEvent.click(editBtn)
+
+    // Click + New task while fetch is in flight
+    fireEvent.click(screen.getByRole('button', { name: /\+ new task/i }))
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /create task/i })).toBeInTheDocument(),
+    )
+
+    // Resolve the stale YAML fetch
+    await act(async () => {
+      resolveYaml(
+        'name: Daily Digest\non:\n  schedule:\n    - cron: "0 9 * * *"\n  workflow_dispatch:\njobs:\n  run:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: anthropics/claude-code-action@v1\n        with:\n          prompt: |\n            Summarize.\n',
+      )
+    })
+
+    // Must remain on new-task form — stale edit must not have snapped user back
+    expect(screen.getByRole('button', { name: /create task/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /save changes/i })).not.toBeInTheDocument()
+  })
+
   it('ignores a stale secret-status response that resolves after the repo changes', async () => {
     let resolveStale: (names: string[]) => void = () => {}
     const stale = new Promise<string[]>((resolve) => {

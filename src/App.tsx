@@ -150,13 +150,13 @@ export default function App() {
         setEditingTask(null)
         setEditingConfig(null)
         setView('tasks')
+        loadTasks()
       }
-      loadTasks()
     } catch (err) {
       if (id === editLoadRequestId.current) {
         setSaveError(err instanceof Error ? err.message : 'Failed to save workflow')
+        loadTasks()
       }
-      loadTasks()
     } finally {
       setSaving(false)
     }
@@ -339,7 +339,10 @@ export default function App() {
               <div className="flex items-center justify-between gap-2">
                 <div className="flex gap-2">
                   <button
-                    onClick={() => setView('token-setup')}
+                    onClick={() => {
+                      ++editLoadRequestId.current
+                      setView('token-setup')
+                    }}
                     className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white"
                   >
                     Secrets
@@ -365,6 +368,7 @@ export default function App() {
                 {view === 'tasks' && (
                   <button
                     onClick={() => {
+                      ++editLoadRequestId.current
                       setSaveError(null)
                       setView('new-task')
                     }}
@@ -388,8 +392,12 @@ export default function App() {
                 repoName={activeRepo.name}
                 secretStatus={secretStatus}
                 hasTasks={tasks.length > 0}
-                onSetupToken={() => setView('token-setup')}
+                onSetupToken={() => {
+                  ++editLoadRequestId.current
+                  setView('token-setup')
+                }}
                 onNewTask={() => {
+                  ++editLoadRequestId.current
                   setSaveError(null)
                   setView('new-task')
                 }}
