@@ -2432,3 +2432,11 @@ No drift from sprint 179. No bugs found.
 **Explore audit:** Full review of all hooks, components, and lib files. Scope: stale closures, missing cleanup, error-path stuck states, state-after-unmount, logic bugs. No new correctness bugs found. Previous audits (sprint 154, 157, 166, 175, 178) have resolved all prior issues; codebase is clean.
 
 **Next sprint:** 182 (day 1 of new cycle after sprint 181 Explore audit).
+
+## Sprint 182 — 2026-09-10 (day 1 — new cycle baseline)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 559/559 ✓
+
+No drift from sprint 181. No bugs found.
+
+**Next sprint:** 183 (day 2 baseline).
