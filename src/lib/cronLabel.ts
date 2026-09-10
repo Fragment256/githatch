@@ -202,6 +202,12 @@ export function describeCron(expr: string): string {
   const time = formatTime(h, m)
 
   if (dow === '1-5') return `Weekdays at ${time} UTC`
+  if (/^\d+-\d+$/.test(dow)) {
+    const [a, b] = dow.split('-').map(Number)
+    const dayNames: string[] = []
+    for (let d = a; d <= b; d++) dayNames.push(DAYS[d >= 7 ? 0 : d])
+    if (dayNames.length > 0) return `Every ${dayNames.join(', ')} at ${time} UTC`
+  }
   if (/^\d+$/.test(dow)) return `Every ${DAYS[+dow % 7] ?? dow} at ${time} UTC`
   if (dow === '*') return `Daily at ${time} UTC`
   if (dow.includes(',')) {

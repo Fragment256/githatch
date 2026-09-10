@@ -79,6 +79,21 @@ describe('describeCron', () => {
     expect(describeCron('0-5 */2 * * *')).toBe('0-5 */2 * * *')
     expect(describeCron('0-3 */6 * * *')).toBe('0-3 */6 * * *')
   })
+
+  it('describes day-of-week range patterns beyond 1-5', () => {
+    // 1-3: Mon-Wed
+    expect(describeCron('0 8 * * 1-3')).toBe('Every Monday, Tuesday, Wednesday at 8 AM UTC')
+    // 0-4: Sun-Thu
+    expect(describeCron('0 8 * * 0-4')).toBe(
+      'Every Sunday, Monday, Tuesday, Wednesday, Thursday at 8 AM UTC',
+    )
+    // 2-6: Tue-Sat
+    expect(describeCron('0 9 * * 2-6')).toBe(
+      'Every Tuesday, Wednesday, Thursday, Friday, Saturday at 9 AM UTC',
+    )
+    // 1-5 is the existing 'Weekdays' special case — must remain unchanged
+    expect(describeCron('0 9 * * 1-5')).toBe('Weekdays at 9 AM UTC')
+  })
 })
 
 describe('nextCronRun', () => {
