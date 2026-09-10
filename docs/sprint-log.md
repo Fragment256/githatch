@@ -2337,3 +2337,17 @@ No drift from sprint 169. Unscoped Explore audit reserved for day 3 (sprint 172)
 
 No drift from sprint 170. Unscoped Explore audit reserved for day 3 (sprint 172).
 **Next sprint:** 172 (day 3 — Explore audit).
+
+## Sprint 172 — 2026-09-10 (day 3 — Explore audit)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 552/552 ✓
+
+**Explore audit:** All 30 source files reviewed (App.tsx, TaskList.tsx, ActivityPanel.tsx, AgentConfig.tsx, GettingStarted.tsx, SecretsView.tsx, TaskForm.tsx, TemplatePicker.tsx, ToolsPanel.tsx, TokenSetup.tsx, RepoPicker.tsx, ErrorBoundary.tsx, Landing.tsx, LoginButton.tsx, UserMenu.tsx, AboutPage.tsx, ConfirmDialog.tsx; useAuth.ts, useRepo.ts, useTasks.ts, useTheme.ts; auth.ts, config.ts, cronLabel.ts, github.ts, secrets.ts, templates.ts, tools.ts, utils.ts, workflows.ts, yamlGenerator.ts).
+
+**1 LOW bug fixed via TDD:**
+
+- LOW `cronLabel.ts` (`describeCron`): handled DOW `'1-5'` (Weekdays) as a special case but fell through to the raw expression for any other valid day range (e.g. `'1-3'`, `'0-4'`, `'2-6'`) — valid schedules showed raw cron text in the task list instead of a human-readable description. This was inconsistent with `nextCronRun`'s generic `/^\d+-\d+$/` range handling. Fix: add a general range branch that iterates from `a` to `b`, normalising DOW 7→0 (Sunday alias); `'1-5'` retains its 'Weekdays' special case. 1 regression test (RED→GREEN).
+
+**Tests:** 553/553 passing post-fix (+1 net).
+**Commit:** `762b376`
+**Next sprint:** 173 (day 1 baseline — new cycle after sprint 172 Explore audit).
