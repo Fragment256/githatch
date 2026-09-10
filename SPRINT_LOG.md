@@ -1,3 +1,9 @@
+## Sprint 155 — 2026-09-10 (day 1 of new cycle after sprint 154 bug-fix)
+
+**Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 547/547. No drift from sprint 154. Unscoped Explore audit reserved for day 3 (sprint 157).
+
+---
+
 ## Sprint 154 — 2026-09-10 (day 3 Explore audit — 1 bug fixed)
 
 **Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 547/547.
