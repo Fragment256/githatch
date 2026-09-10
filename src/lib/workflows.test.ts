@@ -549,12 +549,10 @@ describe('updateWorkflowSchedule', () => {
   it('throws a descriptive error when GitHub returns null content for a file >1 MB', async () => {
     vi.stubGlobal(
       'fetch',
-      vi
-        .fn()
-        .mockResolvedValueOnce({
-          ok: true,
-          json: () => Promise.resolve({ content: null, sha: 'abc' }),
-        }),
+      vi.fn().mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ content: null, sha: 'abc' }),
+      }),
     )
     await expect(
       updateWorkflowSchedule({

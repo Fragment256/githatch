@@ -4,6 +4,15 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-10 (sprint 194)
+
+- Action: day 1 baseline (new cycle after sprint 193 Explore audit)
+- Summary: Full baseline: format:check ✓ (fixed formatting drift in workflows.test.ts from sprint 193 test addition), lint 0 warnings, type-check clean, test 562/562. No functional drift.
+- PR: —
+- ROADMAP updated: no
+
+---
+
 ## 2026-09-10 (sprint 193)
 
 - Action: Explore audit (day 3 of new cycle after sprint 191/192 baselines)
