@@ -24,6 +24,7 @@ interface Props {
 
 export function SecretsView({ token, owner, repo, onDone }: Props) {
   const [configuring, setConfiguring] = useState<string | null>(null)
+  const [refreshCount, setRefreshCount] = useState(0)
   const [statuses, setStatuses] = useState<Record<string, Status>>({
     CLAUDE_CODE_OAUTH_TOKEN: 'checking',
     OPENAI_API_KEY: 'checking',
@@ -50,7 +51,7 @@ export function SecretsView({ token, owner, repo, onDone }: Props) {
           setStatuses((s) => ({ ...s, [name]: 'error' }))
         })
     })
-  }, [token, owner, repo])
+  }, [token, owner, repo, refreshCount])
 
   if (configuring) {
     return (
@@ -61,8 +62,7 @@ export function SecretsView({ token, owner, repo, onDone }: Props) {
         secretName={configuring}
         forceSetup={statuses[configuring] !== 'unset'}
         onDone={() => {
-          ++requestIdRef.current
-          setStatuses((s) => ({ ...s, [configuring]: 'set' }))
+          setRefreshCount((c) => c + 1)
           setConfiguring(null)
         }}
       />
