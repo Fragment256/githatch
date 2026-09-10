@@ -2289,6 +2289,13 @@ Resets to 0 (bug found and fixed this sprint). Next: sprint 137 baseline (day 1 
 **Tests:** 551/551 passing post-fix.
 **Next sprint:** 167 (day 1 baseline).
 
+## Sprint 167 — 2026-09-10 (day 1 of new cycle after sprint 166 Explore audit)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 551/551 ✓
+
+No drift from sprint 166. Unscoped Explore audit reserved for day 3 (sprint 169).
+**Next sprint:** 168 (day 2 baseline).
+
 ## 2026-09-10 (senior-engineer housekeeping run)
 
 - Action: nothing-actionable (feature/PR/issue/roadmap/spec) + automation-housekeeping fix
