@@ -4,6 +4,30 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-10 (sprint 149)
+
+- Action: baseline (day 1 of new cycle after sprint 148 Explore audit)
+- Summary: Full baseline: format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 543/543. No drift from sprint 148. Unscoped Explore audit reserved for day 3 (sprint 151).
+- Rationale: Day 1 of post-148 cycle. Baseline confirms no drift after sprint 148 fixes (SecretsView stale requestIdRef on onDone, App editLoadRequestId invalidation on navigation, App new-task Back button disabled during save). Explore audit reserved per 3-day cycle precedent.
+- PR: —
+- ROADMAP updated: no
+
+---
+
+## 2026-09-10 (sprint 148)
+
+- Action: explore-audit (day 3 of new cycle)
+- Summary: Full baseline first: format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 543/543. 3 correctness bugs fixed via TDD.
+- Bugs fixed:
+  1. MEDIUM — SecretsView: `requestIdRef` not incremented in `onDone` callback; parallel `checkSecretExists` responses from background polls could overwrite freshly-set secret status immediately after TokenSetup completion. Fix: `++requestIdRef.current` in `onDone`.
+  2. MEDIUM — App: `editLoadRequestId` not incremented on header logo click, About button, or Tasks/Tools/Activity tab navigation; in-flight `fetchFileContent` from edit/duplicate could redirect user to edit view after they navigated away. Fix: increment in all four navigation handlers.
+  3. LOW — App: new-task Back button not disabled during save (edit-task path was disabled, new-task was not); clicking Back mid-save called `setSaveError(null)` before in-flight PUT error arrived. Fix: `disabled={saving}` on new-task Back button.
+- Tests: 543/543 (up from 540 after sprint 148 fixes, prior baseline 543/543 — tests were already passing; sprint 148 fix commit added 3 regression tests)
+- PR: direct push (bot self-approval not available)
+- ROADMAP updated: no
+
+---
+
 ## 2026-09-07 (sprint 126)
 
 - Action: baseline (day 2 of new cycle after sprint 124 bug-fixes)
