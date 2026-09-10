@@ -234,6 +234,7 @@ export default function App() {
             <button
               onClick={() => {
                 ++editLoadRequestId.current
+                setSaving(false)
                 setView('about')
               }}
               className="px-2 font-mono text-xs tracking-widest text-black/40 uppercase hover:text-black"

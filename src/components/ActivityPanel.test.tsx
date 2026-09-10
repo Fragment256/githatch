@@ -286,4 +286,60 @@ describe('ActivityPanel', () => {
     expect(label.textContent).toContain('1 ✗')
     expect(label.textContent).not.toContain('5 runs')
   })
+
+  it('shows task-run stat tiles immediately when workflow runs resolve, even if repo API is still loading', async () => {
+    // Regression: repoLoading was included in the guard for numeric stat tiles (Runs this week,
+    // Total runs) — causing them to show '…' until *repo* API calls finished, even though
+    // those tiles derive exclusively from taskActivity (workflow runs data).
+    const task = makeTask('task-a', 1)
+    const now = Date.now()
+
+    // Workflow runs resolve immediately
+    mockGetWorkflowRuns.mockResolvedValue({
+      runs: [
+        {
+          id: 1,
+          status: 'completed',
+          conclusion: 'success',
+          createdAt: new Date(now - 1 * 86400_000).toISOString(),
+          htmlUrl: '',
+        },
+        {
+          id: 2,
+          status: 'completed',
+          conclusion: 'success',
+          createdAt: new Date(now - 8 * 86400_000).toISOString(),
+          htmlUrl: '',
+        },
+      ],
+      totalCount: 2,
+    })
+
+    // Repo API calls never resolve (simulating slow network)
+    mockGetRecentCommits.mockReturnValue(new Promise<CommitSummary[]>(() => {}))
+    mockGetRecentPRs.mockReturnValue(new Promise(() => {}))
+    mockGetPRCounts.mockReturnValue(new Promise(() => {}))
+
+    render(<ActivityPanel tasks={[task]} token="t" owner="o" repo="r" defaultBranch="main" />)
+
+    // Once workflow runs load, "Runs this week" must show 1 (only run within 7d),
+    // not '…' caused by repoLoading still being true
+    await waitFor(() => {
+      const allStatValues = screen.getAllByText((_, el) => {
+        return el?.tagName === 'P' && el.classList.contains('text-2xl')
+      })
+      // [0] = Runs this week, [1] = Total runs — must be numbers, not '…'
+      expect(allStatValues[0].textContent).not.toBe('…')
+      expect(allStatValues[1].textContent).not.toBe('…')
+    })
+
+    const allStatValues = screen.getAllByText((_, el) => {
+      return el?.tagName === 'P' && el.classList.contains('text-2xl')
+    })
+    expect(allStatValues[0].textContent).toBe('1') // 1 run within last 7 days
+    expect(allStatValues[1].textContent).toBe('2') // 2 total runs
+    // PR tiles still show '…' (repo API still loading)
+    expect(allStatValues[2].textContent).toBe('…')
+    expect(allStatValues[3].textContent).toBe('…')
+  })
 })

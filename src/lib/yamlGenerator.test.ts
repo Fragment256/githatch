@@ -260,6 +260,23 @@ describe('parseOutputDestination', () => {
     expect(dest.type).toBe('file')
     if (dest.type === 'file') expect(dest.filePath).toBe('my report/file.md')
   })
+
+  it('falls back to new_issue when file annotation has no path= argument', () => {
+    // Manually edited YAML: type declared but path= is missing — silently returning
+    // filePath:'' would produce an invalid GitHub URL and broken shell git-add command.
+    const yaml = '# githatch:output_type=file\nname: test'
+    expect(parseOutputDestination(yaml)).toEqual({ type: 'new_issue' })
+  })
+
+  it('logs a console.warn when file annotation has no parseable path', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    try {
+      parseOutputDestination('# githatch:output_type=file\nname: test')
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('file'))
+    } finally {
+      warnSpy.mockRestore()
+    }
+  })
 })
 
 describe('parsePromptFromYaml', () => {

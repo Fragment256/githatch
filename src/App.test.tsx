@@ -922,4 +922,49 @@ describe('App — task form submission', () => {
     const commitBtn = screen.getByRole('button', { name: /commit to repo/i })
     expect(commitBtn).not.toBeDisabled()
   })
+
+  it('About button click during in-flight save does not permanently disable Back button on next form', async () => {
+    // Regression: About button incremented editLoadRequestId but not setSaving(false),
+    // so the finally guard in handleTaskFormSubmit/handleEditFormSubmit skipped the reset,
+    // leaving saving=true permanently. The AboutPage back (← Back) and onBack call
+    // setView('tasks') without resetting saving, so the bug is visible via that path.
+    // (The Githatch logo button explicitly calls setSaving(false) — that path already worked.)
+    mockUseTasks.mockReturnValue(defaultTasksState)
+    vi.mocked(github.upsertWorkflowFile).mockReturnValueOnce(new Promise<void>(() => {}))
+
+    render(<App />, { wrapper })
+
+    // Open new-task form, fill in required fields, reach the review/commit screen
+    fireEvent.click(screen.getAllByRole('button', { name: /\+ new task/i })[0])
+    fireEvent.change(screen.getByLabelText(/task name/i), { target: { value: 'Test Task' } })
+    fireEvent.change(screen.getByLabelText(/prompt/i), { target: { value: 'Do the thing.' } })
+    fireEvent.change(screen.getByPlaceholderText(/issue number/i), { target: { value: '1' } })
+    fireEvent.click(screen.getByRole('button', { name: /create task/i }))
+
+    // Wait for the commit button to appear (now on review step)
+    await waitFor(() => screen.getByRole('button', { name: /commit to repo/i }))
+
+    // Start an in-flight save (never resolves)
+    fireEvent.click(screen.getByRole('button', { name: /commit to repo/i }))
+    await waitFor(() => expect(screen.getByRole('button', { name: /committing/i })).toBeDisabled())
+
+    // Click About while save is in-flight — increments editLoadRequestId, skips setSaving(false)
+    fireEvent.click(screen.getByRole('button', { name: /about/i }))
+    await waitFor(() => expect(screen.getByRole('heading', { name: /why/i })).toBeInTheDocument())
+
+    // Navigate back to tasks via AboutPage's ← Back (does NOT call setSaving(false) directly)
+    // This is the path that exposes the stuck-saving bug
+    const backBtns = screen.getAllByRole('button', { name: /← back/i })
+    fireEvent.click(backBtns[0])
+    await waitFor(() =>
+      expect(screen.getAllByRole('button', { name: /\+ new task/i }).length).toBeGreaterThan(0),
+    )
+
+    // Open a fresh new-task form
+    fireEvent.click(screen.getAllByRole('button', { name: /\+ new task/i })[0])
+
+    // The Back button on the new form must NOT be stuck disabled
+    const formBackBtn = screen.getByRole('button', { name: /← back/i })
+    expect(formBackBtn).not.toBeDisabled()
+  })
 })

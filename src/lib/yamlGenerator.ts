@@ -103,6 +103,12 @@ export function parseOutputDestination(yaml: string): OutputDestination {
   }
   if (type === 'file') {
     const filePath = params?.match(/path=(.+)/)?.[1]?.trim() ?? ''
+    if (!filePath) {
+      console.warn(
+        'githatch: file output type found but path= could not be parsed; falling back to new_issue',
+      )
+      return { type: 'new_issue' }
+    }
     return { type: 'file', filePath }
   }
   if (type === 'pull_request') return { type: 'pull_request' }
