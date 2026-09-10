@@ -370,3 +370,16 @@ Resets to 0 (bug found and fixed this sprint). Next: sprint 137 baseline (day 1 
 ## Sprint 46 — 2026-09-06 (day 1 of dry streak)
 
 **Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 470/470. No drift. Unscoped Explore audit reserved for day 3.
+
+## Sprint 166 — 2026-09-10 (day 3: Explore audit)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 551/551 ✓
+
+**Explore audit findings (3 bugs fixed):**
+
+- MEDIUM `useAuth.ts`: OAuth code-exchange branch missing cancellation guard — `setState` called on unmounted component during rapid navigation mid-exchange. Fix: added `cancelled` flag + cleanup function, matching stored-token branch pattern. Commit `af475a7`.
+- MEDIUM `SecretsView.tsx`: `onDone` incremented `requestIdRef.current`, stranding in-flight `checkSecretExists` calls permanently at 'checking' (effect deps unchanged, no re-trigger). Fix: added `refreshCount` state as effect dep; incremented on `onDone` so effect re-runs and re-checks all secrets from scratch.
+- LOW `github.ts`: `fetchFileContent` destructured `content` without null guard; GitHub Contents API returns `null` for files >1 MB, causing `TypeError: null.replace(...)`. Fix: explicit null check with descriptive error message.
+
+**Tests:** 551/551 passing post-fix.
+**Next sprint:** 167 (day 1 baseline).
