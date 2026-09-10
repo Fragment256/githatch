@@ -12,6 +12,7 @@ const BASE_PROPS = {
 describe('GettingStarted', () => {
   beforeEach(() => {
     sessionStorage.clear()
+    localStorage.clear()
     vi.restoreAllMocks()
   })
 
@@ -54,15 +55,16 @@ describe('GettingStarted', () => {
     expect(screen.getByRole('button', { name: /dismiss/i })).toBeInTheDocument()
   })
 
-  it('dismiss hides success line and writes sessionStorage', () => {
+  it('dismiss hides success line and writes localStorage (not sessionStorage)', () => {
     render(<GettingStarted {...BASE_PROPS} secretStatus="present" hasTasks={true} />)
     fireEvent.click(screen.getByRole('button', { name: /dismiss/i }))
     expect(screen.queryByText(/you're set up/i)).not.toBeInTheDocument()
-    expect(sessionStorage.getItem('githatch:onboarding-dismissed:alice/my-repo')).toBe('true')
+    expect(localStorage.getItem('githatch:onboarding-dismissed:alice/my-repo')).toBe('true')
+    expect(sessionStorage.getItem('githatch:onboarding-dismissed:alice/my-repo')).toBeNull()
   })
 
-  it('renders nothing when all done and already dismissed', () => {
-    sessionStorage.setItem('githatch:onboarding-dismissed:alice/my-repo', 'true')
+  it('renders nothing when all done and already dismissed (reads localStorage)', () => {
+    localStorage.setItem('githatch:onboarding-dismissed:alice/my-repo', 'true')
     const { container } = render(
       <GettingStarted {...BASE_PROPS} secretStatus="present" hasTasks={true} />,
     )
@@ -70,13 +72,13 @@ describe('GettingStarted', () => {
   })
 
   it('checklist still shows despite dismiss flag when steps are not done', () => {
-    sessionStorage.setItem('githatch:onboarding-dismissed:alice/my-repo', 'true')
+    localStorage.setItem('githatch:onboarding-dismissed:alice/my-repo', 'true')
     render(<GettingStarted {...BASE_PROPS} secretStatus="absent" hasTasks={false} />)
     expect(screen.getByText(/getting started/i)).toBeInTheDocument()
   })
 
   it('dismiss is keyed per repo — undismissed repo shows success line', () => {
-    sessionStorage.setItem('githatch:onboarding-dismissed:alice/my-repo', 'true')
+    localStorage.setItem('githatch:onboarding-dismissed:alice/my-repo', 'true')
     render(
       <GettingStarted
         {...BASE_PROPS}
@@ -127,9 +129,10 @@ describe('GettingStarted', () => {
         hasTasks={true}
       />,
     )
-    // Dismiss for repo A
+    // Dismiss for repo A — stores key in localStorage
     fireEvent.click(screen.getByRole('button', { name: /dismiss/i }))
     expect(screen.queryByText(/you're set up/i)).not.toBeInTheDocument()
+    expect(localStorage.getItem('githatch:onboarding-dismissed:alice/repo-a')).toBe('true')
 
     // Switch to repo B (also fully set up, not dismissed)
     rerender(

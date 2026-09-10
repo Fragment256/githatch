@@ -287,6 +287,31 @@ describe('listGithatchTasks', () => {
     expect(tasks[0].slug).toBe('daily-standup')
   })
 
+  it('throws a descriptive error when GitHub returns null content for a file >1 MB', async () => {
+    // GitHub Contents API returns { content: null, encoding: 'none' } for files >1 MB.
+    // Without a null guard, atob(null.replace(...)) throws a TypeError — not a useful error.
+    const workflowsListResponse = [
+      { name: 'githatch-daily-standup.yml', path: '.github/workflows/githatch-daily-standup.yml' },
+    ]
+    const actionsWorkflows = {
+      workflows: [
+        { id: 10, path: '.github/workflows/githatch-daily-standup.yml', state: 'active' },
+      ],
+    }
+
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(workflowsListResponse) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(actionsWorkflows) })
+      // GitHub returns content: null for files >1 MB
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ content: null }) })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(
+      listGithatchTasks({ token: 'gho_test', owner: 'testuser', repo: 'my-repo' }),
+    ).rejects.toThrow(/too large/i)
+  })
+
   it('excludes githatch-tool-*.yml files from the task list', async () => {
     const workflowsListResponse = [
       { name: 'githatch-daily-standup.yml', path: '.github/workflows/githatch-daily-standup.yml' },

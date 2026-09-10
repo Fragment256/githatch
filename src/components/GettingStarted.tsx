@@ -22,17 +22,17 @@ export function GettingStarted({
   onNewTask,
 }: GettingStartedProps) {
   const [dismissed, setDismissed] = useState(
-    () => sessionStorage.getItem(dismissKey(repoFullName)) === 'true',
+    () => localStorage.getItem(dismissKey(repoFullName)) === 'true',
   )
 
   useEffect(() => {
-    setDismissed(sessionStorage.getItem(dismissKey(repoFullName)) === 'true')
+    setDismissed(localStorage.getItem(dismissKey(repoFullName)) === 'true')
   }, [repoFullName])
 
   const allDone = secretStatus === 'present' && hasTasks
 
   function dismiss() {
-    sessionStorage.setItem(dismissKey(repoFullName), 'true')
+    localStorage.setItem(dismissKey(repoFullName), 'true')
     setDismissed(true)
   }
 
