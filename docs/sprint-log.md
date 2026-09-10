@@ -2310,3 +2310,16 @@ No drift from sprint 166. Unscoped Explore audit reserved for day 3 (sprint 169)
 
 No drift from sprint 167. Unscoped Explore audit reserved for day 3 (sprint 169).
 **Next sprint:** 169 (day 3 — Explore audit).
+
+## Sprint 169 — 2026-09-10 (day 3: Explore audit)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 551/551 ✓
+
+**Explore audit findings (2 bugs fixed):**
+
+- MEDIUM `GettingStarted.tsx`: dismissed banner stored in `sessionStorage` — dismissal lost on new-tab open or browser restart because sessionStorage is per-tab. Fix: swap all 3 sessionStorage calls to localStorage, matching the sprint 154 useTheme.ts fix. 3 tests updated (RED→GREEN).
+- LOW `workflows.ts`: `listGithatchTasks` fetched file content without null guard — GitHub Contents API returns `{ content: null }` for files >1 MB, causing `TypeError: null.replace is not a function`. Fix: explicit null check with descriptive error message after content decode. 1 new regression test (RED→GREEN).
+
+**Tests:** 552/552 passing post-fix (+1 net).
+**Commit:** `4bbd852`
+**Next sprint:** 170 (day 1 baseline).
