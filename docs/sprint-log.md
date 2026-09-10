@@ -2440,3 +2440,11 @@ No drift from sprint 179. No bugs found.
 No drift from sprint 181. No bugs found.
 
 **Next sprint:** 183 (day 2 baseline).
+
+## Sprint 191 — 2026-09-10 (day 1 — new cycle baseline after sprint 190 Explore audit)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 561/561 ✓
+
+No drift from sprint 190. Sprint 190 fixed 4 bugs (missing `useEffect` cleanup guards in `ActivityPanel.tsx` ×2, `TaskList.tsx`, `TokenSetup.tsx`). Sprint 191 starts a new cycle.
+
+**Next sprint:** 192 (day 2 baseline).
