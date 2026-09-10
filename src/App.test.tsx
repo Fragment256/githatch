@@ -882,4 +882,44 @@ describe('App — task form submission', () => {
     expect(screen.getByRole('heading', { name: /why/i })).toBeInTheDocument()
     expect(screen.queryAllByRole('button', { name: /\+ new task/i }).length).toBe(0)
   })
+
+  it('clicking Githatch logo during an in-flight save resets saving so the next form is not stuck loading', async () => {
+    // Regression: setSaving(false) in finally blocks had no ID guard and the logo onClick
+    // did not call setSaving(false). If the user navigated away mid-save and opened a new
+    // form, the "Commit to repo" button showed as "Committing…" (disabled) immediately on
+    // render — before they even clicked anything.
+    render(<App />, { wrapper })
+
+    // Navigate to new-task, fill out form, advance to preview
+    fireEvent.click(screen.getAllByRole('button', { name: /\+ new task/i })[0])
+    fireEvent.change(screen.getByLabelText(/task name/i), { target: { value: 'My Task' } })
+    fireEvent.change(screen.getByLabelText(/prompt/i), { target: { value: 'Do the thing.' } })
+    fireEvent.change(screen.getByPlaceholderText(/issue number/i), { target: { value: '1' } })
+    fireEvent.click(screen.getByRole('button', { name: /create task/i }))
+    await waitFor(() => screen.getByRole('button', { name: /commit to repo/i }))
+
+    // Start a commit that never resolves
+    vi.mocked(github.upsertWorkflowFile).mockReturnValueOnce(new Promise<void>(() => {}))
+    fireEvent.click(screen.getByRole('button', { name: /commit to repo/i }))
+    // Button now shows "Committing…" while save is in flight
+    await waitFor(() => expect(screen.getByRole('button', { name: /committing/i })).toBeDisabled())
+
+    // User clicks the Githatch logo — navigates away
+    fireEvent.click(screen.getByRole('button', { name: /githatch/i }))
+    await waitFor(() =>
+      expect(screen.getAllByRole('button', { name: /\+ new task/i }).length).toBeGreaterThan(0),
+    )
+
+    // Open a brand new task form — the commit button must NOT be stuck loading
+    fireEvent.click(screen.getAllByRole('button', { name: /\+ new task/i })[0])
+    fireEvent.change(screen.getByLabelText(/task name/i), { target: { value: 'Another Task' } })
+    fireEvent.change(screen.getByLabelText(/prompt/i), { target: { value: 'Do that thing.' } })
+    fireEvent.change(screen.getByPlaceholderText(/issue number/i), { target: { value: '2' } })
+    fireEvent.click(screen.getByRole('button', { name: /create task/i }))
+    await waitFor(() => screen.getByRole('button', { name: /commit to repo/i }))
+
+    // Commit button must be enabled and show "Commit to repo" (not "Committing…")
+    const commitBtn = screen.getByRole('button', { name: /commit to repo/i })
+    expect(commitBtn).not.toBeDisabled()
+  })
 })

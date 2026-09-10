@@ -2367,3 +2367,20 @@ No drift from sprint 173. Unscoped Explore audit reserved for day 3 (sprint 175)
 **Tests:** 553/553 passing post-fix (+1 net).
 **Commit:** `762b376`
 **Next sprint:** 173 (day 1 baseline — new cycle after sprint 172 Explore audit).
+
+## Sprint 175 — 2026-09-10 (day 3 — Explore audit)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 553/553 ✓
+
+**Explore audit:** All 30 source files reviewed. 3 bugs fixed via TDD (RED→GREEN):
+
+1. MEDIUM `useRepo.ts`: active-repo preference stored in `sessionStorage` — lost on browser restart, unlike theme (localStorage). Fix: swap all 3 `sessionStorage` calls to `localStorage`. 6 tests updated (RED→GREEN).
+
+2. MEDIUM `App.tsx`: `setSaving(false)` in `handleEditFormSubmit` and `handleTaskFormSubmit` finally blocks had no request-ID guard. Githatch logo onClick did not call `setSaving(false)`. Scenario: user submits form → clicks logo mid-save → opens new form → stale finally clears the new form's saving state, button flips from "Committing…" back to "Commit to repo" while save is still in-flight (potential double-submit). Fix: add `setSaving(false)` to logo onClick; guard both finally `setSaving(false)` calls with `if (id === editLoadRequestId.current)`. 1 regression test (RED→GREEN).
+
+3. LOW `yamlGenerator.ts`: `parseOutputDestination` silently fell back to `{ type: 'new_issue' }` when an `issue_comment` annotation had a missing or malformed `issue=#N` suffix — no indication in the console. UI showed wrong output destination and "View output" button fetched from the wrong place. Fix: add `console.warn` before the fallback. 1 regression test (RED→GREEN).
+
+**Note:** Bug 3 reported by Explore audit (`TaskList.tsx` prevRunIdRef race) was already handled by a prior fix — existing test confirms correct behavior; no change needed.
+
+**Tests:** 555/555 passing post-fix (+2 net).
+**Next sprint:** 176 (day 1 of new cycle after sprint 175 Explore audit).

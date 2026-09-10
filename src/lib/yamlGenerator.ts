@@ -93,7 +93,12 @@ export function parseOutputDestination(yaml: string): OutputDestination {
   const [, type, params] = match
   if (type === 'issue_comment') {
     const n = parseInt(params?.match(/issue=#(\d+)/)?.[1] ?? '0', 10)
-    if (!n) return { type: 'new_issue' }
+    if (!n) {
+      console.warn(
+        'githatch: issue_comment output type found but issue=#N could not be parsed; falling back to new_issue',
+      )
+      return { type: 'new_issue' }
+    }
     return { type: 'issue_comment', issueNumber: n }
   }
   if (type === 'file') {

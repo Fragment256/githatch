@@ -29,15 +29,15 @@ function createWrapper() {
   return Wrapper
 }
 
-describe('useRepo — sessionStorage', () => {
+describe('useRepo — localStorage', () => {
   beforeEach(() => {
-    sessionStorage.clear()
+    localStorage.clear()
     vi.restoreAllMocks()
     mockListPushableRepos.mockResolvedValue([])
   })
 
   afterEach(() => {
-    sessionStorage.clear()
+    localStorage.clear()
   })
 
   it('returns null activeRepo when nothing stored', () => {
@@ -45,40 +45,40 @@ describe('useRepo — sessionStorage', () => {
     expect(result.current.activeRepo).toBeNull()
   })
 
-  it('restores activeRepo from sessionStorage', () => {
-    sessionStorage.setItem('active_repo', JSON.stringify(REPO))
+  it('restores activeRepo from localStorage', () => {
+    localStorage.setItem('active_repo', JSON.stringify(REPO))
     const { result } = renderHook(() => useRepo('gho_test'), { wrapper: createWrapper() })
     expect(result.current.activeRepo?.full_name).toBe('testuser/my-repo')
   })
 
-  it('handles corrupted sessionStorage gracefully', () => {
-    sessionStorage.setItem('active_repo', 'not-json{')
+  it('handles corrupted localStorage gracefully', () => {
+    localStorage.setItem('active_repo', 'not-json{')
     const { result } = renderHook(() => useRepo('gho_test'), { wrapper: createWrapper() })
     expect(result.current.activeRepo).toBeNull()
   })
 
-  it('setActiveRepo persists to sessionStorage', () => {
+  it('setActiveRepo persists to localStorage', () => {
     const { result } = renderHook(() => useRepo('gho_test'), { wrapper: createWrapper() })
     act(() => {
       result.current.setActiveRepo(REPO)
     })
-    const stored = JSON.parse(sessionStorage.getItem('active_repo')!) as github.GitHubRepo
+    const stored = JSON.parse(localStorage.getItem('active_repo')!) as github.GitHubRepo
     expect(stored.full_name).toBe('testuser/my-repo')
     expect(result.current.activeRepo?.full_name).toBe('testuser/my-repo')
   })
 
-  it('setActiveRepo(null) removes from sessionStorage', () => {
-    sessionStorage.setItem('active_repo', JSON.stringify(REPO))
+  it('setActiveRepo(null) removes from localStorage', () => {
+    localStorage.setItem('active_repo', JSON.stringify(REPO))
     const { result } = renderHook(() => useRepo('gho_test'), { wrapper: createWrapper() })
     act(() => {
       result.current.setActiveRepo(null)
     })
-    expect(sessionStorage.getItem('active_repo')).toBeNull()
+    expect(localStorage.getItem('active_repo')).toBeNull()
     expect(result.current.activeRepo).toBeNull()
   })
 
-  it('clears activeRepo and sessionStorage when token transitions to null', async () => {
-    sessionStorage.setItem('active_repo', JSON.stringify(REPO))
+  it('clears activeRepo and localStorage when token transitions to null', async () => {
+    localStorage.setItem('active_repo', JSON.stringify(REPO))
     const { result, rerender } = renderHook(({ token }) => useRepo(token), {
       wrapper: createWrapper(),
       initialProps: { token: 'gho_test' as string | null },
@@ -86,18 +86,18 @@ describe('useRepo — sessionStorage', () => {
     expect(result.current.activeRepo?.full_name).toBe('testuser/my-repo')
     rerender({ token: null })
     await waitFor(() => expect(result.current.activeRepo).toBeNull())
-    expect(sessionStorage.getItem('active_repo')).toBeNull()
+    expect(localStorage.getItem('active_repo')).toBeNull()
   })
 })
 
 describe('useRepo — repos query', () => {
   beforeEach(() => {
-    sessionStorage.clear()
+    localStorage.clear()
     vi.restoreAllMocks()
   })
 
   afterEach(() => {
-    sessionStorage.clear()
+    localStorage.clear()
   })
 
   it('returns repos when query resolves', async () => {

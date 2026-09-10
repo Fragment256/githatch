@@ -244,6 +244,16 @@ describe('parseOutputDestination', () => {
     expect(parseOutputDestination(yaml)).toEqual({ type: 'new_issue' })
   })
 
+  it('logs a console.warn when issue_comment annotation has no parseable issue number', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    try {
+      parseOutputDestination('# githatch:output_type=issue_comment\nname: test')
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('issue_comment'))
+    } finally {
+      warnSpy.mockRestore()
+    }
+  })
+
   it('parses file paths containing spaces', () => {
     const yaml = '# githatch:output_type=file path=my report/file.md\nname: test'
     const dest = parseOutputDestination(yaml)

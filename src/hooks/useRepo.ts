@@ -6,7 +6,7 @@ const STORAGE_KEY = 'active_repo'
 
 function loadStoredRepo(): GitHubRepo | null {
   try {
-    const raw = sessionStorage.getItem(STORAGE_KEY)
+    const raw = localStorage.getItem(STORAGE_KEY)
     return raw ? (JSON.parse(raw) as GitHubRepo) : null
   } catch {
     return null
@@ -26,9 +26,9 @@ export function useRepo(token: string | null) {
   const setActiveRepo = (repo: GitHubRepo | null) => {
     setActiveRepoState(repo)
     if (repo) {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(repo))
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(repo))
     } else {
-      sessionStorage.removeItem(STORAGE_KEY)
+      localStorage.removeItem(STORAGE_KEY)
     }
   }
 

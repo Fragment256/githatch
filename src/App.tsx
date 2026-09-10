@@ -158,7 +158,7 @@ export default function App() {
         loadTasks()
       }
     } finally {
-      setSaving(false)
+      if (id === editLoadRequestId.current) setSaving(false)
     }
   }
 
@@ -193,7 +193,7 @@ export default function App() {
         setSaveError(err instanceof Error ? err.message : 'Failed to save workflow')
       }
     } finally {
-      setSaving(false)
+      if (id === editLoadRequestId.current) setSaving(false)
     }
   }
 
@@ -210,6 +210,7 @@ export default function App() {
                 setDuplicatingConfig(null)
                 setSelectedTemplate(null)
                 setSaveError(null)
+                setSaving(false)
                 setView('tasks')
               }}
               className="font-display shrink-0 text-xl font-black tracking-tighter"
