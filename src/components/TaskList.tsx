@@ -151,6 +151,12 @@ function RunHistoryPanel({
   const outputRequestId = useRef(0)
   const fetchRunsRequestId = useRef(0)
 
+  useEffect(() => {
+    return () => {
+      ++outputRequestId.current
+    }
+  }, [])
+
   const fetchRuns = useCallback(() => {
     if (!task.workflowId) return
     const id = ++fetchRunsRequestId.current
@@ -334,6 +340,7 @@ function TaskRow({
   const fetchLastRunRequestId = useRef(0)
   const outputFetchRequestId = useRef(0)
   const triggeredTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isMountedRef = useRef(true)
   const outputDestRef = useRef(task.outputDestination)
   outputDestRef.current = task.outputDestination
   const onLastRunChangeRef = useRef(onLastRunChange)
@@ -341,6 +348,7 @@ function TaskRow({
 
   useEffect(() => {
     return () => {
+      isMountedRef.current = false
       if (triggeredTimerRef.current !== null) clearTimeout(triggeredTimerRef.current)
     }
   }, [])
@@ -450,14 +458,16 @@ function TaskRow({
     try {
       prevRunIdRef.current = lastRun?.id ?? null
       await triggerWorkflow({ token, owner, repo, workflowId: task.workflowId, defaultBranch })
+      if (!isMountedRef.current) return
       setTriggered(true)
       setPolling(true)
       if (triggeredTimerRef.current !== null) clearTimeout(triggeredTimerRef.current)
       triggeredTimerRef.current = setTimeout(() => setTriggered(false), 3000)
     } catch (err) {
-      setTriggerError(err instanceof Error ? err.message : 'Failed to trigger')
+      if (isMountedRef.current)
+        setTriggerError(err instanceof Error ? err.message : 'Failed to trigger')
     } finally {
-      setTriggering(false)
+      if (isMountedRef.current) setTriggering(false)
     }
   }
 
@@ -468,15 +478,16 @@ function TaskRow({
     try {
       if (enabled) {
         await disableWorkflow({ token, owner, repo, workflowId: task.workflowId, defaultBranch })
-        setEnabled(false)
+        if (isMountedRef.current) setEnabled(false)
       } else {
         await enableWorkflow({ token, owner, repo, workflowId: task.workflowId, defaultBranch })
-        setEnabled(true)
+        if (isMountedRef.current) setEnabled(true)
       }
     } catch (err) {
-      setToggleError(err instanceof Error ? err.message : 'Failed to update workflow state')
+      if (isMountedRef.current)
+        setToggleError(err instanceof Error ? err.message : 'Failed to update workflow state')
     } finally {
-      setToggling(false)
+      if (isMountedRef.current) setToggling(false)
     }
   }
 
@@ -487,10 +498,13 @@ function TaskRow({
       await deleteWorkflowFile({ token, owner, repo, path: task.path })
       onRefresh()
     } catch (err) {
-      setDeleteError(err instanceof Error ? err.message : 'Failed to delete')
+      if (isMountedRef.current)
+        setDeleteError(err instanceof Error ? err.message : 'Failed to delete')
     } finally {
-      setDeleting(false)
-      setConfirmDelete(false)
+      if (isMountedRef.current) {
+        setDeleting(false)
+        setConfirmDelete(false)
+      }
     }
   }
 
