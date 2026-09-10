@@ -369,6 +369,7 @@ function TaskRow({
       if (polling && !task.workflowId) setPolling(false)
       return
     }
+    let cancelled = false
     const startedAt = Date.now()
     const POLL_INTERVAL = 8_000
     const MAX_DURATION = 5 * 60_000
@@ -385,6 +386,7 @@ function TaskRow({
       }
       void getWorkflowRuns({ token, owner, repo, workflowId, defaultBranch, perPage: 1 })
         .then(({ runs }) => {
+          if (cancelled) return
           setTriggerError(null)
           const run = runs[0]
           if (!run || run.id === prevRunIdRef.current) return
@@ -425,10 +427,14 @@ function TaskRow({
           }
         })
         .catch((err: unknown) => {
+          if (cancelled) return
           setTriggerError(err instanceof Error ? err.message : 'Failed to poll workflow runs')
         })
     }, POLL_INTERVAL)
-    return () => clearInterval(id)
+    return () => {
+      cancelled = true
+      clearInterval(id)
+    }
   }, [polling, task.workflowId, task.slug, token, owner, repo, defaultBranch])
 
   const handleTrigger = async () => {

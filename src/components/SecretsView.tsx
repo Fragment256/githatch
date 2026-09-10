@@ -59,7 +59,7 @@ export function SecretsView({ token, owner, repo, onDone }: Props) {
         owner={owner}
         repo={repo}
         secretName={configuring}
-        forceSetup={statuses[configuring] === 'set'}
+        forceSetup={statuses[configuring] !== 'unset'}
         onDone={() => {
           ++requestIdRef.current
           setStatuses((s) => ({ ...s, [configuring]: 'set' }))

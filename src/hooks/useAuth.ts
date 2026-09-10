@@ -83,10 +83,14 @@ export function useAuth() {
 
     const stored = getStoredToken()
     if (stored) {
+      let cancelled = false
       setState((s) => ({ ...s, loading: true }))
       getAuthenticatedUser(stored)
-        .then((user) => setState({ token: stored, user, loading: false, error: null }))
+        .then((user) => {
+          if (!cancelled) setState({ token: stored, user, loading: false, error: null })
+        })
         .catch((err: unknown) => {
+          if (cancelled) return
           const message = err instanceof Error ? err.message : ''
           if (message.includes('401')) {
             clearToken()
@@ -100,6 +104,9 @@ export function useAuth() {
             })
           }
         })
+      return () => {
+        cancelled = true
+      }
     }
   }, [])
 

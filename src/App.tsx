@@ -164,29 +164,34 @@ export default function App() {
 
   async function handleTaskFormSubmit(yaml: string, _slug: string, config: TaskConfig) {
     if (!token || !activeRepo) return
+    const id = editLoadRequestId.current
     setSaving(true)
     setSaveError(null)
     const slug = slugify(config.name)
     try {
       await upsertWorkflowFile({ token, owner, repo, slug, yaml })
-      setDuplicatingConfig(null)
-      setSelectedTemplate(null)
-      setView('tasks')
-      // load() before addTask() so React 18 batching applies setTasks([]) first;
-      // addTask's functional updater then receives [] as prev → [newTask] persists.
-      loadTasks()
-      addTask({
-        slug,
-        displayName: config.name,
-        schedule: config.schedule ?? '',
-        workflowId: undefined,
-        path: `.github/workflows/githatch-${slug}.yml`,
-        enabled: true,
-        outputDestination: config.outputDestination,
-        prompt: config.prompt,
-      })
+      if (id === editLoadRequestId.current) {
+        setDuplicatingConfig(null)
+        setSelectedTemplate(null)
+        setView('tasks')
+        // load() before addTask() so React 18 batching applies setTasks([]) first;
+        // addTask's functional updater then receives [] as prev → [newTask] persists.
+        loadTasks()
+        addTask({
+          slug,
+          displayName: config.name,
+          schedule: config.schedule ?? '',
+          workflowId: undefined,
+          path: `.github/workflows/githatch-${slug}.yml`,
+          enabled: true,
+          outputDestination: config.outputDestination,
+          prompt: config.prompt,
+        })
+      }
     } catch (err) {
-      setSaveError(err instanceof Error ? err.message : 'Failed to save workflow')
+      if (id === editLoadRequestId.current) {
+        setSaveError(err instanceof Error ? err.message : 'Failed to save workflow')
+      }
     } finally {
       setSaving(false)
     }
@@ -204,6 +209,7 @@ export default function App() {
                 ++editLoadRequestId.current
                 setDuplicatingConfig(null)
                 setSelectedTemplate(null)
+                setSaveError(null)
                 setView('tasks')
               }}
               className="font-display shrink-0 text-xl font-black tracking-tighter"
