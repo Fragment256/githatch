@@ -2502,3 +2502,11 @@ No drift from sprint 181. No bugs found.
 No drift from sprint 190. Sprint 190 fixed 4 bugs (missing `useEffect` cleanup guards in `ActivityPanel.tsx` ×2, `TaskList.tsx`, `TokenSetup.tsx`). Sprint 191 starts a new cycle.
 
 **Next sprint:** 192 (day 2 baseline).
+
+## Sprint 199 — 2026-09-10 (day 3 — Explore audit)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 562/562 ✓
+
+**Explore audit:** Full review of all hooks, components, and lib files. Scope: stale closures, missing cleanup, error-path stuck states, state-after-unmount, logic bugs. One candidate identified (polling `fetchRunOutput` callbacks not checking `cancelled`), but the fix broke the normal polling flow (cleanup runs when `polling` → `false`, same tick as output fetch). In React 18 this is a non-issue (setState on unmounted component is a silent no-op). No code changes warranted. Codebase clean.
+
+**Next sprint:** 200 (day 1 of new cycle).
