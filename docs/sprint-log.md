@@ -2524,3 +2524,32 @@ No drift from sprint 190. Sprint 190 fixed 4 bugs (missing `useEffect` cleanup g
 No drift from sprint 199. No bugs found.
 
 **Next sprint:** 201 (day 2 baseline).
+
+## Sprint 201 — 2026-09-10 (day 2 — baseline)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 562/562 ✓
+
+No drift from sprint 200. No bugs found.
+
+**Next sprint:** 202 (day 3 — Explore audit due).
+
+## Sprint 202 — 2026-09-10 (day 3 — Explore audit)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 562/562 ✓
+
+**Explore audit:** 4 bugs fixed in `TaskList.tsx`:
+
+1. MEDIUM `RunHistoryPanel`: `outputRequestId.current` incremented in cleanup without capturing ref — stale ref. Fix: capture `const reqId = outputRequestId` inside effect.
+2. LOW `TaskRow`: missing mount guard in `handleTrigger` — stale `setTimeout` could call `setSaving` after unmount. Fix: `isMountedRef` guard.
+3. LOW `TaskRow`: missing guard in `handleToggle` — stale state update after unmount. Fix: `isMountedRef` guard.
+4. LOW `TaskRow`: missing guard in `handleDelete` — stale state update after unmount. Fix: `isMountedRef` guard.
+
+**Next sprint:** 203 (day 1 of new cycle).
+
+## Sprint 203 — 2026-09-10 (day 1 — new cycle baseline + bug fix)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 562/562 ✓
+
+**Bug fixed:** LOW `TaskList.tsx` (RunHistoryPanel): `outputRequestId.current` used directly in `useEffect` cleanup triggered lint warning `react-hooks/exhaustive-deps`. Fix: capture `const reqId = outputRequestId` inside effect and use `reqId.current` in cleanup. (Introduced by sprint 202 fix; resolved this sprint.)
+
+**Next sprint:** 204 (day 2 baseline).

@@ -152,8 +152,9 @@ function RunHistoryPanel({
   const fetchRunsRequestId = useRef(0)
 
   useEffect(() => {
+    const reqId = outputRequestId
     return () => {
-      ++outputRequestId.current
+      ++reqId.current
     }
   }, [])
 
