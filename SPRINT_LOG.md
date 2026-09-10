@@ -1,3 +1,19 @@
+## Sprint 154 — 2026-09-10 (day 3 Explore audit — 1 bug fixed)
+
+**Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 547/547.
+**Bugs found:** 1 fixed.
+**Tests after:** 547/547 (6 tests updated, no count change)
+
+### Fix
+
+**1. LOW — `useTheme.ts`: theme preference used `sessionStorage` instead of `localStorage`**
+
+- Symptom: User sets dark mode, opens a new tab → light mode again. Preference also lost on browser restart. `sessionStorage` is per-tab by spec; `localStorage` persists across tabs and sessions.
+- Fix: Replace `sessionStorage.getItem`/`setItem` in `useTheme.ts` with `localStorage`. Update 6 tests to assert `localStorage` instead of `sessionStorage` (RED→GREEN).
+- Commit: `53d2049`
+
+---
+
 ## Sprint 153 — 2026-09-10 (day 2 of cycle)
 
 **Baseline:** format:check clean, lint 0 warnings (--max-warnings=0), type-check clean, test 547/547. No drift from sprint 152. Unscoped Explore audit reserved for day 3 (sprint 154).
