@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-10 (sprint 161)
+
+- Action: baseline (day 1 of new cycle after sprint 160 Explore audit)
+- Summary: Full baseline: format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 549/549. No drift from sprint 160. Unscoped Explore audit reserved for day 3 (sprint 163).
+- Rationale: Day 1 of post-160 cycle. Baseline confirms no drift after sprint 160 fixes (App.tsx logo saveError, handleTaskFormSubmit nav guard, TaskList polling error cancel, useAuth Strict Mode cleanup, SecretsView forceSetup). Explore audit reserved per 3-day cycle precedent.
+- PR: —
+- ROADMAP updated: no
+
+---
+
 ## 2026-09-10 (sprint 159)
 
 - Action: baseline (day 2 of new cycle after sprint 157 Explore audit)
