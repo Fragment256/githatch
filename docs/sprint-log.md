@@ -4,6 +4,24 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-10 (sprint 198)
+
+- Action: day 2 baseline
+- Summary: Full baseline: format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 562/562 ✓. No drift from sprint 197.
+- PR: —
+- ROADMAP updated: no
+
+---
+
+## 2026-09-10 (sprint 197)
+
+- Action: day 1 baseline (new cycle after sprint 196 Explore audit); wrote security-audit-2026-08-06-incident.md
+- Summary: Full baseline: format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 562/562 ✓. No drift from sprint 196. Added docs/security-audit-2026-08-06-incident.md documenting the 2026-08-06 incident timeline, impact assessment, and remediation status.
+- PR: —
+- ROADMAP updated: no
+
+---
+
 ## 2026-09-10 (sprint 196)
 
 - Action: Explore audit (day 3 of new cycle after sprint 194/195 baselines)
