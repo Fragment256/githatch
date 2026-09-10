@@ -2553,3 +2553,11 @@ No drift from sprint 200. No bugs found.
 **Bug fixed:** LOW `TaskList.tsx` (RunHistoryPanel): `outputRequestId.current` used directly in `useEffect` cleanup triggered lint warning `react-hooks/exhaustive-deps`. Fix: capture `const reqId = outputRequestId` inside effect and use `reqId.current` in cleanup. (Introduced by sprint 202 fix; resolved this sprint.)
 
 **Next sprint:** 204 (day 2 baseline).
+
+## Sprint 204 — 2026-09-10 (day 2 — baseline)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 562/562 ✓
+
+No drift from sprint 203. No bugs found.
+
+**Next sprint:** 205 (day 3 — Explore audit due).
