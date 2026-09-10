@@ -709,4 +709,87 @@ describe('App — task form submission', () => {
     // load must be called to replace the optimistic workflowId:undefined entry
     await waitFor(() => expect(mockLoad).toHaveBeenCalledOnce())
   })
+
+  it('calls loadTasks before addTask in handleTaskFormSubmit so React 18 batching preserves the optimistic insert', async () => {
+    // Regression: reversed order (addTask then load) causes setTasks([]) from load() to
+    // overwrite addTask's functional updater in the same React 18 batch → tasks=[].
+    // Correct order: load() first (setTasks([])), addTask() second (functional updater
+    // receives [] as prev → [newTask]).
+    vi.mocked(github.upsertWorkflowFile).mockResolvedValue(undefined)
+
+    render(<App />, { wrapper })
+    fireEvent.click(screen.getAllByRole('button', { name: /\+ new task/i })[0])
+    fireEvent.change(screen.getByLabelText(/task name/i), { target: { value: 'My Task' } })
+    fireEvent.change(screen.getByLabelText(/prompt/i), { target: { value: 'Do the thing.' } })
+    fireEvent.change(screen.getByPlaceholderText(/issue number/i), { target: { value: '1' } })
+    fireEvent.click(screen.getByRole('button', { name: /create task/i }))
+
+    // Set up call-order tracking right before commit so only submit-time calls are captured.
+    // The mount-effect load() already fired earlier and must not pollute the order check.
+    const callOrder: string[] = []
+    mockLoad.mockImplementation(() => {
+      callOrder.push('load')
+    })
+    mockAddTask.mockImplementation(() => {
+      callOrder.push('addTask')
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /commit to repo/i }))
+
+    await waitFor(() => expect(callOrder).toContain('load'))
+    await waitFor(() => expect(callOrder).toContain('addTask'))
+
+    expect(callOrder.indexOf('load')).toBeLessThan(callOrder.indexOf('addTask'))
+  })
+
+  it('completed edit-form save does not snap user back to tasks if they navigated away during the save', async () => {
+    // Regression: handleEditFormSubmit called setView('tasks') unconditionally after await.
+    // If the user clicked About (incrementing editLoadRequestId) while the save was in flight,
+    // the completed save snapped them back to the tasks view.
+    const task: GithatchTask = {
+      slug: 'daily-digest',
+      displayName: 'Daily Digest',
+      schedule: '0 9 * * *',
+      workflowId: 1,
+      path: '.github/workflows/githatch-daily-digest.yml',
+      enabled: true,
+      outputDestination: { type: 'new_issue' },
+      prompt: 'Summarize.',
+    }
+    mockUseTasks.mockReturnValue({ ...defaultTasksState, tasks: [task] })
+    vi.mocked(github.fetchFileContent).mockResolvedValue(
+      'name: Daily Digest\non:\n  schedule:\n    - cron: "0 9 * * *"\n  workflow_dispatch:\njobs:\n  run:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: anthropics/claude-code-action@v1\n        with:\n          prompt: |\n            Summarize.\n',
+    )
+
+    let resolveUpsert: () => void = () => {}
+    vi.mocked(github.upsertWorkflowFile).mockReturnValueOnce(
+      new Promise<void>((r) => {
+        resolveUpsert = r
+      }),
+    )
+
+    render(<App />, { wrapper })
+
+    const editBtn = await screen.findByRole('button', { name: /^edit$/i })
+    fireEvent.click(editBtn)
+    await waitFor(() => screen.getByRole('button', { name: /save changes/i }))
+    fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
+    await waitFor(() => screen.getByRole('button', { name: /commit to repo/i }))
+
+    // Start slow commit
+    fireEvent.click(screen.getByRole('button', { name: /commit to repo/i }))
+
+    // User navigates to About while save is in flight
+    fireEvent.click(screen.getByRole('button', { name: /about/i }))
+    expect(screen.getByRole('heading', { name: /why/i })).toBeInTheDocument()
+
+    // Save completes
+    await act(async () => {
+      resolveUpsert()
+    })
+
+    // Must stay on About — not snapped back to tasks view
+    expect(screen.getByRole('heading', { name: /why/i })).toBeInTheDocument()
+    expect(screen.queryAllByRole('button', { name: /\+ new task/i }).length).toBe(0)
+  })
 })

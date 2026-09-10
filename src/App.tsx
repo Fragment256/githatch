@@ -120,6 +120,7 @@ export default function App() {
 
   async function handleEditFormSubmit(yaml: string, newSlug: string) {
     if (!token || !activeRepo || !editingTask) return
+    const id = editLoadRequestId.current
     setSaving(true)
     setSaveError(null)
     try {
@@ -145,12 +146,16 @@ export default function App() {
           throw deleteErr
         }
       }
-      setEditingTask(null)
-      setEditingConfig(null)
-      setView('tasks')
+      if (id === editLoadRequestId.current) {
+        setEditingTask(null)
+        setEditingConfig(null)
+        setView('tasks')
+      }
       loadTasks()
     } catch (err) {
-      setSaveError(err instanceof Error ? err.message : 'Failed to save workflow')
+      if (id === editLoadRequestId.current) {
+        setSaveError(err instanceof Error ? err.message : 'Failed to save workflow')
+      }
       loadTasks()
     } finally {
       setSaving(false)
@@ -164,6 +169,12 @@ export default function App() {
     const slug = slugify(config.name)
     try {
       await upsertWorkflowFile({ token, owner, repo, slug, yaml })
+      setDuplicatingConfig(null)
+      setSelectedTemplate(null)
+      setView('tasks')
+      // load() before addTask() so React 18 batching applies setTasks([]) first;
+      // addTask's functional updater then receives [] as prev → [newTask] persists.
+      loadTasks()
       addTask({
         slug,
         displayName: config.name,
@@ -174,10 +185,6 @@ export default function App() {
         outputDestination: config.outputDestination,
         prompt: config.prompt,
       })
-      setDuplicatingConfig(null)
-      setSelectedTemplate(null)
-      setView('tasks')
-      loadTasks()
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Failed to save workflow')
     } finally {

@@ -117,6 +117,33 @@ describe('useTasks', () => {
     expect(result.current.tasks).toEqual([updated])
   })
 
+  it('optimistic addTask called after load() in the same sync block is visible before the fetch resolves', async () => {
+    // Regression: handleTaskFormSubmit calls load() before addTask() so that React 18
+    // batching applies setTasks([]) first and the functional updater in addTask() receives
+    // [] as prev — producing [optimistic]. Reversed order loses the insert.
+    let resolve: (t: GithatchTask[]) => void = () => {}
+    mockListGithatchTasks.mockReturnValueOnce(
+      new Promise<GithatchTask[]>((r) => {
+        resolve = r
+      }),
+    )
+
+    const { result } = renderHook(() => useTasks('gho_test', 'owner', 'repo'))
+
+    act(() => {
+      result.current.load()
+      result.current.addTask(makeTask('optimistic'))
+    })
+
+    expect(result.current.tasks).toEqual([makeTask('optimistic')])
+    expect(result.current.loading).toBe(true)
+
+    await act(async () => {
+      resolve([makeTask('fetched')])
+    })
+    expect(result.current.tasks).toEqual([makeTask('fetched')])
+  })
+
   it('clears tasks immediately when load is called — stale tasks from previous repo do not persist during fetch', async () => {
     mockListGithatchTasks.mockResolvedValueOnce([makeTask('old')])
     const { result } = renderHook(() => useTasks('gho_test', 'owner', 'repo-a'))
