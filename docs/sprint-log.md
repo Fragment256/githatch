@@ -2400,3 +2400,19 @@ No drift from sprint 175. No bugs found.
 No drift from sprint 176.
 
 **Next sprint:** 178 (day 3 — Explore audit due).
+
+## Sprint 178 — 2026-09-10 (day 3 — Explore audit)
+
+See `sprints/sprint-178.md` for full audit report.
+
+**Bugs fixed:** 3 (1 HIGH, 1 MEDIUM, 1 LOW). Tests: 559/559 (+4).
+
+**Next sprint:** 179 (day 1 of new cycle after sprint 178 Explore audit).
+
+## Sprint 179 — 2026-09-10 (day 1 — new cycle baseline)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 559/559 ✓
+
+No drift from sprint 178. No bugs found.
+
+**Next sprint:** 180 (day 2 baseline).
