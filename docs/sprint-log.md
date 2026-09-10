@@ -2323,3 +2323,10 @@ No drift from sprint 167. Unscoped Explore audit reserved for day 3 (sprint 169)
 **Tests:** 552/552 passing post-fix (+1 net).
 **Commit:** `4bbd852`
 **Next sprint:** 170 (day 1 baseline).
+
+## Sprint 170 — 2026-09-10 (day 1 of new cycle after sprint 169 Explore audit)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 552/552 ✓
+
+No drift from sprint 169. Unscoped Explore audit reserved for day 3 (sprint 172).
+**Next sprint:** 171 (day 2 baseline).
