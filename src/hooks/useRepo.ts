@@ -40,7 +40,7 @@ export function useRepo(token: string | null) {
     if (!reposQuery.data || !activeRepo) return
     const accessible = reposQuery.data.some((r) => r.full_name === activeRepo.full_name)
     if (!accessible) setActiveRepo(null)
-  }, [reposQuery.data])
+  }, [reposQuery.data, activeRepo])
 
   return {
     repos: reposQuery.data ?? [],
