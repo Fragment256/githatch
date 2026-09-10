@@ -171,6 +171,10 @@ function RunHistoryPanel({
 
   useEffect(() => {
     fetchRuns()
+    return () => {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      ++fetchRunsRequestId.current
+    }
   }, [fetchRuns])
 
   const canViewOutput =

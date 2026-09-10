@@ -110,6 +110,9 @@ export function AgentConfig({ token, owner, repo }: Props) {
         if (id !== requestIdRef.current) return
         setLoading(false)
       })
+    return () => {
+      ++requestIdRef.current
+    }
   }, [open, config, token, owner, repo])
 
   return (

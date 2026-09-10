@@ -96,6 +96,10 @@ export function TokenSetup({ token, owner, repo, secretName, onDone, forceSetup 
         if (reqId !== requestIdRef.current) return
         setPhase('setup')
       })
+    return () => {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      ++requestIdRef.current
+    }
   }, [token, owner, repo, secretName, forceSetup])
 
   const handleSave = async (e: React.FormEvent) => {

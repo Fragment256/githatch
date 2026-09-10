@@ -109,6 +109,10 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
           )
         })
     })
+    return () => {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      ++taskRequestId.current
+    }
   }, [token, owner, repo, tasks, defaultBranch])
 
   useEffect(() => {
@@ -137,6 +141,10 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
         if (id !== repoRequestId.current) return
         setRepoLoading(false)
       })
+    return () => {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      ++repoRequestId.current
+    }
   }, [token, owner, repo])
 
   const DAYS = 14
