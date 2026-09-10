@@ -4,6 +4,31 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-10 (sprint 163)
+
+- Action: Explore audit (day 3 of new cycle after sprint 160 Explore audit)
+- Summary: Full baseline: format:check clean, lint 0 warnings (`--max-warnings=0`), type-check clean, test 551/551 (+2). Explore audit of all 31 source files. 2 bugs fixed.
+- Rationale: Day 3 Explore audit. Bugs found in navigation guards — Secrets and + New task buttons did not cancel in-flight edit fetches, and loadTasks() was outside the staleness guard in handleEditFormSubmit.
+- PR: —
+- ROADMAP updated: no
+
+### Fixes
+
+**1. MEDIUM — App.tsx: Secrets and + New task buttons did not cancel in-flight edit/duplicate fetches**
+
+- Files: `src/App.tsx:342`, `src/App.tsx:366-374`, `src/App.tsx:391-396`
+- Symptom: User clicks Edit on a task, network is slow, then navigates to Secrets or + New task. The stale edit fetch completes, sees the old `editLoadRequestId`, and snaps the user back to the edit-task or new-task form. GettingStarted onSetupToken/onNewTask callbacks had the same gap.
+- Fix: `++editLoadRequestId.current` added to Secrets onClick, + New task onClick, and both GettingStarted callbacks.
+- Tests: 2 regression tests added (`App.test.tsx`).
+
+**2. LOW — App.tsx: loadTasks() outside staleness guard in handleEditFormSubmit**
+
+- File: `src/App.tsx:154,159`
+- Symptom: Repo switch mid-save triggered old repo's loadTasks closure via stale state update, transiently wiping new repo's task list (`setTasks([])`).
+- Fix: Move `loadTasks()` inside `if (id === editLoadRequestId.current)` guard in both success and error paths.
+
+---
+
 ## 2026-09-10 (sprint 162)
 
 - Action: baseline (day 2 of new cycle after sprint 160 Explore audit)
