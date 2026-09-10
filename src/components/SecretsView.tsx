@@ -62,6 +62,7 @@ export function SecretsView({ token, owner, repo, onDone }: Props) {
         secretName={configuring}
         forceSetup={configuringIsUpdate}
         onDone={() => {
+          ++requestIdRef.current
           setStatuses((s) => ({ ...s, [configuring]: 'set' }))
           setConfiguring(null)
           setConfiguringIsUpdate(false)

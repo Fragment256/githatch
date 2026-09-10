@@ -194,6 +194,7 @@ export default function App() {
           <div className="flex min-w-0 items-center gap-3">
             <button
               onClick={() => {
+                ++editLoadRequestId.current
                 setDuplicatingConfig(null)
                 setSelectedTemplate(null)
                 setView('tasks')
@@ -217,7 +218,10 @@ export default function App() {
               {theme === 'dark' ? 'Light' : 'Dark'}
             </button>
             <button
-              onClick={() => setView('about')}
+              onClick={() => {
+                ++editLoadRequestId.current
+                setView('about')
+              }}
               className="px-2 font-mono text-xs tracking-widest text-black/40 uppercase hover:text-black"
             >
               About
@@ -286,7 +290,10 @@ export default function App() {
             <div className="flex flex-col gap-2">
               <div className="flex gap-1 border-2 border-black bg-white p-0.5">
                 <button
-                  onClick={() => setView('tasks')}
+                  onClick={() => {
+                    ++editLoadRequestId.current
+                    setView('tasks')
+                  }}
                   className={`px-3 py-1 font-mono text-xs tracking-widest uppercase transition-colors duration-100 ${
                     view === 'tasks' ? 'bg-black text-white' : 'text-black hover:bg-gray-100'
                   }`}
@@ -294,7 +301,10 @@ export default function App() {
                   Tasks
                 </button>
                 <button
-                  onClick={() => setView('tools')}
+                  onClick={() => {
+                    ++editLoadRequestId.current
+                    setView('tools')
+                  }}
                   className={`px-3 py-1 font-mono text-xs tracking-widest uppercase transition-colors duration-100 ${
                     view === 'tools' ? 'bg-black text-white' : 'text-black hover:bg-gray-100'
                   }`}
@@ -302,7 +312,10 @@ export default function App() {
                   Tools
                 </button>
                 <button
-                  onClick={() => setView('activity')}
+                  onClick={() => {
+                    ++editLoadRequestId.current
+                    setView('activity')
+                  }}
                   className={`px-3 py-1 font-mono text-xs tracking-widest uppercase transition-colors duration-100 ${
                     view === 'activity' ? 'bg-black text-white' : 'text-black hover:bg-gray-100'
                   }`}
@@ -446,13 +459,14 @@ export default function App() {
         {user && activeRepo && view === 'new-task' && (
           <div className="w-full max-w-lg">
             <button
+              disabled={saving}
               onClick={() => {
                 setView('tasks')
                 setSelectedTemplate(null)
                 setDuplicatingConfig(null)
                 setSaveError(null)
               }}
-              className="mb-4 font-mono text-xs tracking-widest text-gray-500 uppercase hover:text-black"
+              className="mb-4 font-mono text-xs tracking-widest text-gray-500 uppercase hover:text-black disabled:cursor-not-allowed disabled:opacity-40"
             >
               ← Back
             </button>
