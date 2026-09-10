@@ -6,10 +6,10 @@ const STORAGE_KEY = 'githatch:theme'
 
 function getStoredTheme(): Theme {
   try {
-    const stored = sessionStorage.getItem(STORAGE_KEY)
+    const stored = localStorage.getItem(STORAGE_KEY)
     if (stored === 'dark' || stored === 'light') return stored
   } catch {
-    // sessionStorage unavailable
+    // localStorage unavailable
   }
   return 'light'
 }
@@ -28,9 +28,9 @@ export function useTheme() {
   useEffect(() => {
     applyTheme(theme)
     try {
-      sessionStorage.setItem(STORAGE_KEY, theme)
+      localStorage.setItem(STORAGE_KEY, theme)
     } catch {
-      // sessionStorage unavailable
+      // localStorage unavailable
     }
   }, [theme])
 

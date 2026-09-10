@@ -4,12 +4,12 @@ import { useTheme } from './useTheme'
 
 describe('useTheme', () => {
   beforeEach(() => {
-    sessionStorage.clear()
+    localStorage.clear()
     document.documentElement.classList.remove('dark')
   })
 
   afterEach(() => {
-    sessionStorage.clear()
+    localStorage.clear()
     document.documentElement.classList.remove('dark')
     vi.restoreAllMocks()
   })
@@ -20,8 +20,8 @@ describe('useTheme', () => {
     expect(document.documentElement.classList.contains('dark')).toBe(false)
   })
 
-  it('restores dark theme from sessionStorage', () => {
-    sessionStorage.setItem('githatch:theme', 'dark')
+  it('restores dark theme from localStorage', () => {
+    localStorage.setItem('githatch:theme', 'dark')
     const { result } = renderHook(() => useTheme())
     expect(result.current.theme).toBe('dark')
     expect(document.documentElement.classList.contains('dark')).toBe(true)
@@ -32,25 +32,25 @@ describe('useTheme', () => {
     act(() => result.current.toggleTheme())
     expect(result.current.theme).toBe('dark')
     expect(document.documentElement.classList.contains('dark')).toBe(true)
-    expect(sessionStorage.getItem('githatch:theme')).toBe('dark')
+    expect(localStorage.getItem('githatch:theme')).toBe('dark')
   })
 
   it('toggles from dark to light', () => {
-    sessionStorage.setItem('githatch:theme', 'dark')
+    localStorage.setItem('githatch:theme', 'dark')
     const { result } = renderHook(() => useTheme())
     act(() => result.current.toggleTheme())
     expect(result.current.theme).toBe('light')
     expect(document.documentElement.classList.contains('dark')).toBe(false)
-    expect(sessionStorage.getItem('githatch:theme')).toBe('light')
+    expect(localStorage.getItem('githatch:theme')).toBe('light')
   })
 
   it('ignores invalid stored value and defaults to light', () => {
-    sessionStorage.setItem('githatch:theme', 'invalid')
+    localStorage.setItem('githatch:theme', 'invalid')
     const { result } = renderHook(() => useTheme())
     expect(result.current.theme).toBe('light')
   })
 
-  it('handles sessionStorage unavailability gracefully', () => {
+  it('handles localStorage unavailability gracefully', () => {
     vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
       throw new Error('storage unavailable')
     })
