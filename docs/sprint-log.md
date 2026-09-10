@@ -2330,3 +2330,10 @@ No drift from sprint 167. Unscoped Explore audit reserved for day 3 (sprint 169)
 
 No drift from sprint 169. Unscoped Explore audit reserved for day 3 (sprint 172).
 **Next sprint:** 171 (day 2 baseline).
+
+## Sprint 171 — 2026-09-10 (day 2 baseline)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 552/552 ✓
+
+No drift from sprint 170. Unscoped Explore audit reserved for day 3 (sprint 172).
+**Next sprint:** 172 (day 3 — Explore audit).
