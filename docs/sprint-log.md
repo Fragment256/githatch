@@ -2577,3 +2577,11 @@ No drift from sprint 203. No bugs found.
 No drift from sprint 205. No bugs found.
 
 **Next sprint:** 207 (day 2 baseline).
+
+## Sprint 207 — 2026-09-11 (day 2 — baseline)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 562/562 ✓
+
+No drift from sprint 206. No bugs found.
+
+**Next sprint:** 208 (day 3 — Explore audit due).
