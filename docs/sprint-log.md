@@ -2416,3 +2416,11 @@ See `sprints/sprint-178.md` for full audit report.
 No drift from sprint 178. No bugs found.
 
 **Next sprint:** 180 (day 2 baseline).
+
+## Sprint 180 — 2026-09-10 (day 2 — baseline)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 559/559 ✓
+
+No drift from sprint 179. No bugs found.
+
+**Next sprint:** 181 (day 3 — Explore audit due).
