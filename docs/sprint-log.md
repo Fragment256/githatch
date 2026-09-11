@@ -2585,3 +2585,21 @@ No drift from sprint 205. No bugs found.
 No drift from sprint 206. No bugs found.
 
 **Next sprint:** 208 (day 3 — Explore audit due).
+
+## Sprint 208 — 2026-09-11 (day 3 — Explore audit)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 563/563 ✓ (+1)
+
+**Explore audit:** Full review of all 38 source files. 1 MEDIUM bug fixed via TDD:
+
+1. MEDIUM `ActivityPanel.tsx`: PR stat tiles ("Open PRs", "Merged PRs") showed `…` while task workflow runs were still loading, even after PR counts had resolved. Root cause: all numeric tiles shared the `taskActivity.some(a => a.loading)` guard. Fix: extract `taskMetricLoading` flag, apply only to task-derived tiles via `isTaskMetric`; PR tiles self-handle via `prCounts?.open ?? '…'`. 1 regression test (RED→GREEN). Dry streak resets to 0.
+
+**Next sprint:** 209 (day 1 of new cycle — baseline).
+
+## Sprint 209 — 2026-09-11 (day 1 — baseline)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 563/563 ✓
+
+No drift from sprint 208. No bugs found.
+
+**Next sprint:** 210 (day 2 — baseline).
