@@ -312,6 +312,29 @@ describe('listGithatchTasks', () => {
     ).rejects.toThrow(/too large/i)
   })
 
+  it('does not throw "too large" for a 0-byte workflow file (content: "")', async () => {
+    // GitHub returns content: "" for empty files — "" is falsy but not null.
+    // A !content guard would incorrectly throw "too large" for empty files.
+    const workflowsListResponse = [
+      { name: 'githatch-empty.yml', path: '.github/workflows/githatch-empty.yml' },
+    ]
+    const actionsWorkflows = {
+      workflows: [{ id: 10, path: '.github/workflows/githatch-empty.yml', state: 'active' }],
+    }
+
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(workflowsListResponse) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(actionsWorkflows) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ content: '' }) })
+    vi.stubGlobal('fetch', fetchMock)
+
+    // Should NOT throw "too large" — empty file parses to a task with default values
+    await expect(
+      listGithatchTasks({ token: 'gho_test', owner: 'testuser', repo: 'my-repo' }),
+    ).resolves.not.toThrow()
+  })
+
   it('excludes githatch-tool-*.yml files from the task list', async () => {
     const workflowsListResponse = [
       { name: 'githatch-daily-standup.yml', path: '.github/workflows/githatch-daily-standup.yml' },
@@ -563,6 +586,28 @@ describe('updateWorkflowSchedule', () => {
         schedule: '0 9 * * 1',
       }),
     ).rejects.toThrow(/too large/i)
+  })
+
+  it('does not throw "too large" for a 0-byte workflow file (content: "")', async () => {
+    // "" is falsy but not null — should not trigger the "too large" guard.
+    // An empty workflow file is malformed YAML and will fail at patchScheduleInYaml,
+    // but the error should describe a missing on:/permissions: block, not "too large".
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ content: '', sha: 'abc' }),
+      }),
+    )
+    await expect(
+      updateWorkflowSchedule({
+        token: 'gho_test',
+        owner: 'u',
+        repo: 'r',
+        task,
+        schedule: '0 9 * * 1',
+      }),
+    ).rejects.toThrow(/could not locate/i)
   })
 })
 

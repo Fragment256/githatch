@@ -320,6 +320,29 @@ describe('fetchFileContent', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 404 }))
     await expect(fetchFileContent(params)).rejects.toThrow('404')
   })
+
+  it('returns empty string for a 0-byte file (content: "") without throwing', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ content: '' }),
+      }),
+    )
+    const result = await fetchFileContent(params)
+    expect(result).toBe('')
+  })
+
+  it('throws the "too large" error only when content is null, not for empty files', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ content: null }),
+      }),
+    )
+    await expect(fetchFileContent(params)).rejects.toThrow(/too large/i)
+  })
 })
 
 describe('fetchRepoAgentConfig', () => {
