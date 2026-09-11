@@ -2680,3 +2680,17 @@ No drift from sprint 214. No bugs found.
 No drift from sprint 215. No bugs found.
 
 **Next sprint:** 217 (day 3 — Explore audit).
+
+## Sprint 217 — 2026-09-11 (day 3 — Explore audit)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 564/564 ✓
+
+**Explore audit:** Full review of all 33 non-test source files. Two MEDIUM bugs fixed via TDD.
+
+**Fixed (MEDIUM): `ActivityPanel.tsx` `taskMetricLoading` included error state** — aggregate stat tiles (Runs this week, Total runs) showed `…` permanently when any task's workflow fetch errored, because `taskMetricLoading` checked `a.error !== null` in addition to `a.loading`. Fix: check only `a.loading`. The errored task's per-task row already shows the individual error message; aggregate counts should reflect the successfully-loaded tasks (undercount beats permanent spinner). Updated test: "shows 0 (not …) for run counts when all task workflow fetches error". `8aad4b5`.
+
+**Fixed (MEDIUM): `App.tsx` About button missing `disabled={saving}`** — About button lacked `disabled={saving}`, unlike the logo button. During an in-flight save, clicking About incremented `editLoadRequestId.current` and called `setSaving(false)`, invalidating the save handler's `id` guard. The `upsertWorkflowFile` PUT completed on GitHub but `loadTasks()`/`addTask()` were skipped, leaving the task list stale with no error displayed. Fix: `disabled={saving}` + `disabled:opacity-40` on About button. Updated two regression tests (new-task and edit-task form paths). `8aad4b5`.
+
+**Tests:** 564/564 (no net change — 2 bug fix tests replaced 2 obsolete tests). Dry streak resets to 0.
+
+**Next sprint:** 218 (day 1 of new cycle — baseline).
