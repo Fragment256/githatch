@@ -87,3 +87,4 @@ Items deliberately on hold — not prioritised but not abandoned.
 | RepoPicker: guard ArrowDown against -1 highlightedIndex when filtered list is empty     | —   | 2026-09-04 |
 | Fix TaskRow last-run effect missing task.slug dep; enforce zero-warning lint            | #58 | 2026-09-05 |
 | Clear stale saveError on Switch repo; fix parsePromptFromYaml early truncation          | —   | 2026-09-06 |
+| Fix file output link to use headSha for historical correctness; fix update commit msg   | —   | 2026-09-11 |
