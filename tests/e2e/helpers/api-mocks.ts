@@ -32,19 +32,19 @@ export const TEST_TASK_FILE = {
   content: TASK_YAML_B64,
 }
 
-/** Seed the GitHub token into sessionStorage before the app boots. */
+/** Seed the GitHub token into localStorage before the app boots. */
 export async function seedToken(page: Page): Promise<void> {
   await page.addInitScript((token) => {
-    sessionStorage.setItem('gh_token', token)
+    localStorage.setItem('gh_token', token)
   }, TEST_TOKEN)
 }
 
-/** Seed the GitHub token AND active repo into sessionStorage before the app boots. */
+/** Seed the GitHub token AND active repo into localStorage before the app boots. */
 export async function seedTokenAndRepo(page: Page): Promise<void> {
   await page.addInitScript(
     ({ token, repo }) => {
-      sessionStorage.setItem('gh_token', token)
-      sessionStorage.setItem('active_repo', JSON.stringify(repo))
+      localStorage.setItem('gh_token', token)
+      localStorage.setItem('active_repo', JSON.stringify(repo))
     },
     { token: TEST_TOKEN, repo: TEST_REPO },
   )

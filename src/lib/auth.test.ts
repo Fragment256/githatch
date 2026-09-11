@@ -76,7 +76,7 @@ describe('clearPkceSession', () => {
 
 describe('token storage', () => {
   beforeEach(() => {
-    sessionStorage.clear()
+    localStorage.clear()
   })
 
   it('stores and retrieves a token', () => {
@@ -92,6 +92,12 @@ describe('token storage', () => {
     storeToken('gho_test_token')
     clearToken()
     expect(getStoredToken()).toBeNull()
+  })
+
+  it('stores the token in localStorage (not sessionStorage) so new-tab loads do not clobber active_repo', () => {
+    storeToken('gho_test_token')
+    expect(localStorage.getItem('gh_token')).toBe('gho_test_token')
+    expect(sessionStorage.getItem('gh_token')).toBeNull()
   })
 })
 

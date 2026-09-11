@@ -98,15 +98,15 @@ export async function exchangeCodeForToken(
 }
 
 export function getStoredToken(): string | null {
-  return sessionStorage.getItem(TOKEN_KEY)
+  return localStorage.getItem(TOKEN_KEY)
 }
 
 export function storeToken(token: string): void {
-  sessionStorage.setItem(TOKEN_KEY, token)
+  localStorage.setItem(TOKEN_KEY, token)
 }
 
 export function clearToken(): void {
-  sessionStorage.removeItem(TOKEN_KEY)
+  localStorage.removeItem(TOKEN_KEY)
 }
 
 export interface GitHubUser {

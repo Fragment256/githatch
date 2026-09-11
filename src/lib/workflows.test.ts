@@ -822,6 +822,40 @@ describe('fetchRunOutput', () => {
     expect(result).toBeNull()
   })
 
+  it('does not throw when a comment has null user (deleted account) for issue_comment type', async () => {
+    const comments = [
+      {
+        id: 10,
+        body: 'Deleted account comment',
+        html_url: 'https://github.com/testuser/my-repo/issues/5#issuecomment-10',
+        created_at: '2024-01-01T09:05:00Z',
+        user: null,
+      },
+      {
+        id: 11,
+        body: 'Bot comment',
+        html_url: 'https://github.com/testuser/my-repo/issues/5#issuecomment-11',
+        created_at: '2024-01-01T09:10:00Z',
+        user: { login: 'github-actions[bot]' },
+      },
+    ]
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(comments) }),
+    )
+
+    const result = await fetchRunOutput({
+      token: 'gho_test',
+      owner: 'testuser',
+      repo: 'my-repo',
+      run: baseRun,
+      outputDestination: { type: 'issue_comment', issueNumber: 5 },
+    })
+
+    expect(result).not.toBeNull()
+    expect(result!.body).toBe('Bot comment')
+  })
+
   it('returns null for agent_managed output type', async () => {
     const result = await fetchRunOutput({
       token: 'gho_test',
