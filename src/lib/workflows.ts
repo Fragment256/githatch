@@ -36,6 +36,7 @@ export interface WorkflowRun {
   conclusion: string | null
   createdAt: string
   htmlUrl: string
+  headSha?: string
 }
 
 export interface TaskParams {
@@ -252,14 +253,14 @@ export async function fetchRunOutput(params: {
 
   if (outputDestination.type === 'file') {
     const { filePath } = outputDestination
-    const branch = defaultBranch ?? 'main'
+    const ref = run.headSha ?? defaultBranch ?? 'main'
     const isDir = filePath.endsWith('/')
     const treeOrBlob = isDir ? 'tree' : 'blob'
     const urlPath = isDir ? filePath.slice(0, -1) : filePath
     return {
       type: 'file_link',
       title: filePath,
-      htmlUrl: `https://github.com/${owner}/${repo}/${treeOrBlob}/${branch}/${urlPath}`,
+      htmlUrl: `https://github.com/${owner}/${repo}/${treeOrBlob}/${ref}/${urlPath}`,
     }
   }
 
@@ -371,6 +372,7 @@ export async function getWorkflowRuns(
       conclusion: string | null
       created_at: string
       html_url: string
+      head_sha: string
     }>
   }
   return {
@@ -380,6 +382,7 @@ export async function getWorkflowRuns(
       conclusion: r.conclusion,
       createdAt: r.created_at,
       htmlUrl: r.html_url,
+      headSha: r.head_sha,
     })),
     totalCount: data.total_count,
   }

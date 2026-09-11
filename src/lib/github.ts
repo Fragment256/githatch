@@ -64,7 +64,9 @@ export async function upsertWorkflowFile({
   const content = btoa(unescape(encodeURIComponent(yaml)))
 
   const body: { message: string; content: string; sha?: string } = {
-    message: `chore: add githatch workflow ${slug}`,
+    message: sha
+      ? `chore: update githatch workflow ${slug}`
+      : `chore: add githatch workflow ${slug}`,
     content,
     ...(sha ? { sha } : {}),
   }

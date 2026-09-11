@@ -914,6 +914,41 @@ describe('fetchRunOutput', () => {
     expect(result!.htmlUrl).toBe('https://github.com/testuser/my-repo/tree/main/reports')
   })
 
+  it('uses headSha instead of defaultBranch when run.headSha is set', async () => {
+    vi.stubGlobal('fetch', vi.fn())
+    const runWithSha: WorkflowRun = { ...baseRun, headSha: 'abc1234def5678' }
+
+    const result = await fetchRunOutput({
+      token: 'gho_test',
+      owner: 'testuser',
+      repo: 'my-repo',
+      run: runWithSha,
+      outputDestination: { type: 'file', filePath: 'reports/weekly.md' },
+      defaultBranch: 'main',
+    })
+
+    expect(result!.htmlUrl).toBe(
+      'https://github.com/testuser/my-repo/blob/abc1234def5678/reports/weekly.md',
+    )
+  })
+
+  it('falls back to defaultBranch for file link when headSha is absent', async () => {
+    vi.stubGlobal('fetch', vi.fn())
+
+    const result = await fetchRunOutput({
+      token: 'gho_test',
+      owner: 'testuser',
+      repo: 'my-repo',
+      run: baseRun,
+      outputDestination: { type: 'file', filePath: 'reports/weekly.md' },
+      defaultBranch: 'develop',
+    })
+
+    expect(result!.htmlUrl).toBe(
+      'https://github.com/testuser/my-repo/blob/develop/reports/weekly.md',
+    )
+  })
+
   it('ignores pre-existing issues updated after run start for new_issue type (since filters by updated_at)', async () => {
     // Pre-existing issue: created_at BEFORE the run but updated_at after (would match `since` filter)
     const staleIssue = {

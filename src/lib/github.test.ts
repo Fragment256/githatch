@@ -111,6 +111,7 @@ describe('upsertWorkflowFile', () => {
     }
     expect(putCall[0]).toContain('.github/workflows/githatch-weekly-digest.yml')
     expect(body.sha).toBeUndefined()
+    expect(body.message).toBe('chore: add githatch workflow weekly-digest')
     // content should be base64 of the yaml
     expect(atob(body.content)).toBe(params.yaml)
   })
@@ -131,8 +132,9 @@ describe('upsertWorkflowFile', () => {
     await upsertWorkflowFile(params)
 
     const putCall = fetchMock.mock.calls[1] as [string, RequestInit]
-    const body = JSON.parse(putCall[1].body as string) as { sha?: string }
+    const body = JSON.parse(putCall[1].body as string) as { sha?: string; message: string }
     expect(body.sha).toBe(existingSha)
+    expect(body.message).toBe('chore: update githatch workflow weekly-digest')
   })
 
   it('throws when PUT fails', async () => {
