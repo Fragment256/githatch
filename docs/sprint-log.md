@@ -4,6 +4,18 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-11 (sprint 235 — Explore audit — 3 bugs)
+
+- Action: day 3 Explore audit
+- Summary: format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 575/575 (+1). Full review of all 34 non-test source files. 3 MEDIUM bugs fixed:
+  - `cronLabel.ts` `canPreviewCron` returned true for `*/N minute` with constrained hour/DOW — UI showed empty preview instead of "not available". Fix: missing guard added.
+  - `useRepo.ts` stale localStorage `activeRepo` never refreshed with fresh API data — `default_branch` permanently wrong after a rename. Fix: replace `.some()` with `.find()` and sync when fields drift.
+  - `App.tsx` `onLogout` missing `setSaving(false)` — logo + About buttons disabled until stale HTTP request timed out. Fix: add `setSaving(false)` to handler.
+- Commit: 4d69414
+- Next: sprint 236 (day 1 of new cycle — baseline)
+
+---
+
 ## 2026-09-11 (sprint 234 — day 2 baseline)
 
 - Action: day 2 baseline
