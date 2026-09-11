@@ -2823,3 +2823,11 @@ No drift from sprint 215. No bugs found.
 **Tests:** 574/574 (+2). Dry streak resets to 0.
 
 **Next sprint:** 233 (day 1 of new cycle — baseline).
+
+## Sprint 233 — 2026-09-11 (day 1 — baseline + lint regression fix)
+
+**Baseline:** format:check ✓ · lint ✓ (after fix) · type-check ✓ · 574/574 ✓
+
+**Lint regression fix (LOW): `TaskList.tsx` cleanup — `react-hooks/exhaustive-deps` warning on `++outputFetchRequestId.current`** — Sprint 232 added `++outputFetchRequestId.current` to the unmount cleanup effect (intentional cancellation of pending async ops), but this triggered `react-hooks/exhaustive-deps` ESLint warning because `.current` is accessed inside a cleanup closure. The increment is a write, not a read of a stale value — the pattern is intentional. Fix: `// eslint-disable-next-line react-hooks/exhaustive-deps` comment to suppress false-positive. No test change (same 574/574).
+
+**Next sprint:** 234 (day 2 — baseline).

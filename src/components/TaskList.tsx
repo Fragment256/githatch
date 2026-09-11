@@ -350,6 +350,7 @@ function TaskRow({
   useEffect(() => {
     return () => {
       isMountedRef.current = false
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       ++outputFetchRequestId.current
       if (triggeredTimerRef.current !== null) clearTimeout(triggeredTimerRef.current)
     }
