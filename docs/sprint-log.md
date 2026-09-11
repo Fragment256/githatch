@@ -2611,3 +2611,16 @@ No drift from sprint 208. No bugs found.
 No drift from sprint 209. No bugs found.
 
 **Next sprint:** 211 (day 3 — Explore audit due).
+
+## Sprint 211 — 2026-09-11 (day 3 — Explore audit — dry)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 563/563 ✓
+
+**Explore audit:** Full review of all non-test source files — `src/App.tsx`, all `src/components/*.tsx`, all `src/lib/*.ts`, all `src/hooks/*.ts`. Two findings raised, both confirmed as false positives:
+
+1. `ActivityPanel.tsx` `taskMetricLoading` including `a.error !== null` — intentional design, confirmed by existing test at line 147 which explicitly validates that `…` is shown when any task workflow fetch errors (prevents showing wrong aggregate numbers).
+2. `TaskList.tsx` `fetchLastRun` effect overwriting `prevRunIdRef.current` with a newly triggered run's id — physically impossible in practice: the initial GET fires before the trigger POST, so GitHub would never return the new run in the initial fetch response. Existing test at line 1022 covers this interaction.
+
+No correctness bugs found. Dry streak continues.
+
+**Next sprint:** 212 (day 1 of new cycle — baseline).
