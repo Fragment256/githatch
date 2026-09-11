@@ -117,10 +117,14 @@ describe('useTasks', () => {
     expect(result.current.tasks).toEqual([updated])
   })
 
-  it('optimistic addTask called after load() in the same sync block is visible before the fetch resolves', async () => {
+  it('optimistic addTask is visible before the fetch resolves and preserved during eventual-consistency window', async () => {
     // Regression: handleTaskFormSubmit calls load() before addTask() so that React 18
     // batching applies setTasks([]) first and the functional updater in addTask() receives
     // [] as prev — producing [optimistic]. Reversed order loses the insert.
+    //
+    // Additionally: when GitHub hasn't propagated the new file yet, the fetch result should
+    // not wipe the optimistic entry. The optimistic task is preserved until the server
+    // confirms it (i.e., returns a task with the same slug).
     let resolve: (t: GithatchTask[]) => void = () => {}
     mockListGithatchTasks.mockReturnValueOnce(
       new Promise<GithatchTask[]>((r) => {
@@ -138,10 +142,34 @@ describe('useTasks', () => {
     expect(result.current.tasks).toEqual([makeTask('optimistic')])
     expect(result.current.loading).toBe(true)
 
+    // Server responds without the new task yet (GitHub eventual consistency window).
+    // The optimistic entry must survive.
     await act(async () => {
       resolve([makeTask('fetched')])
     })
-    expect(result.current.tasks).toEqual([makeTask('fetched')])
+    expect(result.current.tasks).toEqual([makeTask('optimistic'), makeTask('fetched')])
+  })
+
+  it('optimistic task is dropped once the server confirms it', async () => {
+    let resolve: (t: GithatchTask[]) => void = () => {}
+    mockListGithatchTasks.mockReturnValueOnce(
+      new Promise<GithatchTask[]>((r) => {
+        resolve = r
+      }),
+    )
+
+    const { result } = renderHook(() => useTasks('gho_test', 'owner', 'repo'))
+
+    act(() => {
+      result.current.load()
+      result.current.addTask(makeTask('optimistic'))
+    })
+
+    // Server now returns the task — optimistic duplicate must not appear.
+    await act(async () => {
+      resolve([makeTask('optimistic'), makeTask('fetched')])
+    })
+    expect(result.current.tasks).toEqual([makeTask('optimistic'), makeTask('fetched')])
   })
 
   it('clears tasks immediately when load is called — stale tasks from previous repo do not persist during fetch', async () => {

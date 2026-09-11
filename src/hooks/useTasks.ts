@@ -17,7 +17,12 @@ export function useTasks(token: string | null, owner: string, repo: string) {
     listGithatchTasks({ token, owner, repo })
       .then((result) => {
         if (id !== requestId.current) return
-        setTasks(result)
+        setTasks((prev) => {
+          // Preserve any optimistic tasks not yet reflected on GitHub (eventual consistency).
+          const serverSlugs = new Set(result.map((t) => t.slug))
+          const optimistic = prev.filter((t) => !serverSlugs.has(t.slug))
+          return optimistic.length > 0 ? [...optimistic, ...result] : result
+        })
       })
       .catch((err: unknown) => {
         if (id !== requestId.current) return

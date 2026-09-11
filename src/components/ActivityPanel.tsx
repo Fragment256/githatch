@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import type { GithatchTask, WorkflowRun } from '@/lib/workflows'
 import { getWorkflowRuns } from '@/lib/workflows'
 import { getRecentCommits, getRecentPRs, getPRCounts } from '@/lib/github'
@@ -68,14 +68,23 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
   const [repoError, setRepoError] = useState<string | null>(null)
   const taskRequestId = useRef(0)
   const repoRequestId = useRef(0)
+  const tasksRef = useRef(tasks)
+  tasksRef.current = tasks
+
+  // Stable key — only changes when task identities change, not on every array reference change.
+  const taskKeys = useMemo(
+    () => tasks.map((t) => `${t.slug}:${t.workflowId ?? ''}`).join(','),
+    [tasks],
+  )
 
   useEffect(() => {
+    const currentTasks = tasksRef.current
     const id = ++taskRequestId.current
     setTaskActivity(
-      tasks.map((task) => ({ task, runs: [], totalCount: 0, loading: true, error: null })),
+      currentTasks.map((task) => ({ task, runs: [], totalCount: 0, loading: true, error: null })),
     )
 
-    tasks.forEach((task, idx) => {
+    currentTasks.forEach((task, idx) => {
       if (!task.workflowId) {
         setTaskActivity((prev) => prev.map((a, i) => (i === idx ? { ...a, loading: false } : a)))
         return
@@ -113,7 +122,7 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
       // eslint-disable-next-line react-hooks/exhaustive-deps
       ++taskRequestId.current
     }
-  }, [token, owner, repo, tasks, defaultBranch])
+  }, [token, owner, repo, taskKeys, defaultBranch])
 
   useEffect(() => {
     const id = ++repoRequestId.current

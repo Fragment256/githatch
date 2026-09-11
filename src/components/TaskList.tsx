@@ -497,7 +497,7 @@ function TaskRow({
     setDeleteError(null)
     try {
       await deleteWorkflowFile({ token, owner, repo, path: task.path })
-      onRefresh()
+      if (isMountedRef.current) onRefresh()
     } catch (err) {
       if (isMountedRef.current)
         setDeleteError(err instanceof Error ? err.message : 'Failed to delete')

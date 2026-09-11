@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { listPushableRepos, type GitHubRepo } from '@/lib/github'
 
@@ -23,24 +23,24 @@ export function useRepo(token: string | null) {
     staleTime: 5 * 60 * 1000,
   })
 
-  const setActiveRepo = (repo: GitHubRepo | null) => {
+  const setActiveRepo = useCallback((repo: GitHubRepo | null) => {
     setActiveRepoState(repo)
     if (repo) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(repo))
     } else {
       localStorage.removeItem(STORAGE_KEY)
     }
-  }
+  }, [])
 
   useEffect(() => {
     if (!token) setActiveRepo(null)
-  }, [token])
+  }, [token, setActiveRepo])
 
   useEffect(() => {
     if (!reposQuery.data || !activeRepo) return
     const accessible = reposQuery.data.some((r) => r.full_name === activeRepo.full_name)
     if (!accessible) setActiveRepo(null)
-  }, [reposQuery.data, activeRepo])
+  }, [reposQuery.data, activeRepo, setActiveRepo])
 
   return {
     repos: reposQuery.data ?? [],
