@@ -1,4 +1,4 @@
-import { useEffect, useRef, useId } from 'react'
+import { useEffect, useRef, useId, useCallback } from 'react'
 
 interface Props {
   open: boolean
@@ -21,8 +21,13 @@ export function ConfirmDialog({
 }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const cancelRef = useRef<HTMLButtonElement>(null)
+  const loadingRef = useRef(loading)
   const titleId = useId()
   const descId = useId()
+
+  useEffect(() => {
+    loadingRef.current = loading
+  }, [loading])
 
   useEffect(() => {
     const el = dialogRef.current
@@ -35,16 +40,20 @@ export function ConfirmDialog({
     }
   }, [open])
 
+  const handleCancel = useCallback(() => {
+    if (!loadingRef.current) onCancel()
+  }, [onCancel])
+
   useEffect(() => {
     const el = dialogRef.current
     if (!el) return
-    const handleCancel = (e: Event) => {
+    const handleCancelEvent = (e: Event) => {
       e.preventDefault()
-      onCancel()
+      handleCancel()
     }
-    el.addEventListener('cancel', handleCancel)
-    return () => el.removeEventListener('cancel', handleCancel)
-  }, [onCancel])
+    el.addEventListener('cancel', handleCancelEvent)
+    return () => el.removeEventListener('cancel', handleCancelEvent)
+  }, [handleCancel])
 
   return (
     <dialog
@@ -53,7 +62,7 @@ export function ConfirmDialog({
       aria-describedby={descId}
       className="m-auto w-full max-w-sm border-2 border-black bg-white p-6 backdrop:bg-black/40"
       onClick={(e) => {
-        if (e.target === dialogRef.current) onCancel()
+        if (e.target === dialogRef.current) handleCancel()
       }}
     >
       <h2 id={titleId} className="font-mono text-xs font-bold tracking-widest text-black uppercase">
@@ -65,7 +74,7 @@ export function ConfirmDialog({
       <div className="mt-6 flex justify-end gap-3">
         <button
           ref={cancelRef}
-          onClick={onCancel}
+          onClick={handleCancel}
           disabled={loading}
           className="font-mono text-xs tracking-widest text-black/40 uppercase hover:text-black disabled:opacity-50"
         >

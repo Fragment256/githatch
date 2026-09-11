@@ -253,7 +253,7 @@ export async function fetchRunOutput(params: {
 
   if (outputDestination.type === 'file') {
     const { filePath } = outputDestination
-    const ref = run.headSha ?? defaultBranch ?? 'main'
+    const ref = defaultBranch ?? 'main'
     const isDir = filePath.endsWith('/')
     const treeOrBlob = isDir ? 'tree' : 'blob'
     const urlPath = isDir ? filePath.slice(0, -1) : filePath

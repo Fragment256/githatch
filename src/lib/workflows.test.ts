@@ -914,7 +914,9 @@ describe('fetchRunOutput', () => {
     expect(result!.htmlUrl).toBe('https://github.com/testuser/my-repo/tree/main/reports')
   })
 
-  it('uses headSha instead of defaultBranch when run.headSha is set', async () => {
+  it('uses defaultBranch (not headSha) for file link even when run.headSha is set', async () => {
+    // headSha is the pre-run commit; agent file output is committed AFTER the run,
+    // so headSha would 404 for new files or show stale content for updated files.
     vi.stubGlobal('fetch', vi.fn())
     const runWithSha: WorkflowRun = { ...baseRun, headSha: 'abc1234def5678' }
 
@@ -927,12 +929,10 @@ describe('fetchRunOutput', () => {
       defaultBranch: 'main',
     })
 
-    expect(result!.htmlUrl).toBe(
-      'https://github.com/testuser/my-repo/blob/abc1234def5678/reports/weekly.md',
-    )
+    expect(result!.htmlUrl).toBe('https://github.com/testuser/my-repo/blob/main/reports/weekly.md')
   })
 
-  it('falls back to defaultBranch for file link when headSha is absent', async () => {
+  it('uses defaultBranch for file link when headSha is absent', async () => {
     vi.stubGlobal('fetch', vi.fn())
 
     const result = await fetchRunOutput({

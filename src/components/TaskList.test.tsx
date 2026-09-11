@@ -133,6 +133,27 @@ describe('TaskList', () => {
     expect(onRefresh).toHaveBeenCalled()
   })
 
+  it('disables Edit and Duplicate buttons while delete is in flight', async () => {
+    let resolveDelete!: () => void
+    vi.spyOn(github, 'deleteWorkflowFile').mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveDelete = resolve
+      }),
+    )
+    render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+
+    fireEvent.click(screen.getByRole('button', { name: /delete task/i }))
+    fireEvent.click(screen.getByRole('button', { name: /^delete$/i }))
+    await waitFor(() => expect(screen.getByRole('button', { name: /^delete…$/i })).toBeDisabled())
+
+    expect(screen.getByRole('button', { name: /^edit$/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /^duplicate$/i })).toBeDisabled()
+
+    await act(async () => {
+      resolveDelete()
+    })
+  })
+
   it('closes confirm dialog after successful delete without waiting for remount', async () => {
     let resolveDelete!: () => void
     vi.spyOn(github, 'deleteWorkflowFile').mockReturnValue(
