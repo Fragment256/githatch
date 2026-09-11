@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-11 (sprint 220 — Explore audit)
+
+- Action: day 3 Explore audit
+- Summary: 3 bugs fixed. HIGH: `fetchRunOutput` file links used `head_sha` instead of `defaultBranch`; agent writes output AFTER run so head_sha would 404 for new files — revert to defaultBranch. MEDIUM: ConfirmDialog Escape key and backdrop click bypassed loading guard via stale closure — fix with loadingRef. MEDIUM: Edit and Duplicate buttons not disabled during delete, allowing race where user could recreate a deleted task — fix with `disabled={deleting}`. Tests: 569/569 (+3). Commit `cd2a760`.
+- Next: sprint 221 (day 1 of new cycle — baseline)
+
+---
+
 ## 2026-09-11 (sprint 219)
 
 - Action: day 2 baseline
