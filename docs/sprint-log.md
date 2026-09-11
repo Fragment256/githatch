@@ -2640,3 +2640,27 @@ No correctness bugs found. Dry streak continues.
 No drift from sprint 211. No bugs found.
 
 **Next sprint:** 213 (day 2 — baseline).
+
+## Sprint 213 — 2026-09-11 (day 2 — baseline)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 563/563 ✓
+
+No drift from sprint 212. No bugs found.
+
+**Next sprint:** 214 (day 3 — Explore audit).
+
+## Sprint 214 — 2026-09-11 (day 3 — Explore audit — 1 MEDIUM)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 563/563 ✓
+
+**Explore audit:** Full review of all 33 non-test source files. Three findings, one confirmed MEDIUM bug fixed via TDD.
+
+**Fixed (MEDIUM): `App.tsx` logo button missing `disabled={saving}`** — `← Back` button on the edit-task view had `disabled={saving}` to prevent mid-save navigation, but the global Githatch logo button did not. On a rename save, clicking the logo mid-operation incremented `editLoadRequestId`, causing any delete/rollback error to be silently dropped by the id-guard in the catch block — potentially leaving both old and new workflow files in the repo with no user-facing indication. Fix: `disabled={saving}` + `disabled:opacity-40` on logo button. Updated existing test (logo re-enables after save completes) + 1 new regression test (logo is disabled while save is in-flight). `28d195b`.
+
+**Known LOW (not fixed):** `TaskList.tsx` missing `outputFetchRequestId.current++` increment on unmount — `fetchRunOutput` in-flight after unmount still calls setState. React 18 silently ignores setState on unmounted components; no user-visible effect.
+
+**Latent MEDIUM (deferred):** `workflows.ts` `fetchRunOutput` missing Link-header pagination — on repos with >100 issues/PRs/comments updated since `run.createdAt`, the bot-created item may be on page 2; function returns `null` and shows "No output found". Fix requires following Link rel=next headers across all three output branches. Deferred to a dedicated sprint.
+
+**Tests:** 564/564 (+1). Dry streak resets to 0.
+
+**Next sprint:** 215 (day 1 of new cycle — baseline).
