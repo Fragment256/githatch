@@ -17,6 +17,7 @@ export function RepoPicker({ repos, activeRepo, loading, error, onSelect }: Prop
 
   useEffect(() => {
     setQuery(activeRepo?.full_name ?? '')
+    setHighlightedIndex(0)
   }, [activeRepo])
 
   if (loading) {

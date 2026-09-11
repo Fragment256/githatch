@@ -4,6 +4,16 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-11 (sprint 244 — day 3 Explore audit)
+
+- Action: day 3 Explore audit — 34 non-test source files, 2 parallel Explore agents
+- Summary: format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 579/579 ✓. 1 LOW bug fixed.
+  - LOW: `RepoPicker.tsx` `useEffect` reset `query` on `activeRepo` change but not `highlightedIndex` — stale index with shorter filtered list causes Enter to silently no-op instead of selecting highlighted item. Fix: add `setHighlightedIndex(0)` to the effect.
+  - 2 false positives dismissed: `TaskForm.tsx` lazy init (parent uses key prop, component remounts); `App.tsx` `token!` assertion (safe per useAuth.ts invariant).
+- Next: sprint 245 (day 1 baseline, new cycle)
+
+---
+
 ## 2026-09-11 (sprint 243 — day 2 baseline)
 
 - Action: day 2 baseline
