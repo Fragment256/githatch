@@ -38,8 +38,15 @@ export function useRepo(token: string | null) {
 
   useEffect(() => {
     if (!reposQuery.data || !activeRepo) return
-    const accessible = reposQuery.data.some((r) => r.full_name === activeRepo.full_name)
-    if (!accessible) setActiveRepo(null)
+    const freshRepo = reposQuery.data.find((r) => r.full_name === activeRepo.full_name)
+    if (!freshRepo) {
+      setActiveRepo(null)
+    } else if (
+      freshRepo.default_branch !== activeRepo.default_branch ||
+      freshRepo.id !== activeRepo.id
+    ) {
+      setActiveRepo(freshRepo)
+    }
   }, [reposQuery.data, activeRepo, setActiveRepo])
 
   return {

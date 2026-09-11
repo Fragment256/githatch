@@ -152,6 +152,7 @@ export function canPreviewCron(expr: string): boolean {
   const [minute, hour, dom, month, dow] = parts
   if (dom !== '*' || month !== '*') return false
   if (minute.includes(',') || hour.includes(',')) return false
+  if (minute.startsWith('*/') && (hour !== '*' || dow !== '*')) return false
   if (hour.startsWith('*/') && dow !== '*') return false
   if (hour.startsWith('*/') && minute !== '0' && minute !== '00') return false
   return true

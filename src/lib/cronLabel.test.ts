@@ -375,6 +375,17 @@ describe('canPreviewCron', () => {
     expect(canPreviewCron('0-5 */2 * * *')).toBe(false)
     expect(canPreviewCron('0-3 */6 * * *')).toBe(false)
   })
+
+  it('returns false for */N minute with constrained hour or DOW (nextCronRun returns null for these)', () => {
+    // */N minute + constrained hour: nextCronRun branch-1 requires hour==='*'
+    expect(canPreviewCron('*/5 2 * * *')).toBe(false)
+    expect(canPreviewCron('*/10 9 * * *')).toBe(false)
+    // */N minute + specific DOW: nextCronRun branch-1 requires dow==='*'
+    expect(canPreviewCron('*/5 * * * 1')).toBe(false)
+    expect(canPreviewCron('*/15 * * * 1-5')).toBe(false)
+    // */N minute + both constrained
+    expect(canPreviewCron('*/5 2 * * 1')).toBe(false)
+  })
 })
 
 describe('formatRelativeTime', () => {

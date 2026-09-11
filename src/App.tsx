@@ -252,6 +252,7 @@ export default function App() {
                 user={user}
                 onLogout={() => {
                   logout()
+                  setSaving(false)
                   setActiveRepo(null)
                   setSecretStatus('loading')
                   setView('tasks')
