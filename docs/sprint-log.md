@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-11 (sprint 218)
+
+- Action: day 1 baseline
+- Summary: Full baseline: format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 564/564 ✓. No drift from sprint 217.
+- Next: sprint 219 (day 2 baseline)
+
+---
+
 ## 2026-09-11 (sprint 213)
 
 - Action: day 2 baseline
