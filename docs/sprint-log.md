@@ -2803,3 +2803,23 @@ No drift from sprint 215. No bugs found.
 **Tests:** 564/564 (no net change — 2 bug fix tests replaced 2 obsolete tests). Dry streak resets to 0.
 
 **Next sprint:** 218 (day 1 of new cycle — baseline).
+
+## Sprint 232 — 2026-09-11 (day 3 — Explore audit — 3 bugs fixed)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 572/572 ✓
+
+**Explore audit:** Full review of all 34 non-test source files (hooks, lib, App.tsx, all components). 3 correctness bugs fixed via TDD. 2 false positives dismissed.
+
+**Fixed (MEDIUM): `github.ts` `fetchRepoAgentConfig` — `parseNames` called on non-array** — GitHub Contents API returns a single plain object (not an array) when `.claude/skills` or `.claude/agents` is a regular file rather than a directory. `parseNames` calls `items.filter()` on the returned value; when that value is a plain object, `TypeError: items.filter is not a function` is thrown and propagates through `AgentConfig` to `<ErrorBoundary>`, showing an error fallback instead of the config panel. Fix: `Array.isArray` guard before calling `parseNames`; falls back to `[]` when the response is not an array. 1 regression test (RED→GREEN). `172c429`.
+
+**Fixed (MEDIUM): `TaskList.tsx` TaskRow — `outputFetchRequestId.current` not incremented on unmount** — Unmount cleanup set `isMountedRef.current = false` but did not increment `outputFetchRequestId.current`. An in-flight `fetchRunOutput` promise that resolved after unmount still passed the `outId` guard and called `setTriggeredOutput` on the unmounted component. React 18 silently no-ops this setState, so there is no user-visible regression; however, the guard should prevent the call. Fix: `++outputFetchRequestId.current` in unmount cleanup effect. No new test added (React 18 makes setState on unmounted component unobservable in RTL). `172c429`.
+
+**Fixed (LOW): `SecretsView.tsx` — `configuring` state not reset on repo switch** — `configuring` state (which secret is being entered via `TokenSetup`) was not cleared by the `[token, owner, repo, refreshCount]` effect cleanup. If the parent switched repo while `SecretsView` remained mounted and `configuring` was set (user had clicked Set), the `TokenSetup` form would remain visible for the new repo without the user having clicked Set. Fix: `setConfiguring(null)` added to effect cleanup. 1 regression test (RED→GREEN). `172c429`.
+
+**Dismissed (false positive): `TaskForm.tsx` stale initialConfig** — Reported as HIGH: `useState` lazy initializer for `values` doesn't re-run when `initialConfig` prop changes. Dismissed: `App.tsx` provides `key={editingTask?.slug ?? 'edit'}` and `key={duplicatingConfig ? 'dup-...' : selectedTemplate?.id ?? 'scratch'}` to all `TaskForm` instances, forcing remount when the task changes. No bug.
+
+**Dismissed (false positive): `ToolsPanel.tsx` `checkError` not cleared on install** — Reported as LOW: `handleInstall` doesn't call `setCheckError(null)`. Dismissed: `checkError` is only set when `checkToolInstalled` fails, which leaves `installed === null`; the Install/Reinstall button renders only when `installed !== null`. The two states are mutually exclusive — `checkError !== null` and the Install button being visible cannot both be true. No bug.
+
+**Tests:** 574/574 (+2). Dry streak resets to 0.
+
+**Next sprint:** 233 (day 1 of new cycle — baseline).
