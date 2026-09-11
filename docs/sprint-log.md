@@ -2624,3 +2624,11 @@ No drift from sprint 209. No bugs found.
 No correctness bugs found. Dry streak continues.
 
 **Next sprint:** 212 (day 1 of new cycle — baseline).
+
+## Sprint 212 — 2026-09-11 (day 1 — baseline)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 563/563 ✓
+
+No drift from sprint 211. No bugs found.
+
+**Next sprint:** 213 (day 2 — baseline).
