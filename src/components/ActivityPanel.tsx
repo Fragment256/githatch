@@ -167,22 +167,29 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
   )
   const openPRs = prCounts?.open ?? '…'
   const mergedPRs = prCounts?.merged ?? '…'
+  const taskMetricLoading =
+    taskActivity.some((a) => a.loading) || taskActivity.some((a) => a.error !== null)
 
   return (
     <div className="w-full space-y-8">
       {/* Summary row */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { label: 'Runs this week', value: runsThisWeek, truncated: runsThisWeekTruncated },
-          { label: 'Total runs', value: totalRuns },
-          { label: 'Open PRs', value: openPRs },
-          { label: 'Merged PRs', value: mergedPRs },
-        ].map(({ label, value, truncated }) => (
+          {
+            label: 'Runs this week',
+            value: runsThisWeek,
+            truncated: runsThisWeekTruncated,
+            isTaskMetric: true,
+          },
+          { label: 'Total runs', value: totalRuns, isTaskMetric: true },
+          { label: 'Open PRs', value: openPRs, isTaskMetric: false },
+          { label: 'Merged PRs', value: mergedPRs, isTaskMetric: false },
+        ].map(({ label, value, truncated, isTaskMetric }) => (
           <div key={label} className="border-2 border-black bg-white p-3">
             <p className="font-mono text-xs tracking-widest text-black/40 uppercase">{label}</p>
             <p className="mt-1 font-mono text-2xl font-bold text-black">
               {typeof value === 'number'
-                ? taskActivity.some((a) => a.loading) || taskActivity.some((a) => a.error !== null)
+                ? isTaskMetric && taskMetricLoading
                   ? '…'
                   : truncated
                     ? `${value}+`

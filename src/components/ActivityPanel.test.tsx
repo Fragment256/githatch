@@ -287,6 +287,40 @@ describe('ActivityPanel', () => {
     expect(label.textContent).not.toContain('5 runs')
   })
 
+  it('shows PR stat tiles immediately when getPRCounts resolves, even if task workflow runs are still loading', async () => {
+    // Regression: all numeric stat tiles shared one loading guard (taskActivity.some(a => a.loading)).
+    // PR count tiles derive from prCounts, not taskActivity — showing '…' until unrelated workflow
+    // run fetches finish was wrong; pr tiles should reflect their own loading state.
+    const task = makeTask('task-a', 1)
+
+    // Workflow runs never resolve (slow)
+    mockGetWorkflowRuns.mockReturnValue(new Promise<WorkflowRunsResult>(() => {}))
+
+    // PR counts resolve immediately
+    mockGetRecentCommits.mockResolvedValue([])
+    mockGetRecentPRs.mockResolvedValue([])
+    mockGetPRCounts.mockResolvedValue({ open: 5, merged: 12 })
+
+    render(<ActivityPanel tasks={[task]} token="t" owner="o" repo="r" defaultBranch="main" />)
+
+    // Once PR counts load, tiles [2] (Open PRs) and [3] (Merged PRs) must show numbers,
+    // not '…' caused by taskActivity still loading.
+    await waitFor(() => {
+      const allStatValues = screen.getAllByText((_, el) => {
+        return el?.tagName === 'P' && el.classList.contains('text-2xl')
+      })
+      expect(allStatValues[2].textContent).toBe('5')
+      expect(allStatValues[3].textContent).toBe('12')
+    })
+
+    // Task-derived tiles should still show '…' (workflow runs haven't resolved)
+    const allStatValues = screen.getAllByText((_, el) => {
+      return el?.tagName === 'P' && el.classList.contains('text-2xl')
+    })
+    expect(allStatValues[0].textContent).toBe('…')
+    expect(allStatValues[1].textContent).toBe('…')
+  })
+
   it('shows task-run stat tiles immediately when workflow runs resolve, even if repo API is still loading', async () => {
     // Regression: repoLoading was included in the guard for numeric stat tiles (Runs this week,
     // Total runs) — causing them to show '…' until *repo* API calls finished, even though
