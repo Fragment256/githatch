@@ -4,6 +4,12 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-11 (sprint 226 — Explore audit)
+
+- Action: day 3 Explore audit
+- Summary: 2 bugs fixed. HIGH: `auth.ts` token stored in `sessionStorage` while `active_repo` stored in `localStorage` — opening app in new tab found no token, triggered `setActiveRepo(null)`, which called `localStorage.removeItem('active_repo')`, destroying repo selection for all other tabs. Fix: move token storage to `localStorage` (PKCE verifier/state remain in `sessionStorage`). e2e seed helpers updated. LOW: `workflows.ts` `fetchRunOutput` for `issue_comment` type dereferenced `c.user.login` without null guard — GitHub API returns `user: null` for deleted accounts, causing TypeError and generic error UI. Fix: `c.user?.login` optional chain + TypeScript type narrowed to `{ login: string } | null`. Tests: 572/572 (+2). Commit `1340113`.
+- Next: sprint 227 (day 1 of new cycle — baseline)
+
 ## 2026-09-11 (sprint 225)
 
 - Action: day 2 baseline
