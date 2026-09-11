@@ -512,6 +512,14 @@ describe('patchScheduleInYaml', () => {
       '# Githatch — Test\nname: githatch-test\njobs:\n  run:\n    runs-on: ubuntu-latest\n'
     expect(() => patchScheduleInYaml(malformedYaml, '0 8 * * *')).toThrow(/could not locate/i)
   })
+
+  it('returns unchanged YAML when the same schedule is already set', () => {
+    // Regression: patchScheduleInYaml used `updated === yaml` to detect a no-match, but the
+    // test also fires when the replacement is byte-for-byte identical to the original —
+    // i.e. the schedule was already correct and no actual change was needed.
+    const result = patchScheduleInYaml(scheduledYaml, '0 9 * * 1')
+    expect(result).toBe(scheduledYaml)
+  })
 })
 
 describe('updateWorkflowSchedule', () => {

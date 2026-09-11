@@ -129,7 +129,7 @@ export async function getAuthenticatedUser(token: string): Promise<GitHubUser> {
   }
 
   const data = (await response.json()) as Partial<GitHubUser>
-  if (!data.login || !data.id) {
+  if (!data.login || data.id == null) {
     throw new Error('Unexpected response from GitHub /user endpoint')
   }
   return data as GitHubUser

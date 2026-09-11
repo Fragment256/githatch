@@ -153,16 +153,16 @@ export async function listGithatchTasks(params: TaskParams): Promise<GithatchTas
 }
 
 export function patchScheduleInYaml(yaml: string, schedule: string | undefined): string {
-  const onBlock = schedule
-    ? `on:\n  schedule:\n    - cron: '${schedule}'\n  workflow_dispatch:`
-    : `on:\n  workflow_dispatch:`
-  const updated = yaml.replace(/\non:[\s\S]*?\n+permissions:/, `\n${onBlock}\n\npermissions:`)
-  if (updated === yaml) {
+  const re = /\non:[\s\S]*?\n+permissions:/
+  if (!re.test(yaml)) {
     throw new Error(
       'Could not locate on:/permissions: block in workflow YAML — schedule not updated',
     )
   }
-  return updated
+  const onBlock = schedule
+    ? `on:\n  schedule:\n    - cron: '${schedule}'\n  workflow_dispatch:`
+    : `on:\n  workflow_dispatch:`
+  return yaml.replace(re, `\n${onBlock}\n\npermissions:`)
 }
 
 export async function updateWorkflowSchedule(params: {

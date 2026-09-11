@@ -251,6 +251,7 @@ export default function App() {
               <UserMenu
                 user={user}
                 onLogout={() => {
+                  ++editLoadRequestId.current
                   logout()
                   setSaving(false)
                   setActiveRepo(null)

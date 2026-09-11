@@ -23,7 +23,7 @@ export function useAuth() {
   const [state, setState] = useState<AuthState>({
     token: getStoredToken(),
     user: null,
-    loading: !!getStoredToken(),
+    loading: !!getStoredToken() || !!new URLSearchParams(window.location.search).get('code'),
     error: null,
   })
 

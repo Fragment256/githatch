@@ -961,4 +961,45 @@ describe('App — task form submission', () => {
     // Logo button must be disabled while saving is in-flight
     expect(screen.getByRole('button', { name: /githatch/i })).toBeDisabled()
   })
+
+  it('logout during save invalidates the in-flight save handler', async () => {
+    // Regression: onLogout did not increment editLoadRequestId, so the save handler's
+    // id guard passed even after logout — loadTasks() and addTask() ran against the
+    // stale (post-logout) token.
+    authWithRepo()
+
+    let resolveUpsert!: () => void
+    vi.mocked(github.upsertWorkflowFile).mockReturnValueOnce(
+      new Promise<void>((res) => {
+        resolveUpsert = res
+      }),
+    )
+
+    render(<App />, { wrapper })
+
+    // Fill new-task form and start commit (save in-flight, never resolves yet)
+    fireEvent.click(screen.getAllByRole('button', { name: /\+ new task/i })[0])
+    fireEvent.change(screen.getByLabelText(/task name/i), { target: { value: 'My Task' } })
+    fireEvent.change(screen.getByLabelText(/prompt/i), { target: { value: 'Do the thing.' } })
+    fireEvent.change(screen.getByPlaceholderText(/issue number/i), { target: { value: '1' } })
+    fireEvent.click(screen.getByRole('button', { name: /create task/i }))
+    await waitFor(() => screen.getByRole('button', { name: /commit to repo/i }))
+    fireEvent.click(screen.getByRole('button', { name: /commit to repo/i }))
+    await waitFor(() => expect(screen.getByRole('button', { name: /committing/i })).toBeDisabled())
+
+    // Clear call history — only track what happens after logout
+    mockLoad.mockClear()
+    mockAddTask.mockClear()
+
+    // Logout while save is in-flight
+    fireEvent.click(screen.getByRole('button', { name: /logout/i }))
+
+    // Resolve the previously-started save — loadTasks and addTask must NOT be called
+    await act(async () => {
+      resolveUpsert()
+    })
+
+    expect(mockLoad).not.toHaveBeenCalled()
+    expect(mockAddTask).not.toHaveBeenCalled()
+  })
 })
