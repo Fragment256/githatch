@@ -209,6 +209,7 @@ export default function App() {
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
             <button
+              disabled={saving}
               onClick={() => {
                 ++editLoadRequestId.current
                 setDuplicatingConfig(null)
@@ -217,7 +218,7 @@ export default function App() {
                 setSaving(false)
                 setView('tasks')
               }}
-              className="font-display shrink-0 text-xl font-black tracking-tighter"
+              className="font-display shrink-0 text-xl font-black tracking-tighter disabled:opacity-40"
             >
               Githatch
             </button>

@@ -883,11 +883,16 @@ describe('App — task form submission', () => {
     expect(screen.queryAllByRole('button', { name: /\+ new task/i }).length).toBe(0)
   })
 
-  it('clicking Githatch logo during an in-flight save resets saving so the next form is not stuck loading', async () => {
-    // Regression: setSaving(false) in finally blocks had no ID guard and the logo onClick
-    // did not call setSaving(false). If the user navigated away mid-save and opened a new
-    // form, the "Commit to repo" button showed as "Committing…" (disabled) immediately on
-    // render — before they even clicked anything.
+  it('Githatch logo re-enables after save completes so navigation and next form work', async () => {
+    // Regression guard: logo is disabled while saving=true (prevents mid-save navigation);
+    // after save resolves, logo must re-enable so the user can navigate away normally.
+    let resolveUpsert!: () => void
+    vi.mocked(github.upsertWorkflowFile).mockReturnValueOnce(
+      new Promise<void>((res) => {
+        resolveUpsert = res
+      }),
+    )
+
     render(<App />, { wrapper })
 
     // Navigate to new-task, fill out form, advance to preview
@@ -898,17 +903,17 @@ describe('App — task form submission', () => {
     fireEvent.click(screen.getByRole('button', { name: /create task/i }))
     await waitFor(() => screen.getByRole('button', { name: /commit to repo/i }))
 
-    // Start a commit that never resolves
-    vi.mocked(github.upsertWorkflowFile).mockReturnValueOnce(new Promise<void>(() => {}))
+    // Start commit — logo must be disabled while in-flight
     fireEvent.click(screen.getByRole('button', { name: /commit to repo/i }))
-    // Button now shows "Committing…" while save is in flight
     await waitFor(() => expect(screen.getByRole('button', { name: /committing/i })).toBeDisabled())
+    expect(screen.getByRole('button', { name: /githatch/i })).toBeDisabled()
 
-    // User clicks the Githatch logo — navigates away
-    fireEvent.click(screen.getByRole('button', { name: /githatch/i }))
+    // Resolve the save — logo must become enabled again
+    resolveUpsert()
     await waitFor(() =>
       expect(screen.getAllByRole('button', { name: /\+ new task/i }).length).toBeGreaterThan(0),
     )
+    expect(screen.getByRole('button', { name: /githatch/i })).not.toBeDisabled()
 
     // Open a brand new task form — the commit button must NOT be stuck loading
     fireEvent.click(screen.getAllByRole('button', { name: /\+ new task/i })[0])
@@ -918,7 +923,6 @@ describe('App — task form submission', () => {
     fireEvent.click(screen.getByRole('button', { name: /create task/i }))
     await waitFor(() => screen.getByRole('button', { name: /commit to repo/i }))
 
-    // Commit button must be enabled and show "Commit to repo" (not "Committing…")
     const commitBtn = screen.getByRole('button', { name: /commit to repo/i })
     expect(commitBtn).not.toBeDisabled()
   })
@@ -966,5 +970,27 @@ describe('App — task form submission', () => {
     // The Back button on the new form must NOT be stuck disabled
     const formBackBtn = screen.getByRole('button', { name: /← back/i })
     expect(formBackBtn).not.toBeDisabled()
+  })
+
+  it('Githatch logo button is disabled while save is in-flight', async () => {
+    // Regression: logo button lacked disabled={saving}, allowing navigation mid-save which
+    // could silently drop rename errors (old + new workflow files left in repo with no UI feedback).
+    render(<App />, { wrapper })
+
+    // Navigate to new-task, fill form, reach the commit screen
+    fireEvent.click(screen.getAllByRole('button', { name: /\+ new task/i })[0])
+    fireEvent.change(screen.getByLabelText(/task name/i), { target: { value: 'My Task' } })
+    fireEvent.change(screen.getByLabelText(/prompt/i), { target: { value: 'Do the thing.' } })
+    fireEvent.change(screen.getByPlaceholderText(/issue number/i), { target: { value: '1' } })
+    fireEvent.click(screen.getByRole('button', { name: /create task/i }))
+    await waitFor(() => screen.getByRole('button', { name: /commit to repo/i }))
+
+    // Start a commit that never resolves — saving=true
+    vi.mocked(github.upsertWorkflowFile).mockReturnValueOnce(new Promise<void>(() => {}))
+    fireEvent.click(screen.getByRole('button', { name: /commit to repo/i }))
+    await waitFor(() => expect(screen.getByRole('button', { name: /committing/i })).toBeDisabled())
+
+    // Logo button must be disabled while saving is in-flight
+    expect(screen.getByRole('button', { name: /githatch/i })).toBeDisabled()
   })
 })
