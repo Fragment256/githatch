@@ -832,10 +832,10 @@ describe('App — task form submission', () => {
     expect(callOrder.indexOf('load')).toBeLessThan(callOrder.indexOf('addTask'))
   })
 
-  it('completed edit-form save does not snap user back to tasks if they navigated away during the save', async () => {
-    // Regression: handleEditFormSubmit called setView('tasks') unconditionally after await.
-    // If the user clicked About (incrementing editLoadRequestId) while the save was in flight,
-    // the completed save snapped them back to the tasks view.
+  it('About button is disabled while edit-form save is in-flight', async () => {
+    // Regression guard: About button lacked disabled={saving}, so clicking it during a save
+    // invalidated the editLoadRequestId guard, causing loadTasks() to be skipped after a
+    // successful save — leaving the task list stale with the task silently missing.
     const task: GithatchTask = {
       slug: 'daily-digest',
       displayName: 'Daily Digest',
@@ -851,12 +851,7 @@ describe('App — task form submission', () => {
       'name: Daily Digest\non:\n  schedule:\n    - cron: "0 9 * * *"\n  workflow_dispatch:\njobs:\n  run:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: anthropics/claude-code-action@v1\n        with:\n          prompt: |\n            Summarize.\n',
     )
 
-    let resolveUpsert: () => void = () => {}
-    vi.mocked(github.upsertWorkflowFile).mockReturnValueOnce(
-      new Promise<void>((r) => {
-        resolveUpsert = r
-      }),
-    )
+    vi.mocked(github.upsertWorkflowFile).mockReturnValueOnce(new Promise<void>(() => {}))
 
     render(<App />, { wrapper })
 
@@ -866,21 +861,12 @@ describe('App — task form submission', () => {
     fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
     await waitFor(() => screen.getByRole('button', { name: /commit to repo/i }))
 
-    // Start slow commit
+    // Start slow commit — saving=true
     fireEvent.click(screen.getByRole('button', { name: /commit to repo/i }))
+    await waitFor(() => expect(screen.getByRole('button', { name: /committing/i })).toBeDisabled())
 
-    // User navigates to About while save is in flight
-    fireEvent.click(screen.getByRole('button', { name: /about/i }))
-    expect(screen.getByRole('heading', { name: /why/i })).toBeInTheDocument()
-
-    // Save completes
-    await act(async () => {
-      resolveUpsert()
-    })
-
-    // Must stay on About — not snapped back to tasks view
-    expect(screen.getByRole('heading', { name: /why/i })).toBeInTheDocument()
-    expect(screen.queryAllByRole('button', { name: /\+ new task/i }).length).toBe(0)
+    // About button must be disabled while saving is in-flight
+    expect(screen.getByRole('button', { name: /about/i })).toBeDisabled()
   })
 
   it('Githatch logo re-enables after save completes so navigation and next form work', async () => {
@@ -927,12 +913,10 @@ describe('App — task form submission', () => {
     expect(commitBtn).not.toBeDisabled()
   })
 
-  it('About button click during in-flight save does not permanently disable Back button on next form', async () => {
-    // Regression: About button incremented editLoadRequestId but not setSaving(false),
-    // so the finally guard in handleTaskFormSubmit/handleEditFormSubmit skipped the reset,
-    // leaving saving=true permanently. The AboutPage back (← Back) and onBack call
-    // setView('tasks') without resetting saving, so the bug is visible via that path.
-    // (The Githatch logo button explicitly calls setSaving(false) — that path already worked.)
+  it('About button is disabled while save is in-flight', async () => {
+    // Regression: About button lacked disabled={saving}, so clicking it during a save incremented
+    // editLoadRequestId, invalidating the save handler's guard. The save completed on GitHub but
+    // loadTasks()/addTask() were skipped, leaving the task list stale with no error shown.
     mockUseTasks.mockReturnValue(defaultTasksState)
     vi.mocked(github.upsertWorkflowFile).mockReturnValueOnce(new Promise<void>(() => {}))
 
@@ -952,24 +936,8 @@ describe('App — task form submission', () => {
     fireEvent.click(screen.getByRole('button', { name: /commit to repo/i }))
     await waitFor(() => expect(screen.getByRole('button', { name: /committing/i })).toBeDisabled())
 
-    // Click About while save is in-flight — increments editLoadRequestId, skips setSaving(false)
-    fireEvent.click(screen.getByRole('button', { name: /about/i }))
-    await waitFor(() => expect(screen.getByRole('heading', { name: /why/i })).toBeInTheDocument())
-
-    // Navigate back to tasks via AboutPage's ← Back (does NOT call setSaving(false) directly)
-    // This is the path that exposes the stuck-saving bug
-    const backBtns = screen.getAllByRole('button', { name: /← back/i })
-    fireEvent.click(backBtns[0])
-    await waitFor(() =>
-      expect(screen.getAllByRole('button', { name: /\+ new task/i }).length).toBeGreaterThan(0),
-    )
-
-    // Open a fresh new-task form
-    fireEvent.click(screen.getAllByRole('button', { name: /\+ new task/i })[0])
-
-    // The Back button on the new form must NOT be stuck disabled
-    const formBackBtn = screen.getByRole('button', { name: /← back/i })
-    expect(formBackBtn).not.toBeDisabled()
+    // About button must be disabled while saving is in-flight (matches logo button behavior)
+    expect(screen.getByRole('button', { name: /about/i })).toBeDisabled()
   })
 
   it('Githatch logo button is disabled while save is in-flight', async () => {

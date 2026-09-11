@@ -237,12 +237,13 @@ export default function App() {
               {theme === 'dark' ? 'Light' : 'Dark'}
             </button>
             <button
+              disabled={saving}
               onClick={() => {
                 ++editLoadRequestId.current
                 setSaving(false)
                 setView('about')
               }}
-              className="px-2 font-mono text-xs tracking-widest text-black/40 uppercase hover:text-black"
+              className="px-2 font-mono text-xs tracking-widest text-black/40 uppercase hover:text-black disabled:opacity-40"
             >
               About
             </button>

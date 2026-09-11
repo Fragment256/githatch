@@ -167,8 +167,7 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
   )
   const openPRs = prCounts?.open ?? '…'
   const mergedPRs = prCounts?.merged ?? '…'
-  const taskMetricLoading =
-    taskActivity.some((a) => a.loading) || taskActivity.some((a) => a.error !== null)
+  const taskMetricLoading = taskActivity.some((a) => a.loading)
 
   return (
     <div className="w-full space-y-8">
