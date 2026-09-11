@@ -2925,3 +2925,23 @@ No drift from sprint 215. No bugs found.
 **Lint regression fix (LOW): `TaskList.tsx` cleanup — `react-hooks/exhaustive-deps` warning on `++outputFetchRequestId.current`** — Sprint 232 added `++outputFetchRequestId.current` to the unmount cleanup effect (intentional cancellation of pending async ops), but this triggered `react-hooks/exhaustive-deps` ESLint warning because `.current` is accessed inside a cleanup closure. The increment is a write, not a read of a stale value — the pattern is intentional. Fix: `// eslint-disable-next-line react-hooks/exhaustive-deps` comment to suppress false-positive. No test change (same 574/574).
 
 **Next sprint:** 234 (day 2 — baseline).
+
+## Sprint 247 — 2026-09-11 (day 3 — Explore audit — 3 bugs fixed)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 579/579 ✓
+
+**Explore audit:** Full review of all 34 non-test source files (hooks, lib, App.tsx, all components). 3 correctness bugs fixed via TDD. 2 false positives dismissed.
+
+**Fixed (MEDIUM): `App.tsx` `onLogout` missing `editLoadRequestId` increment** — Every navigation action (logo, About, tabs, Secrets) increments `editLoadRequestId.current` to invalidate any in-flight save handler's `id === editLoadRequestId.current` guard. The `onLogout` handler was the only navigation path that did not. A user who clicked Logout during a save would trigger `loadTasks()` and `addTask()` on the post-logout (stale) token when the save completed. Fix: `++editLoadRequestId.current` at start of `onLogout`. 1 regression test (RED→GREEN). `fbad0bd`.
+
+**Fixed (MEDIUM): `workflows.ts` `patchScheduleInYaml` false-positive throw** — The function used `updated === yaml` to detect "regex not matched", but this test is also true when the replacement string is byte-for-byte identical to the matched slice — i.e. the schedule was already correct and no change was needed. Callers setting the same schedule (idempotent update) received a spurious "Could not locate" error. Fix: test the regex independently with `re.test(yaml)` before replacing. 1 regression test (RED→GREEN). `fbad0bd`.
+
+**Fixed (LOW): `auth.ts` `fetchCurrentUser` — `!data.id` conflates `undefined` with `0`** — GitHub user IDs are always positive, so `0` cannot arrive in a real response, but `!data.id` misreads the intent: `undefined` (field absent) should be the only guard, not `falsy`. Fix: `data.id == null` strict null check. No new test (zero is not a real GitHub ID; semantic-only correction). `fbad0bd`.
+
+**Dismissed (false positive): `ActivityPanel.tsx` `pageCoversWeek` on errored tasks** — When a task's `getWorkflowRuns` call rejects, `runs=[]` and `totalCount=0` (defaults), so `0 >= 0 = true` means `pageCoversWeek=true` and `runsThisWeekTruncated` is not set. Dismissed: the design decision is that errored tasks contribute 0 to the count without a truncation indicator; showing `0+` would be misleading. The existing test at line 147 explicitly encodes this.
+
+**Dismissed (false positive): `TaskList.tsx` `prevRunIdRef` overwritten by slow initial fetch** — Dismissed: the initial fetch request is sent before `triggerWorkflow` is called; GitHub processes it against the pre-trigger state, so the response cannot include the triggered run. The existing test "does not show output from a pre-existing run when trigger fires before initial fetch resolves" covers and validates the correct behavior.
+
+**Tests:** 581/581 (+2). Dry streak resets to 0.
+
+**Next sprint:** 248 (day 1 of new cycle — baseline).
