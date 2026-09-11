@@ -350,6 +350,7 @@ function TaskRow({
   useEffect(() => {
     return () => {
       isMountedRef.current = false
+      ++outputFetchRequestId.current
       if (triggeredTimerRef.current !== null) clearTimeout(triggeredTimerRef.current)
     }
   }, [])

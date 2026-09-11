@@ -54,6 +54,7 @@ export function SecretsView({ token, owner, repo, onDone }: Props) {
     return () => {
       // eslint-disable-next-line react-hooks/exhaustive-deps
       ++requestIdRef.current
+      setConfiguring(null)
     }
   }, [token, owner, repo, refreshCount])
 

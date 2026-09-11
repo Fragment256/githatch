@@ -204,4 +204,26 @@ describe('SecretsView', () => {
     )
     expect(screen.getByRole('button', { name: /save to repo/i })).toBeInTheDocument()
   })
+
+  it('resets configuring state when repo changes so TokenSetup is not shown for new repo', async () => {
+    // Regression: configuring state was not cleared by the [token, owner, repo] effect;
+    // switching repos while the token-entry form was open left it open for the new repo
+    // without the user having clicked Set, potentially confusing or misleading them.
+    vi.spyOn(secrets, 'checkSecretExists').mockResolvedValue(false)
+    const { rerender } = render(<SecretsView {...BASE_PROPS} />)
+
+    // Wait for secrets to load then open the token-entry form for first secret
+    await waitFor(() => screen.getAllByRole('button', { name: /^set$/i }))
+    fireEvent.click(screen.getAllByRole('button', { name: /^set$/i })[0])
+    await waitFor(() => screen.getByRole('button', { name: /save to repo/i }))
+
+    // Switch to a different repo — configuring should reset → secrets list, not TokenSetup
+    rerender(<SecretsView {...BASE_PROPS} repo="other-repo" />)
+
+    // TokenSetup must be dismissed; the secrets list heading must be visible
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: /save to repo/i })).not.toBeInTheDocument(),
+    )
+    expect(screen.getByText('Secrets')).toBeInTheDocument()
+  })
 })

@@ -192,12 +192,14 @@ export async function fetchRepoAgentConfig(params: {
   const hasClaude = isPresent(claudeRes)
   const hasSettings = isPresent(settingsRes)
 
-  const skills = isPresent(skillsRes)
-    ? parseNames((await skillsRes.value.json()) as Array<{ name: string; type: string }>)
+  const skillsRaw = isPresent(skillsRes) ? await skillsRes.value.json() : []
+  const skills = Array.isArray(skillsRaw)
+    ? parseNames(skillsRaw as Array<{ name: string; type: string }>)
     : []
 
-  const agents = isPresent(agentsRes)
-    ? parseNames((await agentsRes.value.json()) as Array<{ name: string; type: string }>)
+  const agentsRaw = isPresent(agentsRes) ? await agentsRes.value.json() : []
+  const agents = Array.isArray(agentsRaw)
+    ? parseNames(agentsRaw as Array<{ name: string; type: string }>)
     : []
 
   const hasAgentsMd = isPresent(agentsMdRes)

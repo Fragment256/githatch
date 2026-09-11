@@ -374,6 +374,30 @@ describe('fetchRepoAgentConfig', () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Failed to fetch')))
     await expect(fetchRepoAgentConfig(params)).rejects.toThrow('Failed to fetch')
   })
+
+  it('returns empty skills/agents when GitHub returns a plain object instead of an array', async () => {
+    // GitHub Contents API returns a single object (not an array) when the path is a file.
+    // This happens if .claude/skills or .claude/agents was accidentally created as a file.
+    const fetchMock = vi.fn()
+    fetchMock
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([]) }) // CLAUDE.md
+      .mockResolvedValueOnce({ ok: false, status: 404 }) // settings.json
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ name: 'skills', type: 'file', content: 'blob' }),
+      }) // .claude/skills (file, not directory)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ name: 'agents', type: 'file', content: 'blob' }),
+      }) // .claude/agents (file, not directory)
+      .mockResolvedValueOnce({ ok: false, status: 404 }) // AGENTS.md
+      .mockResolvedValueOnce({ ok: false, status: 404 }) // codex config
+      .mockResolvedValueOnce({ ok: false, status: 404 }) // codex hooks
+    vi.stubGlobal('fetch', fetchMock)
+    const config = await fetchRepoAgentConfig(params)
+    expect(config.skills).toEqual([])
+    expect(config.agents).toEqual([])
+  })
 })
 
 describe('getRecentCommits', () => {
