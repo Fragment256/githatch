@@ -4,11 +4,27 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-11 (sprint 219)
+
+- Action: day 2 baseline
+- Summary: Full baseline: format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 566/566 ✓. No drift from sprint 218.
+- Next: sprint 220 (day 3 — Explore audit)
+
+---
+
+## 2026-09-11 (sprint 218 — Explore audit)
+
+- Action: day 3 Explore audit
+- Summary: 2 bugs fixed. HIGH: `fetchRunOutput` file links used branch HEAD instead of run's `head_sha`; historical "View output" showed current file, not run-time file. Fix: capture `head_sha` from workflow runs API, use as git ref (fallback: `defaultBranch`). LOW: `upsertWorkflowFile` commit message always said "add" even on updates; fix: "update" when SHA present. Tests: 566/566 (+2). Commits `d916c23`, `2f38a0f`.
+- Next: sprint 219 (day 1 of new cycle — baseline)
+
+---
+
 ## 2026-09-11 (sprint 218)
 
 - Action: day 1 baseline
 - Summary: Full baseline: format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 564/564 ✓. No drift from sprint 217.
-- Next: sprint 219 (day 2 baseline)
+- Next: sprint 218 Explore audit (day 3)
 
 ---
 
