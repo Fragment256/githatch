@@ -62,7 +62,7 @@ describe('scanContent', () => {
   })
 
   it('flags exec() shell invocations', () => {
-    expect(scanContent("exec('rm -rf /')")  ).toContain('exec(...) shell invocation')
+    expect(scanContent("exec('rm -rf /')")).toContain('exec(...) shell invocation')
   })
 
   it('does not flag execFileSync or execSync (only bare exec call)', () => {
