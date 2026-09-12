@@ -171,11 +171,12 @@ describe('ToolsPanel', () => {
     expect((btn as HTMLButtonElement).disabled).toBe(false)
   })
 
-  it('shows check error and hides Install button when checkToolInstalled throws (e.g. 403)', async () => {
+  it('shows check error and Install button when checkToolInstalled throws (e.g. 403)', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 403 }))
     render(<ToolsPanel {...defaultProps} />)
     await waitFor(() => screen.getByText(/403/))
-    expect(screen.queryByRole('button', { name: 'Install' })).toBeNull()
+    // Install button must be present so the user can proceed without a page reload
+    expect(screen.getByRole('button', { name: 'Install' })).toBeDefined()
     expect(screen.queryByRole('button', { name: 'Reinstall' })).toBeNull()
   })
 
