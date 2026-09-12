@@ -156,6 +156,36 @@ describe('TokenSetup — CLAUDE_CODE_OAUTH_TOKEN', () => {
     expect(screen.getByRole('button', { name: /save to repo/i })).toBeInTheDocument()
     expect(screen.queryByText(/already set on this repo/i)).not.toBeInTheDocument()
   })
+
+  it('stale handleSave does not show done state after owner/repo changes mid-flight', async () => {
+    // Regression: handleSave called setPhase('done') unconditionally; if owner/repo props changed
+    // while putRepoSecret was in flight the cleanup incremented requestIdRef but the save result
+    // still resolved and showed "token stored successfully" for the wrong repo context.
+    let resolveSave!: () => void
+    const savePending = new Promise<void>((r) => {
+      resolveSave = r
+    })
+
+    vi.spyOn(secrets, 'checkSecretExists').mockResolvedValue(false)
+    vi.spyOn(secrets, 'putRepoSecret').mockReturnValueOnce(savePending.then(() => undefined))
+
+    const { rerender } = render(<TokenSetup {...BASE_PROPS} />)
+
+    await waitFor(() => screen.getByLabelText(/paste token/i))
+    fireEvent.change(screen.getByLabelText(/paste token/i), { target: { value: 'gho_tok' } })
+    fireEvent.click(screen.getByRole('button', { name: /save to repo/i }))
+
+    // Props change mid-flight — cleanup fires, requestIdRef incremented
+    rerender(<TokenSetup {...BASE_PROPS} owner="other-owner" repo="other-repo" />)
+
+    // Resolve the now-stale save
+    await act(async () => {
+      resolveSave()
+    })
+
+    // 'done' state must not appear — stale save result was discarded
+    expect(screen.queryByText(/token stored successfully/i)).not.toBeInTheDocument()
+  })
 })
 
 describe('TokenSetup — OPENAI_API_KEY', () => {

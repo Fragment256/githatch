@@ -105,12 +105,15 @@ export function TokenSetup({ token, owner, repo, secretName, onDone, forceSetup 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!value.trim()) return
+    const saveId = ++requestIdRef.current
     setPhase('saving')
     setError(null)
     try {
       await putRepoSecret({ token, owner, repo, secretName, secretValue: value.trim() })
+      if (saveId !== requestIdRef.current) return
       setPhase('done')
     } catch (err) {
+      if (saveId !== requestIdRef.current) return
       setError(err instanceof Error ? err.message : 'Failed to store secret')
       setPhase('error')
     }

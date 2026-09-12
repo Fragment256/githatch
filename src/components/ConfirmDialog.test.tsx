@@ -2,6 +2,27 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { ConfirmDialog } from './ConfirmDialog'
 
+function withStrictShowModal(fn: () => void) {
+  let isOpen = false
+  const origShow = HTMLDialogElement.prototype.showModal
+  const origClose = HTMLDialogElement.prototype.close
+  HTMLDialogElement.prototype.showModal = function () {
+    if (isOpen) throw new DOMException('The dialog is already open.', 'InvalidStateError')
+    isOpen = true
+    this.setAttribute('open', '')
+  }
+  HTMLDialogElement.prototype.close = function () {
+    isOpen = false
+    this.removeAttribute('open')
+  }
+  try {
+    fn()
+  } finally {
+    HTMLDialogElement.prototype.showModal = origShow
+    HTMLDialogElement.prototype.close = origClose
+  }
+}
+
 describe('ConfirmDialog', () => {
   it('shows confirmLabel in loading state, not hardcoded "Deleting…"', () => {
     render(
@@ -65,5 +86,25 @@ describe('ConfirmDialog', () => {
     const dialog = document.querySelector('dialog')!
     fireEvent.click(dialog)
     expect(onCancel).not.toHaveBeenCalled()
+  })
+
+  it('effect cleanup closes the dialog so a re-invoked showModal does not throw', () => {
+    // Regression: useEffect for open=true had no cleanup, so StrictMode's unmount+remount
+    // sequence would call showModal() on an already-open dialog → DOMException.
+    withStrictShowModal(() => {
+      const props = {
+        open: true as boolean,
+        title: 'Test',
+        message: 'msg',
+        onConfirm: vi.fn(),
+        onCancel: vi.fn(),
+      }
+      const { unmount } = render(<ConfirmDialog {...props} />)
+      // Simulates StrictMode cleanup — cleanup must close the dialog
+      expect(() => {
+        unmount()
+        render(<ConfirmDialog {...props} />)
+      }).not.toThrow()
+    })
   })
 })

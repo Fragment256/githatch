@@ -32,6 +32,9 @@ export function ConfirmDialog({
     if (open) {
       el.showModal()
       cancelRef.current?.focus()
+      return () => {
+        if (el.open) el.close()
+      }
     } else {
       el.close()
     }
