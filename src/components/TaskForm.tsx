@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import {
   generateWorkflowYaml,
   slugify,
@@ -187,6 +187,10 @@ export function TaskForm({
   const [error, setError] = useState<string | null>(null)
   const [viewState, setViewState] = useState<'form' | 'preview'>('form')
   const [pending, setPending] = useState<PendingSubmit | null>(null)
+  const submittingRef = useRef(false)
+  useEffect(() => {
+    if (!loading) submittingRef.current = false
+  }, [loading])
 
   const set = <K extends keyof TaskFormValues>(key: K, value: TaskFormValues[K]) =>
     setValues((v) => ({ ...v, [key]: value }))
@@ -236,7 +240,10 @@ export function TaskForm({
   }
 
   const handleConfirmCommit = () => {
-    if (pending) onSubmit(pending.yaml, pending.slug, pending.config)
+    if (pending && !submittingRef.current) {
+      submittingRef.current = true
+      onSubmit(pending.yaml, pending.slug, pending.config)
+    }
   }
 
   const handleBackToEdit = () => {

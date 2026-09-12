@@ -331,8 +331,18 @@ function TaskRow({
   const [toggling, setToggling] = useState(false)
   const [toggleError, setToggleError] = useState<string | null>(null)
   const [enabled, setEnabled] = useState(task.enabled)
+  // After a successful toggle, holds the committed state. Prevents a parent re-render with
+  // stale task.enabled (from polling before GitHub propagates) from overwriting local state.
+  // Cleared once the parent's task.enabled finally matches the committed value.
+  const resolvedEnabledRef = useRef<boolean | null>(null)
   useEffect(() => {
-    setEnabled(task.enabled)
+    if (resolvedEnabledRef.current === null) {
+      setEnabled(task.enabled)
+    } else if (resolvedEnabledRef.current === task.enabled) {
+      resolvedEnabledRef.current = null
+      setEnabled(task.enabled)
+    }
+    // else: parent still stale — skip until it catches up
   }, [task.enabled])
   const [lastRun, setLastRun] = useState<WorkflowRun | null>(null)
   const [polling, setPolling] = useState(false)
@@ -478,14 +488,15 @@ function TaskRow({
     if (!task.workflowId) return
     setToggling(true)
     setToggleError(null)
+    const nextEnabled = !enabled
     try {
       if (enabled) {
         await disableWorkflow({ token, owner, repo, workflowId: task.workflowId, defaultBranch })
-        if (isMountedRef.current) setEnabled(false)
       } else {
         await enableWorkflow({ token, owner, repo, workflowId: task.workflowId, defaultBranch })
-        if (isMountedRef.current) setEnabled(true)
       }
+      resolvedEnabledRef.current = nextEnabled
+      if (isMountedRef.current) setEnabled(nextEnabled)
     } catch (err) {
       if (isMountedRef.current)
         setToggleError(err instanceof Error ? err.message : 'Failed to update workflow state')

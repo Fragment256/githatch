@@ -1833,4 +1833,27 @@ describe('TaskList', () => {
     )
     expect(screen.queryByRole('button', { name: /pause task/i })).not.toBeInTheDocument()
   })
+
+  it('ignores stale parent task.enabled after toggle resolves (resolvedEnabledRef guard)', async () => {
+    vi.spyOn(workflows, 'disableWorkflow').mockResolvedValue(undefined)
+    const enabledTask: GithatchTask = { ...TASK, enabled: true }
+    const { rerender } = render(<TaskList {...BASE_PROPS} tasks={[enabledTask]} />)
+
+    // Click Pause — API resolves immediately
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /pause task/i }))
+    })
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /resume task/i })).toBeInTheDocument(),
+    )
+
+    // Parent polls and re-renders with stale task.enabled=true (GitHub hasn't propagated yet)
+    rerender(<TaskList {...BASE_PROPS} tasks={[enabledTask]} />)
+
+    // The Resume button must remain — stale parent data must not flip it back to Pause
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /resume task/i })).toBeInTheDocument(),
+    )
+    expect(screen.queryByRole('button', { name: /pause task/i })).not.toBeInTheDocument()
+  })
 })

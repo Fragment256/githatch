@@ -145,6 +145,17 @@ describe('TaskForm', () => {
     expect(slug).toBe('my-task')
   })
 
+  it('does not call onSubmit twice on rapid double-click of Commit to repo (submittingRef guard)', () => {
+    render(<TaskForm onSubmit={mockSubmit} loading={false} />)
+    fillMinimal()
+    fireEvent.click(screen.getByRole('button', { name: /create task/i }))
+    const commitBtn = screen.getByRole('button', { name: /commit to repo/i })
+    // Two synchronous clicks before the loading prop propagates back
+    fireEvent.click(commitBtn)
+    fireEvent.click(commitBtn)
+    expect(mockSubmit).toHaveBeenCalledOnce()
+  })
+
   // Byte-identical: YAML shown in preview equals what's passed to onSubmit
   it('yaml shown in preview is byte-identical to yaml passed to onSubmit', () => {
     render(<TaskForm onSubmit={mockSubmit} />)
