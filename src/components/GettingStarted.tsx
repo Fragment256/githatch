@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 
 export type SecretStatus = 'loading' | 'present' | 'absent' | 'unknown'
 
@@ -21,22 +21,20 @@ export function GettingStarted({
   onSetupToken,
   onNewTask,
 }: GettingStartedProps) {
-  const [dismissed, setDismissed] = useState(
-    () => localStorage.getItem(dismissKey(repoFullName)) === 'true',
-  )
-
-  useEffect(() => {
-    setDismissed(localStorage.getItem(dismissKey(repoFullName)) === 'true')
-  }, [repoFullName])
+  // Track which repo the user dismissed in this session. On repo change, dismissedFor !== repoFullName
+  // so localStorage is checked synchronously — no stale-state frame from useEffect.
+  const [dismissedFor, setDismissedFor] = useState<string | null>(null)
+  const isDismissed =
+    dismissedFor === repoFullName || localStorage.getItem(dismissKey(repoFullName)) === 'true'
 
   const allDone = secretStatus === 'present' && hasTasks
 
   function dismiss() {
     localStorage.setItem(dismissKey(repoFullName), 'true')
-    setDismissed(true)
+    setDismissedFor(repoFullName)
   }
 
-  if (allDone && dismissed) return null
+  if (allDone && isDismissed) return null
 
   if (allDone) {
     return (

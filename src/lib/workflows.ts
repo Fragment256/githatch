@@ -109,7 +109,9 @@ export async function listGithatchTasks(params: TaskParams): Promise<GithatchTas
   if (!contentsRes.ok) {
     throw new Error(`Failed to list workflow files: ${contentsRes.status}`)
   }
-  const files = (await contentsRes.json()) as Array<{ name: string; path: string }>
+  const contentsData = (await contentsRes.json()) as unknown
+  if (!Array.isArray(contentsData)) return []
+  const files = contentsData as Array<{ name: string; path: string }>
   const githatchFiles = files.filter(
     (f) =>
       f.name.startsWith('githatch-') &&

@@ -227,6 +227,23 @@ describe('listGithatchTasks', () => {
     ).rejects.toThrow()
   })
 
+  it('returns empty array when contents API returns a non-array (file instead of directory)', async () => {
+    // GitHub returns an object (not array) when the path resolves to a file rather than a directory.
+    // Without an Array.isArray guard, files.filter() throws TypeError.
+    const fileObject = { name: 'workflows', type: 'file', path: '.github/workflows', sha: 'abc' }
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(fileObject) })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const result = await listGithatchTasks({
+      token: 'gho_test',
+      owner: 'testuser',
+      repo: 'my-repo',
+    })
+    expect(result).toEqual([])
+  })
+
   it('throws when a per-file content fetch returns a non-404 error (task must not silently vanish)', async () => {
     const workflowsListResponse = [
       { name: 'githatch-daily-standup.yml', path: '.github/workflows/githatch-daily-standup.yml' },
