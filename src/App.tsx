@@ -90,13 +90,13 @@ export default function App() {
   async function handleDuplicateTask(task: GithatchTask) {
     if (!token) return
     const id = ++editLoadRequestId.current
+    setSaveError(null)
     try {
       const yaml = await fetchFileContent({ token, owner, repo, path: task.path })
       if (id !== editLoadRequestId.current) return
       const config = taskConfigFromYaml(task.displayName, task.schedule || undefined, yaml)
       setDuplicatingConfig({ ...config, name: `${config.name} Copy` })
       setSelectedTemplate(null)
-      setSaveError(null)
       setView('new-task')
     } catch (err) {
       if (id !== editLoadRequestId.current) return
@@ -107,6 +107,7 @@ export default function App() {
   async function handleEditTask(task: GithatchTask) {
     if (!token) return
     const id = ++editLoadRequestId.current
+    setSaveError(null)
     try {
       const yaml = await fetchFileContent({ token, owner, repo, path: task.path })
       if (id !== editLoadRequestId.current) return
@@ -114,7 +115,6 @@ export default function App() {
       setEditingTask(task)
       setEditingConfig(config)
       setEditingOriginalYaml(yaml)
-      setSaveError(null)
       setView('edit-task')
     } catch (err) {
       if (id !== editLoadRequestId.current) return
@@ -327,6 +327,7 @@ export default function App() {
                 <button
                   onClick={() => {
                     ++editLoadRequestId.current
+                    setSaveError(null)
                     setView('tools')
                   }}
                   className={`px-3 py-1 font-mono text-xs tracking-widest uppercase transition-colors duration-100 ${
@@ -338,6 +339,7 @@ export default function App() {
                 <button
                   onClick={() => {
                     ++editLoadRequestId.current
+                    setSaveError(null)
                     setView('activity')
                   }}
                   className={`px-3 py-1 font-mono text-xs tracking-widest uppercase transition-colors duration-100 ${

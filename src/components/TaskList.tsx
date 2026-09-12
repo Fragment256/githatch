@@ -598,8 +598,9 @@ function TaskRow({
               </button>
               <button
                 onClick={() => setConfirmDelete(true)}
+                disabled={triggering || polling}
                 aria-label="Delete task"
-                className="ml-1 p-1 text-black/30 transition-colors duration-100 hover:text-black"
+                className="ml-1 p-1 text-black/30 transition-colors duration-100 hover:text-black disabled:opacity-50"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

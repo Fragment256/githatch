@@ -181,6 +181,23 @@ describe('TaskList', () => {
     expect(onRefresh).toHaveBeenCalledOnce()
   })
 
+  it('disables the delete button while triggering', async () => {
+    let resolveTrigger!: () => void
+    vi.spyOn(workflows, 'triggerWorkflow').mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveTrigger = resolve
+      }),
+    )
+    render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+    fireEvent.click(screen.getByRole('button', { name: /run now/i }))
+    // While triggerWorkflow is in-flight, triggering=true — delete button must be disabled
+    await waitFor(() => expect(screen.getByText(/triggering…/i)).toBeInTheDocument())
+    expect(screen.getByRole('button', { name: /delete task/i })).toBeDisabled()
+    await act(async () => {
+      resolveTrigger()
+    })
+  })
+
   it('shows Pause button for an enabled task and calls disableWorkflow on click', async () => {
     vi.spyOn(workflows, 'disableWorkflow').mockResolvedValue(undefined)
     render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)

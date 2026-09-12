@@ -22,12 +22,9 @@ export function ConfirmDialog({
   const dialogRef = useRef<HTMLDialogElement>(null)
   const cancelRef = useRef<HTMLButtonElement>(null)
   const loadingRef = useRef(loading)
+  loadingRef.current = loading
   const titleId = useId()
   const descId = useId()
-
-  useEffect(() => {
-    loadingRef.current = loading
-  }, [loading])
 
   useEffect(() => {
     const el = dialogRef.current

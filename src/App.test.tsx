@@ -723,6 +723,60 @@ describe('App — task form submission', () => {
     })
   })
 
+  it('clears saveError immediately when Duplicate is clicked while error is showing', async () => {
+    const task: GithatchTask = {
+      slug: 'daily-digest',
+      displayName: 'Daily Digest',
+      schedule: '0 9 * * *',
+      workflowId: 1,
+      path: '.github/workflows/githatch-daily-digest.yml',
+      enabled: true,
+      outputDestination: { type: 'new_issue' },
+      prompt: 'Summarize.',
+    }
+    mockUseTasks.mockReturnValue({ ...defaultTasksState, tasks: [task] })
+
+    // First call rejects; second call never resolves (in-flight while we check state)
+    vi.mocked(github.fetchFileContent).mockRejectedValueOnce(new Error('Load failed'))
+    vi.mocked(github.fetchFileContent).mockReturnValueOnce(new Promise<string>(() => {}))
+
+    render(<App />, { wrapper })
+    const duplicateBtn = await screen.findByRole('button', { name: /duplicate/i })
+
+    fireEvent.click(duplicateBtn)
+    expect(await screen.findByText('Load failed')).toBeInTheDocument()
+
+    // Second click — saveError must clear immediately (before fetch resolves)
+    fireEvent.click(duplicateBtn)
+    expect(screen.queryByText('Load failed')).not.toBeInTheDocument()
+  })
+
+  it('clears saveError when switching to Tools tab and back to Tasks', async () => {
+    const task: GithatchTask = {
+      slug: 'daily-digest',
+      displayName: 'Daily Digest',
+      schedule: '0 9 * * *',
+      workflowId: 1,
+      path: '.github/workflows/githatch-daily-digest.yml',
+      enabled: true,
+      outputDestination: { type: 'new_issue' },
+      prompt: 'Summarize.',
+    }
+    mockUseTasks.mockReturnValue({ ...defaultTasksState, tasks: [task] })
+    vi.mocked(github.fetchFileContent).mockRejectedValue(new Error('Load failed'))
+
+    render(<App />, { wrapper })
+    const duplicateBtn = await screen.findByRole('button', { name: /duplicate/i })
+    fireEvent.click(duplicateBtn)
+    expect(await screen.findByText('Load failed')).toBeInTheDocument()
+
+    // Switch to Tools — saveError must be cleared
+    fireEvent.click(screen.getByRole('button', { name: /^tools$/i }))
+    // Switch back to Tasks — stale error must not reappear
+    fireEvent.click(screen.getByRole('button', { name: /^tasks$/i }))
+    expect(screen.queryByText('Load failed')).not.toBeInTheDocument()
+  })
+
   it('when rename delete and rollback both fail, shows descriptive error naming both slugs and reloads tasks', async () => {
     const task: GithatchTask = {
       slug: 'daily-digest',
