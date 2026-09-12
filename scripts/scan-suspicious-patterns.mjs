@@ -12,6 +12,8 @@ const PATTERNS = [
     name: 'long unbroken string literal (possible obfuscated payload)',
     regex: /["'`][^"'`\s]{300,}["'`]/,
   },
+  { name: 'dangerouslySetInnerHTML (XSS risk)', regex: /dangerouslySetInnerHTML/ },
+  { name: 'exec(...) shell invocation', regex: /\bexec\s*\(/ },
 ]
 
 export function scanContent(content) {

@@ -1,5 +1,5 @@
 export const ACTIONS_CHECKOUT_REF = '11d5960a326750d5838078e36cf38b85af677262' // v4
-const CLAUDE_CODE_ACTION_REF = '9d7150bc8a3dae8149739a88019d192b579ad90c' // v1
+const CLAUDE_CODE_ACTION_REF = '833fb0f8c9f6686b33d963a8bae0a94f4936ab2a' // v1
 const CODEX_ACTION_REF = '52fe01ec70a42f454c9d2ebd47598f9fd6893d56' // v1
 
 export type Provider = 'claude_oauth' | 'codex' | 'synthetic'

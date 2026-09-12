@@ -55,6 +55,23 @@ describe('scanContent', () => {
     ).toEqual([])
   })
 
+  it('flags dangerouslySetInnerHTML usage', () => {
+    expect(scanContent('return <div dangerouslySetInnerHTML={{ __html: userInput }} />')).toContain(
+      'dangerouslySetInnerHTML (XSS risk)',
+    )
+  })
+
+  it('flags exec() shell invocations', () => {
+    expect(scanContent("exec('rm -rf /')")  ).toContain('exec(...) shell invocation')
+  })
+
+  it('does not flag execFileSync or execSync (only bare exec call)', () => {
+    expect(scanContent("execFileSync('node', ['--version'])")).not.toContain(
+      'exec(...) shell invocation',
+    )
+    expect(scanContent("execSync('ls')")).not.toContain('exec(...) shell invocation')
+  })
+
   it('returns multiple violations when several patterns match', () => {
     const violations = scanContent('eval(new Function("x")())')
     expect(violations).toContain('eval(...) call')
