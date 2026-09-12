@@ -272,6 +272,15 @@ describe('nextCronRuns', () => {
   it('returns fewer than count when expression runs out', () => {
     expect(nextCronRuns('0 9 1 * *', 3, FROM)).toEqual([])
   })
+
+  it('returned Date objects are independent — mutating one does not affect subsequent results', () => {
+    const runs = nextCronRuns('0 8 * * *', 3, FROM)
+    const originalDay1 = runs[1].toISOString()
+    const originalDay2 = runs[2].toISOString()
+    runs[0].setUTCHours(0)
+    expect(runs[1].toISOString()).toBe(originalDay1)
+    expect(runs[2].toISOString()).toBe(originalDay2)
+  })
 })
 
 describe('isValidCron', () => {

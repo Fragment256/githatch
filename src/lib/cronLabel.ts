@@ -101,7 +101,7 @@ export function nextCronRuns(expr: string, count: number, from: Date = new Date(
     const next = nextCronRun(expr, cursor)
     if (!next) break
     results.push(next)
-    cursor = next
+    cursor = new Date(next)
   }
   return results
 }

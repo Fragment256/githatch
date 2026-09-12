@@ -153,6 +153,7 @@ export default function App() {
       if (id === editLoadRequestId.current) {
         setEditingTask(null)
         setEditingConfig(null)
+        setEditingOriginalYaml(null)
         setView('tasks')
         loadTasks()
       }

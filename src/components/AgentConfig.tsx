@@ -90,6 +90,7 @@ export function AgentConfig({ token, owner, repo }: Props) {
     setConfig(null)
     setOpen(false)
     setError(null)
+    setLoading(false)
   }, [owner, repo, token])
 
   useEffect(() => {
