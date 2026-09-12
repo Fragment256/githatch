@@ -26,6 +26,12 @@ describe('TOOLS', () => {
     expect(sendGmail.setupSteps.length).toBeGreaterThan(0)
     expect(sendGmail.usageExample).toContain('githatch-tool-send-gmail.yml')
   })
+
+  it('send-gmail yaml uses pinned SHA refs, not floating version tags', () => {
+    expect(sendGmail.workflowYaml).not.toMatch(/@v\d/)
+    expect(sendGmail.workflowYaml).toMatch(/checkout@[0-9a-f]{40}/)
+    expect(sendGmail.workflowYaml).toMatch(/action-send-mail@[0-9a-f]{40}/)
+  })
 })
 
 describe('checkToolInstalled', () => {

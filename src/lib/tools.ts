@@ -1,4 +1,8 @@
+import { ACTIONS_CHECKOUT_REF } from './yamlGenerator'
+
 const API = 'https://api.github.com'
+
+const DAWIDD6_SEND_MAIL_REF = '4226df7daafa6fc901a43789c49bf7ab309066e7' // v3
 
 function authHeaders(token: string): HeadersInit {
   return {
@@ -41,10 +45,10 @@ jobs:
   send:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@${ACTIONS_CHECKOUT_REF} # v4
 
       - name: Send email
-        uses: dawidd6/action-send-mail@v3
+        uses: dawidd6/action-send-mail@${DAWIDD6_SEND_MAIL_REF} # v3
         with:
           server_address: smtp.gmail.com
           server_port: 465
