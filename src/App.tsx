@@ -124,7 +124,7 @@ export default function App() {
 
   async function handleEditFormSubmit(yaml: string, newSlug: string) {
     if (!token || !activeRepo || !editingTask) return
-    const id = editLoadRequestId.current
+    const id = ++editLoadRequestId.current
     setSaving(true)
     setSaveError(null)
     try {
@@ -169,7 +169,7 @@ export default function App() {
 
   async function handleTaskFormSubmit(yaml: string, _slug: string, config: TaskConfig) {
     if (!token || !activeRepo) return
-    const id = editLoadRequestId.current
+    const id = ++editLoadRequestId.current
     setSaving(true)
     setSaveError(null)
     const slug = slugify(config.name)
