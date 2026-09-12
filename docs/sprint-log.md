@@ -2993,3 +2993,11 @@ No drift from sprint 248. No bugs found.
 No drift from sprint 269. No bugs found.
 
 **Next sprint:** 271 (day 3 — Explore audit).
+
+## Sprint 271 — 2026-09-12 (day 3 — Explore audit)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 585/585 ✓
+
+**Explore audit:** Dry. SHA drift: none (yamlGenerator.ts `833fb0f8` matches workflow refs). Suspicious patterns: clean. Issues #44/#46 remain human-gated.
+
+**Next sprint:** 272 (day 1 — baseline, cycle 91).
