@@ -592,13 +592,15 @@ function TaskRow({
               </button>
               <button
                 onClick={() => setShowHistory((v) => !v)}
-                className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white"
+                disabled={deleting || toggling || triggering || polling || editLoading}
+                className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white disabled:opacity-50"
               >
                 {showHistory ? 'Hide history' : 'History'}
               </button>
               <button
                 onClick={() => setShowPrompt((v) => !v)}
-                className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white"
+                disabled={deleting || toggling || triggering || polling || editLoading}
+                className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white disabled:opacity-50"
               >
                 {showPrompt ? 'Hide prompt' : 'Prompt'}
               </button>

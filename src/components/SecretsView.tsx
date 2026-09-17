@@ -121,7 +121,8 @@ export function SecretsView({ token, owner, repo, onDone }: Props) {
 
       <button
         onClick={onDone}
-        className="self-start border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white"
+        disabled={Object.values(statuses).some((s) => s === 'checking')}
+        className="self-start border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white disabled:opacity-50"
       >
         Done
       </button>
