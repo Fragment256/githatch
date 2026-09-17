@@ -1177,6 +1177,63 @@ describe('TaskList', () => {
       // fetchRunOutput must NOT be called for the pre-existing run
       expect(workflows.fetchRunOutput).not.toHaveBeenCalled()
     })
+
+    it('prevRunIdRef stays in sync after polling completes so a second trigger does not re-detect the finished run', async () => {
+      // Scenario: initial fetch returns no runs; first trigger finds completed run id=200;
+      // second trigger must not treat run id=200 as "new" again.
+      const COMPLETED_RUN: WorkflowRun = {
+        id: 200,
+        status: 'completed',
+        conclusion: 'success',
+        createdAt: new Date().toISOString(),
+        htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/200',
+      }
+
+      const runsMock = vi.spyOn(workflows, 'getWorkflowRuns')
+      runsMock.mockResolvedValue(asResult([]))
+      vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
+      vi.spyOn(workflows, 'fetchRunOutput').mockResolvedValue(null)
+
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+
+      // Let initial fetch resolve (no prior runs)
+      await act(async () => {
+        await Promise.resolve()
+      })
+
+      // After trigger, polls return completed run id=200
+      runsMock.mockResolvedValue(asResult([COMPLETED_RUN]))
+
+      // First trigger
+      fireEvent.click(screen.getByRole('button', { name: /run now/i }))
+      await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
+
+      // Poll fires — detects run id=200 as completed
+      await act(async () => {
+        vi.advanceTimersByTime(8000)
+        await Promise.resolve()
+      })
+
+      // Polling stops after the completed run
+      await waitFor(() => expect(screen.queryByText(/^Queued$/i)).not.toBeInTheDocument())
+
+      const callsAfterFirst = vi.mocked(workflows.fetchRunOutput).mock.calls.length
+
+      // Second trigger (run id=200 is still the latest run).
+      // Button may still say "Triggered!" — match either label.
+      const triggerBtn = await screen.findByRole('button', { name: /^(run now|triggered!)$/i })
+      fireEvent.click(triggerBtn)
+      await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
+
+      // Poll fires — must skip run id=200 (it was the baseline before this trigger)
+      await act(async () => {
+        vi.advanceTimersByTime(8000)
+        await Promise.resolve()
+      })
+
+      // fetchRunOutput must not be called a second time for the same run id=200
+      expect(vi.mocked(workflows.fetchRunOutput).mock.calls.length).toBe(callsAfterFirst)
+    })
   })
 
   describe('auto-output after successful trigger', () => {

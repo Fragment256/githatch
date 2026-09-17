@@ -385,6 +385,14 @@ describe('canPreviewCron', () => {
     expect(canPreviewCron('0-3 */6 * * *')).toBe(false)
   })
 
+  it('returns false for range-based hour or minute expressions (nextCronRun cannot compute ranges in these positions)', () => {
+    // hour range: isValidCron accepts these, but nextCronRun hits the !^\d+$ guard and returns null
+    expect(canPreviewCron('0 0-6 * * *')).toBe(false)
+    expect(canPreviewCron('30 8-17 * * *')).toBe(false)
+    // plain minute range (no step): same issue
+    expect(canPreviewCron('0-30 * * * *')).toBe(false)
+  })
+
   it('returns false for */N minute with constrained hour or DOW (nextCronRun returns null for these)', () => {
     // */N minute + constrained hour: nextCronRun branch-1 requires hour==='*'
     expect(canPreviewCron('*/5 2 * * *')).toBe(false)

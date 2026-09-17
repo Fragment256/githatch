@@ -348,6 +348,9 @@ function TaskRow({
   const [polling, setPolling] = useState(false)
   const [triggeredOutput, setTriggeredOutput] = useState<RunOutput | null>(null)
   const prevRunIdRef = useRef<number | null>(null)
+  // Tracks the latest known run ID from refs only (never stale React state) so
+  // handleTrigger can snapshot the correct baseline without a race against re-renders.
+  const latestRunIdRef = useRef<number | null>(null)
   const fetchLastRunRequestId = useRef(0)
   const outputFetchRequestId = useRef(0)
   const triggeredTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -376,9 +379,8 @@ function TaskRow({
         if (cancelled || id !== fetchLastRunRequestId.current) return
         const run = runs[0] ?? null
         setLastRun(run)
-        // Initialize baseline so handleTrigger has a correct prevRunIdRef even if
-        // the user clicks Run now before this effect resolves.
         prevRunIdRef.current = run?.id ?? null
+        latestRunIdRef.current = run?.id ?? null
         onLastRunChangeRef.current(task.slug, run)
       })
       .catch(() => {
@@ -416,6 +418,7 @@ function TaskRow({
           setTriggerError(null)
           const run = runs[0]
           if (!run || run.id === prevRunIdRef.current) return
+          latestRunIdRef.current = run.id
           setLastRun(run)
           onLastRunChangeRef.current(slug, run)
           if (run.status === 'completed') {
@@ -470,7 +473,7 @@ function TaskRow({
     setTriggeredOutput(null)
     ++outputFetchRequestId.current
     try {
-      prevRunIdRef.current = lastRun?.id ?? null
+      prevRunIdRef.current = latestRunIdRef.current
       await triggerWorkflow({ token, owner, repo, workflowId: task.workflowId, defaultBranch })
       if (!isMountedRef.current) return
       setTriggered(true)
