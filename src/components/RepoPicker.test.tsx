@@ -225,4 +225,25 @@ describe('RepoPicker', () => {
     fireEvent.blur(input)
     expect(input).toHaveValue('octocat/hello-world')
   })
+
+  it('does not call onSelect when Enter is pressed after the dropdown is closed', () => {
+    render(
+      <RepoPicker
+        repos={repos}
+        activeRepo={repos[0]}
+        loading={false}
+        error={null}
+        onSelect={mockOnSelect}
+      />,
+    )
+    const input = screen.getByRole('combobox')
+    // Select via keyboard — closes the dropdown
+    fireEvent.focus(input)
+    fireEvent.keyDown(input, { key: 'Enter' })
+    expect(mockOnSelect).toHaveBeenCalledTimes(1)
+    mockOnSelect.mockClear()
+    // Dropdown is now closed; another Enter should not re-select
+    fireEvent.keyDown(input, { key: 'Enter' })
+    expect(mockOnSelect).not.toHaveBeenCalled()
+  })
 })

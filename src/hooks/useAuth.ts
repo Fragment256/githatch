@@ -51,15 +51,17 @@ export function useAuth() {
       setState((s) => ({ ...s, loading: true, error: null }))
 
       let cancelled = false
+      const myRev = ++sessionRevRef.current
       exchangeCodeForToken(code, GITHUB_CLIENT_ID, getRedirectUri())
         .then(async (token) => {
-          if (cancelled) return
+          if (cancelled || sessionRevRef.current !== myRev) return
           storeToken(token)
           try {
             const user = await getAuthenticatedUser(token)
-            if (!cancelled) setState({ token, user, loading: false, error: null })
+            if (!cancelled && sessionRevRef.current === myRev)
+              setState({ token, user, loading: false, error: null })
           } catch (err: unknown) {
-            if (cancelled) return
+            if (cancelled || sessionRevRef.current !== myRev) return
             const message =
               err instanceof Error
                 ? err.message
@@ -78,7 +80,7 @@ export function useAuth() {
           }
         })
         .catch((err: unknown) => {
-          if (cancelled) return
+          if (cancelled || sessionRevRef.current !== myRev) return
           clearToken()
           const message = err instanceof Error ? err.message : 'Login failed. Please try again.'
           setState({ token: null, user: null, loading: false, error: message })

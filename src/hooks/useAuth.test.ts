@@ -286,4 +286,30 @@ describe('useAuth — login / logout', () => {
     expect(result.current.user).toBeNull()
     expect(result.current.error).toBeNull()
   })
+
+  it('logout during in-flight code exchange does not re-authenticate', async () => {
+    setSearch({ code: 'auth-code', state: 'test-state' })
+    mockGetStoredToken.mockReturnValue(null)
+    mockGetStoredState.mockReturnValue('test-state')
+    window.history.replaceState = vi.fn()
+
+    let resolveExchange: (token: string) => void = () => {}
+    mockExchangeCodeForToken.mockReturnValue(
+      new Promise<string>((r) => {
+        resolveExchange = r
+      }),
+    )
+
+    const { result } = renderHook(() => useAuth())
+    act(() => {
+      result.current.logout()
+    })
+    await act(async () => {
+      resolveExchange('gho_new_token')
+    })
+    // Exchange resolved after logout — state must NOT be overwritten
+    expect(result.current.token).toBeNull()
+    expect(result.current.user).toBeNull()
+    expect(mockStoreToken).not.toHaveBeenCalled()
+  })
 })

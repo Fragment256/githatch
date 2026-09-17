@@ -52,6 +52,7 @@ export function RepoPicker({ repos, activeRepo, loading, error, onSelect }: Prop
       setHighlightedIndex((i) => Math.max(i - 1, 0))
     } else if (e.key === 'Enter') {
       e.preventDefault()
+      if (!open) return
       const repo = filtered[highlightedIndex]
       if (repo) select(repo)
     } else if (e.key === 'Escape') {
