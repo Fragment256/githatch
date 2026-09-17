@@ -237,6 +237,10 @@ export function TaskForm({
 
     const yaml = generateWorkflowYaml(config)
     const slug = slugify(config.name)
+    // Reset guard so each new preview entry starts fresh (handles the case
+    // where a prior onSubmit returned early without ever flipping loading=true,
+    // leaving the useEffect reset path dead)
+    submittingRef.current = false
     setPending({ yaml, slug, config })
     setViewState('preview')
   }

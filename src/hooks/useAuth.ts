@@ -122,8 +122,15 @@ export function useAuth() {
   }, [])
 
   const login = async () => {
-    const url = await buildAuthUrl(GITHUB_CLIENT_ID, getRedirectUri())
-    window.location.href = url
+    try {
+      const url = await buildAuthUrl(GITHUB_CLIENT_ID, getRedirectUri())
+      window.location.href = url
+    } catch (err) {
+      setState((s) => ({
+        ...s,
+        error: err instanceof Error ? err.message : 'Login failed. Please try again.',
+      }))
+    }
   }
 
   const logout = () => {
