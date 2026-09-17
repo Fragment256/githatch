@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-17 (sprint 299 — day 1 baseline, cycle 100)
+
+- Action: day 1 baseline (cycle 100)
+- Summary: format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 594/594 ✓. No drift from sprint 298.
+- Next: sprint 300 (day 2 — baseline)
+
+---
+
 ## 2026-09-17 (sprint 298 — day 3 Explore audit, cycle 99)
 
 - Action: Explore audit — all non-test source files read
