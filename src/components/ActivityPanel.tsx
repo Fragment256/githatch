@@ -156,6 +156,11 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
     }
   }, [token, owner, repo])
 
+  const displayNameBySlug = useMemo(
+    () => new Map(tasks.map((t) => [t.slug, t.displayName])),
+    [tasks],
+  )
+
   const DAYS = 14
   const totalRuns = taskActivity.reduce((s, a) => s + a.totalCount, 0)
   const weekMs = 7 * 86400_000
@@ -229,7 +234,9 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
                 <li key={task.slug} className="border border-black bg-white p-4">
                   <div className="flex items-center justify-between gap-4">
                     <div className="min-w-0">
-                      <p className="truncate font-semibold text-black">{task.displayName}</p>
+                      <p className="truncate font-semibold text-black">
+                        {displayNameBySlug.get(task.slug) ?? task.displayName}
+                      </p>
                       {loading ? (
                         <p className="mt-0.5 font-mono text-xs text-black/40">Loading…</p>
                       ) : error ? (

@@ -178,10 +178,26 @@ describe('listGithatchTasks', () => {
 
     const fetchMock = vi
       .fn()
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(workflowsListResponse) })
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(actionsWorkflows) })
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ content: dailyYaml }) })
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ content: weeklyYaml }) })
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve(workflowsListResponse),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve(actionsWorkflows),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve({ content: dailyYaml }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve({ content: weeklyYaml }),
+      })
     vi.stubGlobal('fetch', fetchMock)
 
     const tasks = await listGithatchTasks({ token: 'gho_test', owner: 'testuser', repo: 'my-repo' })
@@ -198,7 +214,11 @@ describe('listGithatchTasks', () => {
   })
 
   it('returns empty array when no githatch workflows exist', async () => {
-    const fetchMock = vi.fn().mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([]) })
+    const fetchMock = vi.fn().mockResolvedValueOnce({
+      ok: true,
+      headers: { get: () => null },
+      json: () => Promise.resolve([]),
+    })
     vi.stubGlobal('fetch', fetchMock)
 
     const tasks = await listGithatchTasks({ token: 'gho_test', owner: 'testuser', repo: 'my-repo' })
@@ -231,9 +251,11 @@ describe('listGithatchTasks', () => {
     // GitHub returns an object (not array) when the path resolves to a file rather than a directory.
     // Without an Array.isArray guard, files.filter() throws TypeError.
     const fileObject = { name: 'workflows', type: 'file', path: '.github/workflows', sha: 'abc' }
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(fileObject) })
+    const fetchMock = vi.fn().mockResolvedValueOnce({
+      ok: true,
+      headers: { get: () => null },
+      json: () => Promise.resolve(fileObject),
+    })
     vi.stubGlobal('fetch', fetchMock)
 
     const result = await listGithatchTasks({
@@ -261,9 +283,21 @@ describe('listGithatchTasks', () => {
 
     const fetchMock = vi
       .fn()
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(workflowsListResponse) })
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(actionsWorkflows) })
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ content: dailyYaml }) })
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve(workflowsListResponse),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve(actionsWorkflows),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve({ content: dailyYaml }),
+      })
       .mockResolvedValueOnce({ ok: false, status: 403 }) // rate-limited / permission error
     vi.stubGlobal('fetch', fetchMock)
 
@@ -289,9 +323,21 @@ describe('listGithatchTasks', () => {
 
     const fetchMock = vi
       .fn()
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(workflowsListResponse) })
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(actionsWorkflows) })
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ content: dailyYaml }) })
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve(workflowsListResponse),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve(actionsWorkflows),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve({ content: dailyYaml }),
+      })
       .mockResolvedValueOnce({ ok: false, status: 404 }) // file deleted between listing and fetch
     vi.stubGlobal('fetch', fetchMock)
 
@@ -318,10 +364,22 @@ describe('listGithatchTasks', () => {
 
     const fetchMock = vi
       .fn()
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(workflowsListResponse) })
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(actionsWorkflows) })
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve(workflowsListResponse),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve(actionsWorkflows),
+      })
       // GitHub returns content: null for files >1 MB
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ content: null }) })
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve({ content: null }),
+      })
     vi.stubGlobal('fetch', fetchMock)
 
     await expect(
@@ -341,9 +399,21 @@ describe('listGithatchTasks', () => {
 
     const fetchMock = vi
       .fn()
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(workflowsListResponse) })
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(actionsWorkflows) })
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ content: '' }) })
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve(workflowsListResponse),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve(actionsWorkflows),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve({ content: '' }),
+      })
     vi.stubGlobal('fetch', fetchMock)
 
     // Should NOT throw "too large" — empty file parses to a task with default values
@@ -372,9 +442,21 @@ describe('listGithatchTasks', () => {
 
     const fetchMock = vi
       .fn()
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(workflowsListResponse) })
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(actionsWorkflows) })
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ content: dailyYaml }) })
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve(workflowsListResponse),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve(actionsWorkflows),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve({ content: dailyYaml }),
+      })
     vi.stubGlobal('fetch', fetchMock)
 
     const tasks = await listGithatchTasks({ token: 'gho_test', owner: 'testuser', repo: 'my-repo' })
@@ -409,7 +491,11 @@ describe('listGithatchTasks', () => {
 
     const fetchMock = vi
       .fn()
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(workflowsListResponse) })
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve(workflowsListResponse),
+      })
       .mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve({ workflows: page1Workflows, total_count: 102 }),
@@ -418,8 +504,16 @@ describe('listGithatchTasks', () => {
         ok: true,
         json: () => Promise.resolve({ workflows: page2Workflows, total_count: 102 }),
       })
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ content: alphaYaml }) })
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ content: betaYaml }) })
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve({ content: alphaYaml }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve({ content: betaYaml }),
+      })
     vi.stubGlobal('fetch', fetchMock)
 
     const tasks = await listGithatchTasks({ token: 'gho_test', owner: 'testuser', repo: 'my-repo' })
@@ -729,7 +823,11 @@ describe('fetchRunOutput', () => {
     ]
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(issues) }),
+      vi.fn().mockResolvedValue({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve(issues),
+      }),
     )
 
     const result = await fetchRunOutput({
@@ -747,7 +845,14 @@ describe('fetchRunOutput', () => {
   })
 
   it('returns null when no issues are found for new_issue type', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve([]) }))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve([]),
+      }),
+    )
 
     const result = await fetchRunOutput({
       token: 'gho_test',
@@ -780,7 +885,11 @@ describe('fetchRunOutput', () => {
     ]
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(items) }),
+      vi.fn().mockResolvedValue({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve(items),
+      }),
     )
 
     const result = await fetchRunOutput({
@@ -815,7 +924,11 @@ describe('fetchRunOutput', () => {
     ]
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(comments) }),
+      vi.fn().mockResolvedValue({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve(comments),
+      }),
     )
 
     const result = await fetchRunOutput({
@@ -851,7 +964,11 @@ describe('fetchRunOutput', () => {
     ]
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(comments) }),
+      vi.fn().mockResolvedValue({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve(comments),
+      }),
     )
 
     const result = await fetchRunOutput({
@@ -878,7 +995,11 @@ describe('fetchRunOutput', () => {
     ]
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(comments) }),
+      vi.fn().mockResolvedValue({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve(comments),
+      }),
     )
 
     const result = await fetchRunOutput({
@@ -911,7 +1032,11 @@ describe('fetchRunOutput', () => {
     ]
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(comments) }),
+      vi.fn().mockResolvedValue({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve(comments),
+      }),
     )
 
     const result = await fetchRunOutput({
@@ -951,7 +1076,11 @@ describe('fetchRunOutput', () => {
     ]
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(items) }),
+      vi.fn().mockResolvedValue({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve(items),
+      }),
     )
 
     const result = await fetchRunOutput({
@@ -970,7 +1099,14 @@ describe('fetchRunOutput', () => {
   })
 
   it('returns null for pull_request when no PR found after the run', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve([]) }))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve([]),
+      }),
+    )
 
     const result = await fetchRunOutput({
       token: 'gho_test',
@@ -1071,9 +1207,11 @@ describe('fetchRunOutput', () => {
     }
     vi.stubGlobal(
       'fetch',
-      vi
-        .fn()
-        .mockResolvedValue({ ok: true, json: () => Promise.resolve([staleIssue, freshIssue]) }),
+      vi.fn().mockResolvedValue({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve([staleIssue, freshIssue]),
+      }),
     )
 
     const result = await fetchRunOutput({
@@ -1089,7 +1227,11 @@ describe('fetchRunOutput', () => {
   })
 
   it('uses per_page=100 for new_issue output type lookup', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve([]) })
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      headers: { get: () => null },
+      json: () => Promise.resolve([]),
+    })
     vi.stubGlobal('fetch', fetchMock)
 
     await fetchRunOutput({
@@ -1105,7 +1247,11 @@ describe('fetchRunOutput', () => {
   })
 
   it('uses per_page=100 for pull_request output type lookup', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve([]) })
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      headers: { get: () => null },
+      json: () => Promise.resolve([]),
+    })
     vi.stubGlobal('fetch', fetchMock)
 
     await fetchRunOutput({
@@ -1121,7 +1267,11 @@ describe('fetchRunOutput', () => {
   })
 
   it('uses per_page=100 for issue_comment output type lookup', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve([]) })
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      headers: { get: () => null },
+      json: () => Promise.resolve([]),
+    })
     vi.stubGlobal('fetch', fetchMock)
 
     await fetchRunOutput({
@@ -1137,7 +1287,11 @@ describe('fetchRunOutput', () => {
   })
 
   it('uses direction=asc for issue_comment output type lookup — oldest-first so overlapping runs return the right comment', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve([]) })
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      headers: { get: () => null },
+      json: () => Promise.resolve([]),
+    })
     vi.stubGlobal('fetch', fetchMock)
 
     await fetchRunOutput({
@@ -1154,7 +1308,11 @@ describe('fetchRunOutput', () => {
   })
 
   it('uses direction=asc for new_issue output type lookup — oldest-first so overlapping runs return the right issue', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve([]) })
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      headers: { get: () => null },
+      json: () => Promise.resolve([]),
+    })
     vi.stubGlobal('fetch', fetchMock)
 
     await fetchRunOutput({
@@ -1171,7 +1329,11 @@ describe('fetchRunOutput', () => {
   })
 
   it('uses direction=asc for pull_request output type lookup — oldest-first so overlapping runs return the right PR', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve([]) })
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      headers: { get: () => null },
+      json: () => Promise.resolve([]),
+    })
     vi.stubGlobal('fetch', fetchMock)
 
     await fetchRunOutput({
@@ -1206,7 +1368,11 @@ describe('fetchRunOutput', () => {
     }
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve([stalePr, freshPr]) }),
+      vi.fn().mockResolvedValue({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve([stalePr, freshPr]),
+      }),
     )
 
     const result = await fetchRunOutput({
@@ -1247,7 +1413,11 @@ describe('getWorkflowRuns', () => {
     }
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(raw) }),
+      vi.fn().mockResolvedValue({
+        ok: true,
+        headers: { get: () => null },
+        json: () => Promise.resolve(raw),
+      }),
     )
 
     const { runs, totalCount } = await getWorkflowRuns({

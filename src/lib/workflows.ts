@@ -3,6 +3,12 @@ import type { OutputDestination } from './yamlGenerator'
 
 const API = 'https://api.github.com'
 
+function parseNextUrl(linkHeader: string | null): string | null {
+  if (!linkHeader) return null
+  const match = linkHeader.match(/<([^>]+)>;\s*rel="next"/)
+  return match ? match[1] : null
+}
+
 function authHeaders(token: string): HeadersInit {
   return {
     Authorization: `Bearer ${token}`,
@@ -267,23 +273,25 @@ export async function fetchRunOutput(params: {
   }
 
   if (outputDestination.type === 'pull_request') {
-    const res = await fetch(
-      `${API}/repos/${owner}/${repo}/issues?creator=github-actions%5Bbot%5D&since=${encodeURIComponent(run.createdAt)}&per_page=100&sort=created&direction=asc&state=all`,
-      { headers },
-    )
-    if (!res.ok) throw new Error(`GitHub API error ${res.status}`)
-    const items = (await res.json()) as Array<{
+    type IssueItem = {
       number: number
       title: string
       body: string | null
       html_url: string
       created_at: string
       pull_request?: object
-    }>
-    // `since` filters by updated_at, not created_at — exclude pre-existing items that were recently updated
-    const pr = items
-      .filter((i) => i.created_at >= run.createdAt)
-      .find((item) => !!item.pull_request)
+    }
+    let url: string | null =
+      `${API}/repos/${owner}/${repo}/issues?creator=github-actions%5Bbot%5D&since=${encodeURIComponent(run.createdAt)}&per_page=100&sort=created&direction=asc&state=all`
+    let pr: IssueItem | undefined
+    while (url && !pr) {
+      const res = await fetch(url, { headers })
+      if (!res.ok) throw new Error(`GitHub API error ${res.status}`)
+      const items = (await res.json()) as IssueItem[]
+      // `since` filters by updated_at, not created_at — exclude pre-existing items that were recently updated
+      pr = items.filter((i) => i.created_at >= run.createdAt).find((item) => !!item.pull_request)
+      url = pr ? null : parseNextUrl(res.headers.get('Link'))
+    }
     if (!pr) return null
     return {
       type: 'pr',
@@ -295,21 +303,25 @@ export async function fetchRunOutput(params: {
   }
 
   if (outputDestination.type === 'new_issue') {
-    const res = await fetch(
-      `${API}/repos/${owner}/${repo}/issues?creator=github-actions%5Bbot%5D&since=${encodeURIComponent(run.createdAt)}&per_page=100&sort=created&direction=asc&state=all`,
-      { headers },
-    )
-    if (!res.ok) throw new Error(`GitHub API error ${res.status}`)
-    const items = (await res.json()) as Array<{
+    type IssueItem = {
       number: number
       title: string
       body: string | null
       html_url: string
       created_at: string
       pull_request?: object
-    }>
-    // `since` filters by updated_at, not created_at — exclude pre-existing items that were recently updated
-    const issue = items.filter((i) => i.created_at >= run.createdAt).find((i) => !i.pull_request)
+    }
+    let url: string | null =
+      `${API}/repos/${owner}/${repo}/issues?creator=github-actions%5Bbot%5D&since=${encodeURIComponent(run.createdAt)}&per_page=100&sort=created&direction=asc&state=all`
+    let issue: IssueItem | undefined
+    while (url && !issue) {
+      const res = await fetch(url, { headers })
+      if (!res.ok) throw new Error(`GitHub API error ${res.status}`)
+      const items = (await res.json()) as IssueItem[]
+      // `since` filters by updated_at, not created_at — exclude pre-existing items that were recently updated
+      issue = items.filter((i) => i.created_at >= run.createdAt).find((i) => !i.pull_request)
+      url = issue ? null : parseNextUrl(res.headers.get('Link'))
+    }
     if (!issue) return null
     return {
       type: 'issue',
@@ -322,22 +334,26 @@ export async function fetchRunOutput(params: {
 
   if (outputDestination.type === 'issue_comment') {
     const { issueNumber } = outputDestination
-    const res = await fetch(
-      `${API}/repos/${owner}/${repo}/issues/${issueNumber}/comments?since=${encodeURIComponent(run.createdAt)}&per_page=100&direction=asc`,
-      { headers },
-    )
-    if (!res.ok) throw new Error(`GitHub API error ${res.status}`)
-    const comments = (await res.json()) as Array<{
+    type CommentItem = {
       id: number
       body: string
       html_url: string
       created_at: string
       user: { login: string } | null
-    }>
-    // `since` filters by updated_at, not created_at — exclude pre-existing comments recently touched
-    const botComment = comments
-      .filter((c) => c.created_at >= run.createdAt)
-      .find((c) => c.user?.login === 'github-actions[bot]')
+    }
+    let url: string | null =
+      `${API}/repos/${owner}/${repo}/issues/${issueNumber}/comments?since=${encodeURIComponent(run.createdAt)}&per_page=100&direction=asc`
+    let botComment: CommentItem | undefined
+    while (url && !botComment) {
+      const res = await fetch(url, { headers })
+      if (!res.ok) throw new Error(`GitHub API error ${res.status}`)
+      const comments = (await res.json()) as CommentItem[]
+      // `since` filters by updated_at, not created_at — exclude pre-existing comments recently touched
+      botComment = comments
+        .filter((c) => c.created_at >= run.createdAt)
+        .find((c) => c.user?.login === 'github-actions[bot]')
+      url = botComment ? null : parseNextUrl(res.headers.get('Link'))
+    }
     if (!botComment) return null
     return {
       type: 'comment',

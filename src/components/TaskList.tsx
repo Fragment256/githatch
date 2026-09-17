@@ -595,7 +595,7 @@ function TaskRow({
               </button>
               <button
                 onClick={handleToggle}
-                disabled={toggling}
+                disabled={toggling || deleting}
                 aria-label={enabled ? 'Pause task' : 'Resume task'}
                 className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white disabled:opacity-50"
               >
@@ -610,7 +610,7 @@ function TaskRow({
               </button>
               <button
                 onClick={() => setConfirmDelete(true)}
-                disabled={triggering || polling}
+                disabled={triggering || polling || deleting}
                 aria-label="Delete task"
                 className="ml-1 p-1 text-black/30 transition-colors duration-100 hover:text-black disabled:opacity-50"
               >
@@ -704,9 +704,9 @@ export function TaskList({
     setFilterQuery('')
   }, [owner, repo, token])
 
-  const handleLastRunChange = (slug: string, run: WorkflowRun | null) => {
+  const handleLastRunChange = useCallback((slug: string, run: WorkflowRun | null) => {
     setLastRuns((prev) => ({ ...prev, [slug]: run }))
-  }
+  }, [])
 
   if (loading) {
     return (
