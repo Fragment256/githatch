@@ -994,6 +994,82 @@ describe('App — task form submission', () => {
     expect(screen.getByRole('button', { name: /about/i })).toBeDisabled()
   })
 
+  it('logout button is disabled while save is in-flight', async () => {
+    // Bug fix sprint 310: UserMenu logout button lacked disabled={saving}, so if the user
+    // logged out while a rename+rollback was in-flight, the critical "both files exist" error
+    // was silently swallowed (id guard in catch failed after editLoadRequestId was incremented).
+    // Fix: pass disabled={saving} to UserMenu so logout is blocked during save.
+    vi.mocked(github.upsertWorkflowFile).mockReturnValueOnce(new Promise<void>(() => {}))
+
+    render(<App />, { wrapper })
+
+    fireEvent.click(screen.getAllByRole('button', { name: /\+ new task/i })[0])
+    fireEvent.change(screen.getByLabelText(/task name/i), { target: { value: 'My Task' } })
+    fireEvent.change(screen.getByLabelText(/prompt/i), { target: { value: 'Do the thing.' } })
+    fireEvent.change(screen.getByPlaceholderText(/issue number/i), { target: { value: '1' } })
+    fireEvent.click(screen.getByRole('button', { name: /create task/i }))
+    await waitFor(() => screen.getByRole('button', { name: /commit to repo/i }))
+
+    fireEvent.click(screen.getByRole('button', { name: /commit to repo/i }))
+    await waitFor(() => expect(screen.getByRole('button', { name: /committing/i })).toBeDisabled())
+
+    expect(screen.getByRole('button', { name: /logout/i })).toBeDisabled()
+  })
+
+  it('cancels an in-flight edit fetch when task is deleted via onRefresh', async () => {
+    // Bug fix sprint 310: onRefresh prop (called by TaskList after delete) did not increment
+    // editLoadRequestId, so a slow edit fetch completing after the delete opened an edit form
+    // for a task that was already gone — submitting would silently re-create the deleted file.
+    // Fix: onRefresh now increments editLoadRequestId to cancel any stale edit fetch.
+    const task: GithatchTask = {
+      slug: 'daily-digest',
+      displayName: 'Daily Digest',
+      schedule: '0 9 * * *',
+      workflowId: 1,
+      path: '.github/workflows/githatch-daily-digest.yml',
+      enabled: true,
+      outputDestination: { type: 'new_issue' },
+      prompt: 'Summarize.',
+    }
+    mockUseTasks.mockReturnValue({ ...defaultTasksState, tasks: [task] })
+    mockLoad.mockClear()
+
+    let resolveYaml: (yaml: string) => void = () => {}
+    vi.mocked(github.fetchFileContent).mockReturnValueOnce(
+      new Promise<string>((resolve) => {
+        resolveYaml = resolve
+      }),
+    )
+    vi.mocked(github.deleteWorkflowFile).mockResolvedValue(undefined)
+
+    render(<App />, { wrapper })
+
+    // Click Edit — slow fetch starts, tasks view remains
+    const editBtn = await screen.findByRole('button', { name: /^edit$/i })
+    fireEvent.click(editBtn)
+
+    // Click the trash-icon delete button to open the confirm dialog
+    fireEvent.click(screen.getByRole('button', { name: /delete task/i }))
+
+    // Confirm the deletion
+    await waitFor(() => screen.getByRole('button', { name: /^delete$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /^delete$/i }))
+
+    // Wait for onRefresh to fire (loadTasks called via onRefresh)
+    await waitFor(() => expect(mockLoad).toHaveBeenCalled())
+
+    // Resolve the now-stale edit fetch
+    await act(async () => {
+      resolveYaml(
+        'name: Daily Digest\non:\n  schedule:\n    - cron: "0 9 * * *"\n  workflow_dispatch:\njobs:\n  run:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: anthropics/claude-code-action@v1\n        with:\n          prompt: |\n            Summarize.\n',
+      )
+    })
+
+    // Edit form must NOT have appeared — stale fetch was cancelled by onRefresh
+    expect(screen.queryByRole('button', { name: /save changes/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /← back/i })).not.toBeInTheDocument()
+  })
+
   it('Githatch logo button is disabled while save is in-flight', async () => {
     // Regression: logo button lacked disabled={saving}, allowing navigation mid-save which
     // could silently drop rename errors (old + new workflow files left in repo with no UI feedback).
@@ -1016,10 +1092,11 @@ describe('App — task form submission', () => {
     expect(screen.getByRole('button', { name: /githatch/i })).toBeDisabled()
   })
 
-  it('logout during save invalidates the in-flight save handler', async () => {
-    // Regression: onLogout did not increment editLoadRequestId, so the save handler's
-    // id guard passed even after logout — loadTasks() and addTask() ran against the
-    // stale (post-logout) token.
+  it('logout button is blocked during save so the save handler always completes with a valid token', async () => {
+    // Regression: onLogout incremented editLoadRequestId, invalidating the save handler if the
+    // user clicked logout while save was in-flight — loadTasks/addTask were then skipped and
+    // the task list was left stale. Primary fix: UserMenu logout button is now disabled={saving},
+    // preventing the click. onLogout still increments editLoadRequestId as defence-in-depth.
     authWithRepo()
 
     let resolveUpsert!: () => void
@@ -1041,19 +1118,19 @@ describe('App — task form submission', () => {
     fireEvent.click(screen.getByRole('button', { name: /commit to repo/i }))
     await waitFor(() => expect(screen.getByRole('button', { name: /committing/i })).toBeDisabled())
 
-    // Clear call history — only track what happens after logout
+    // Logout button must be disabled — user cannot log out during an in-flight save
+    expect(screen.getByRole('button', { name: /logout/i })).toBeDisabled()
+
+    // Clear call history — only count calls from save completion
     mockLoad.mockClear()
     mockAddTask.mockClear()
 
-    // Logout while save is in-flight
-    fireEvent.click(screen.getByRole('button', { name: /logout/i }))
-
-    // Resolve the previously-started save — loadTasks and addTask must NOT be called
+    // Resolve the save — loadTasks and addTask must be called (save completed normally)
     await act(async () => {
       resolveUpsert()
     })
 
-    expect(mockLoad).not.toHaveBeenCalled()
-    expect(mockAddTask).not.toHaveBeenCalled()
+    await waitFor(() => expect(mockLoad).toHaveBeenCalled())
+    await waitFor(() => expect(mockAddTask).toHaveBeenCalled())
   })
 })

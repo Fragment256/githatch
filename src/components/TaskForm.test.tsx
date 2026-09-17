@@ -268,6 +268,16 @@ describe('TaskForm', () => {
     expect(screen.getByRole('button', { name: /commit to repo/i })).not.toBeDisabled()
   })
 
+  // Bug fix sprint 310: ← Edit button must be disabled during loading to prevent stale-YAML double-commit
+  it('disables the back-to-edit button when loading in preview state', () => {
+    const { rerender } = render(<TaskForm onSubmit={mockSubmit} loading={false} />)
+    fillMinimal()
+    fireEvent.click(screen.getByRole('button', { name: /create task/i }))
+    // Still in preview — simulate parent setting loading=true after commit fires
+    rerender(<TaskForm onSubmit={mockSubmit} loading={true} />)
+    expect(screen.getByRole('button', { name: /← edit/i })).toBeDisabled()
+  })
+
   // Edit mode: saving with the same slug as the task being edited must not trigger a collision error
   it('allows submit in edit mode when existingSlugs contains the own slug', () => {
     render(

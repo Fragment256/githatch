@@ -251,6 +251,7 @@ export default function App() {
             {user ? (
               <UserMenu
                 user={user}
+                disabled={saving}
                 onLogout={() => {
                   ++editLoadRequestId.current
                   logout()
@@ -433,7 +434,10 @@ export default function App() {
                   defaultBranch={defaultBranch}
                   loading={tasksLoading}
                   error={tasksError}
-                  onRefresh={loadTasks}
+                  onRefresh={() => {
+                    ++editLoadRequestId.current
+                    loadTasks()
+                  }}
                   onEdit={handleEditTask}
                   onDuplicate={handleDuplicateTask}
                 />

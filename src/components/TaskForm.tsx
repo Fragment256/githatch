@@ -304,7 +304,8 @@ export function TaskForm({
           <button
             type="button"
             onClick={handleBackToEdit}
-            className="border-2 border-black px-4 py-3 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white"
+            disabled={loading}
+            className="border-2 border-black px-4 py-3 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white disabled:opacity-50"
           >
             ← Edit
           </button>

@@ -3,9 +3,10 @@ import type { GitHubUser } from '@/lib/auth'
 interface Props {
   user: GitHubUser
   onLogout: () => void
+  disabled?: boolean
 }
 
-export function UserMenu({ user, onLogout }: Props) {
+export function UserMenu({ user, onLogout, disabled = false }: Props) {
   return (
     <div className="flex items-center gap-3">
       <img src={user.avatar_url} alt={user.login} className="h-7 w-7" />
@@ -14,7 +15,8 @@ export function UserMenu({ user, onLogout }: Props) {
       </span>
       <button
         onClick={onLogout}
-        className="font-mono text-xs tracking-widest text-black/40 uppercase hover:text-black"
+        disabled={disabled}
+        className="font-mono text-xs tracking-widest text-black/40 uppercase hover:text-black disabled:cursor-not-allowed disabled:opacity-40"
       >
         Logout
       </button>
