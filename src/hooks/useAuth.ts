@@ -99,7 +99,7 @@ export function useAuth() {
             setState({ token: stored, user, loading: false, error: null })
         })
         .catch((err: unknown) => {
-          if (cancelled) return
+          if (cancelled || sessionRevRef.current !== myRev) return
           const message = err instanceof Error ? err.message : ''
           if (message.includes('401')) {
             clearToken()

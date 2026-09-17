@@ -266,4 +266,24 @@ describe('useAuth — login / logout', () => {
     expect(result.current.token).toBeNull()
     expect(result.current.user).toBeNull()
   })
+
+  it('logout during in-flight token validation does not restore state on network error', async () => {
+    let rejectValidation: (err: Error) => void = () => {}
+    mockGetStoredToken.mockReturnValue('stored-token')
+    mockGetAuthenticatedUser.mockReturnValue(
+      new Promise<typeof MOCK_USER>((_, r) => {
+        rejectValidation = r
+      }),
+    )
+    const { result } = renderHook(() => useAuth())
+    act(() => {
+      result.current.logout()
+    })
+    await act(async () => {
+      rejectValidation(new TypeError('Failed to fetch'))
+    })
+    expect(result.current.token).toBeNull()
+    expect(result.current.user).toBeNull()
+    expect(result.current.error).toBeNull()
+  })
 })
