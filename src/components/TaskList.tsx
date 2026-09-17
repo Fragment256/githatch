@@ -21,6 +21,7 @@ interface Props {
   defaultBranch: string
   loading: boolean
   error: string | null
+  editLoading?: boolean
   onRefresh: () => void
   onEdit: (task: GithatchTask) => void
   onDuplicate: (task: GithatchTask) => void
@@ -309,6 +310,7 @@ function TaskRow({
   onEdit,
   onDuplicate,
   onLastRunChange,
+  editLoading,
 }: {
   task: GithatchTask
   token: string
@@ -319,6 +321,7 @@ function TaskRow({
   onEdit: (task: GithatchTask) => void
   onDuplicate: (task: GithatchTask) => void
   onLastRunChange: (slug: string, run: WorkflowRun | null) => void
+  editLoading?: boolean
 }) {
   const [triggering, setTriggering] = useState(false)
   const [triggerError, setTriggerError] = useState<string | null>(null)
@@ -572,14 +575,14 @@ function TaskRow({
             <>
               <button
                 onClick={() => onEdit(task)}
-                disabled={deleting || toggling || triggering}
+                disabled={deleting || toggling || triggering || polling || editLoading}
                 className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white disabled:opacity-50"
               >
                 Edit
               </button>
               <button
                 onClick={() => onDuplicate(task)}
-                disabled={deleting || toggling || triggering}
+                disabled={deleting || toggling || triggering || polling || editLoading}
                 className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white disabled:opacity-50"
               >
                 Duplicate
@@ -598,7 +601,7 @@ function TaskRow({
               </button>
               <button
                 onClick={handleToggle}
-                disabled={toggling || deleting || triggering}
+                disabled={toggling || deleting || triggering || polling}
                 aria-label={enabled ? 'Pause task' : 'Resume task'}
                 className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white disabled:opacity-50"
               >
@@ -695,6 +698,7 @@ export function TaskList({
   defaultBranch,
   loading,
   error,
+  editLoading,
   onRefresh,
   onEdit,
   onDuplicate,
@@ -799,6 +803,7 @@ export function TaskList({
               onEdit={onEdit}
               onDuplicate={onDuplicate}
               onLastRunChange={handleLastRunChange}
+              editLoading={editLoading}
             />
           ))}
         </ul>

@@ -39,6 +39,7 @@ export default function App() {
   const { repos, reposLoading, reposError, activeRepo, setActiveRepo } = useRepo(token)
   const [view, setView] = useState<View>('tasks')
   const [saving, setSaving] = useState(false)
+  const [editLoading, setEditLoading] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [editingTask, setEditingTask] = useState<GithatchTask | null>(null)
   const [editingConfig, setEditingConfig] = useState<TaskConfig | null>(null)
@@ -91,6 +92,7 @@ export default function App() {
     if (!token) return
     const id = ++editLoadRequestId.current
     setSaveError(null)
+    setEditLoading(true)
     try {
       const yaml = await fetchFileContent({ token, owner, repo, path: task.path })
       if (id !== editLoadRequestId.current) return
@@ -101,6 +103,8 @@ export default function App() {
     } catch (err) {
       if (id !== editLoadRequestId.current) return
       setSaveError(err instanceof Error ? err.message : 'Failed to load task')
+    } finally {
+      if (id === editLoadRequestId.current) setEditLoading(false)
     }
   }
 
@@ -108,6 +112,7 @@ export default function App() {
     if (!token) return
     const id = ++editLoadRequestId.current
     setSaveError(null)
+    setEditLoading(true)
     try {
       const yaml = await fetchFileContent({ token, owner, repo, path: task.path })
       if (id !== editLoadRequestId.current) return
@@ -119,6 +124,8 @@ export default function App() {
     } catch (err) {
       if (id !== editLoadRequestId.current) return
       setSaveError(err instanceof Error ? err.message : 'Failed to load task')
+    } finally {
+      if (id === editLoadRequestId.current) setEditLoading(false)
     }
   }
 
@@ -434,6 +441,7 @@ export default function App() {
                   defaultBranch={defaultBranch}
                   loading={tasksLoading}
                   error={tasksError}
+                  editLoading={editLoading}
                   onRefresh={() => {
                     ++editLoadRequestId.current
                     loadTasks()
@@ -515,6 +523,7 @@ export default function App() {
             )}
             <TemplatePicker
               selected={selectedTemplate?.id ?? null}
+              disabled={saving}
               onSelect={(t) => {
                 setSelectedTemplate(t)
                 setDuplicatingConfig(null)

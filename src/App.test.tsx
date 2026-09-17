@@ -588,7 +588,7 @@ describe('App — task form submission', () => {
     expect(screen.getByRole('button', { name: /duplicate/i })).toBeInTheDocument()
   })
 
-  it('discards a stale handleEditTask response that resolves after a second edit click', async () => {
+  it('disables Edit and Duplicate buttons while a handleEditTask fetch is in-flight', async () => {
     const taskA: GithatchTask = {
       slug: 'task-a',
       displayName: 'Task A',
@@ -611,34 +611,32 @@ describe('App — task form submission', () => {
     }
     mockUseTasks.mockReturnValue({ ...defaultTasksState, tasks: [taskA, taskB] })
 
-    let resolveStale: (yaml: string) => void = () => {}
-    const staleYaml =
+    let resolveA: (yaml: string) => void = () => {}
+    const yamlA =
       'name: Task A\non:\n  schedule:\n    - cron: "0 9 * * *"\n  workflow_dispatch:\njobs:\n  run:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: anthropics/claude-code-action@v1\n        with:\n          prompt: |\n            Do A.\n'
-    const freshYaml =
-      'name: Task B\non:\n  schedule:\n    - cron: "0 10 * * *"\n  workflow_dispatch:\njobs:\n  run:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: anthropics/claude-code-action@v1\n        with:\n          prompt: |\n            Do B.\n'
-    vi.mocked(github.fetchFileContent)
-      .mockReturnValueOnce(
-        new Promise<string>((resolve) => {
-          resolveStale = resolve
-        }),
-      )
-      .mockResolvedValueOnce(freshYaml)
+    vi.mocked(github.fetchFileContent).mockReturnValueOnce(
+      new Promise<string>((resolve) => {
+        resolveA = resolve
+      }),
+    )
 
     render(<App />, { wrapper })
 
     const editBtns = await screen.findAllByRole('button', { name: /edit/i })
     fireEvent.click(editBtns[0]) // click Edit on Task A — slow fetch
-    fireEvent.click(editBtns[1]) // click Edit on Task B — fast fetch
 
-    // Task B's fetch resolves immediately; editor opens for Task B
-    await waitFor(() => expect(screen.getByRole('button', { name: /← back/i })).toBeInTheDocument())
-
-    // Now resolve the stale Task A fetch — should be discarded
-    await act(async () => {
-      resolveStale(staleYaml)
+    // While fetch is in-flight, all Edit and Duplicate buttons must be disabled
+    await waitFor(() => {
+      const btns = screen.getAllByRole('button', { name: /edit/i })
+      btns.forEach((b) => expect(b).toBeDisabled())
+      const dupBtns = screen.getAllByRole('button', { name: /duplicate/i })
+      dupBtns.forEach((b) => expect(b).toBeDisabled())
     })
 
-    // Editor is still showing (Task B's view) — not replaced by Task A
+    // Resolve the fetch — editor opens, buttons re-enable (view changes)
+    await act(async () => {
+      resolveA(yamlA)
+    })
     expect(screen.getByRole('button', { name: /← back/i })).toBeInTheDocument()
   })
 

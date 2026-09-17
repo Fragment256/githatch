@@ -3,9 +3,10 @@ import { TEMPLATES, type Template } from '@/lib/templates'
 interface Props {
   selected: string | null
   onSelect: (template: Template | null) => void
+  disabled?: boolean
 }
 
-export function TemplatePicker({ selected, onSelect }: Props) {
+export function TemplatePicker({ selected, onSelect, disabled }: Props) {
   return (
     <div className="mb-6">
       <p className="mb-2 font-mono text-xs tracking-widest text-black uppercase">
@@ -16,8 +17,9 @@ export function TemplatePicker({ selected, onSelect }: Props) {
           <button
             key={t.id}
             type="button"
+            disabled={disabled}
             onClick={() => onSelect(selected === t.id ? null : t)}
-            className={`w-full border-2 px-4 py-3 text-left transition-colors duration-100 ${
+            className={`w-full border-2 px-4 py-3 text-left transition-colors duration-100 disabled:opacity-50 ${
               selected === t.id
                 ? 'border-black bg-black text-white'
                 : 'border-black bg-white text-black hover:bg-gray-50'
@@ -34,8 +36,9 @@ export function TemplatePicker({ selected, onSelect }: Props) {
         {selected && (
           <button
             type="button"
+            disabled={disabled}
             onClick={() => onSelect(null)}
-            className="self-start font-mono text-xs text-gray-400 underline hover:text-black"
+            className="self-start font-mono text-xs text-gray-400 underline hover:text-black disabled:opacity-50"
           >
             Start from scratch
           </button>
