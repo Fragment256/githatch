@@ -167,42 +167,36 @@ describe('SecretsView', () => {
     expect(screen.queryByText(/already set on this repo/i)).not.toBeInTheDocument()
   })
 
-  it('shows setup form (not "already set") when Set is clicked while status is still checking but secret resolves to set', async () => {
-    // Regression: clicking Set while statuses[name]==='checking' used to capture
-    // configuringIsUpdate=false via stale closure; TokenSetup then received forceSetup=false
-    // and showed "already set on this repo" when the secret existed. Fix: derive forceSetup
-    // from reactive statuses state so it updates when the check resolves.
-    let resolveFirst: (exists: boolean) => void = () => {}
-    vi.spyOn(secrets, 'checkSecretExists')
-      // SecretsView's 3 initial checks — first one hangs, others always pending
-      .mockImplementationOnce(
-        () =>
-          new Promise<boolean>((r) => {
-            resolveFirst = r
-          }),
-      )
-      .mockImplementationOnce(() => new Promise<boolean>(() => {}))
-      .mockImplementationOnce(() => new Promise<boolean>(() => {}))
-      // TokenSetup's own check (and any re-check when forceSetup flips): secret exists
-      .mockResolvedValue(true)
+  it('shows entry form (not "already set") when Update is clicked after check resolves to set', async () => {
+    // Regression guard: forceSetup must be reactive so clicking Update on a 'set' secret
+    // renders the entry form directly, not the "already set on this repo" short-circuit.
+    // (Prior bug: stale closure captured configuringIsUpdate=false; fix: derive forceSetup
+    // from reactive statuses so it is always current at render time.)
+    vi.spyOn(secrets, 'checkSecretExists').mockResolvedValue(true)
 
     render(<SecretsView {...BASE_PROPS} />)
 
-    expect(screen.getAllByText('…').length).toBe(3)
+    // Wait for all checks to resolve — buttons should now show "Update" and be enabled
+    await waitFor(() => screen.getAllByRole('button', { name: /update/i }))
+    const updateButtons = screen.getAllByRole('button', { name: /update/i })
+    updateButtons.forEach((btn) => expect(btn).not.toBeDisabled())
 
-    // Click Set while CLAUDE_CODE_OAUTH_TOKEN status is still 'checking'
-    fireEvent.click(screen.getAllByRole('button', { name: /^set$/i })[0])
+    // Click Update — forceSetup should be true (statuses[name]==='set' !== 'unset')
+    fireEvent.click(updateButtons[0])
 
-    // SecretsView's check resolves: secret IS set → statuses → 'set' → forceSetup becomes true
-    await act(async () => {
-      resolveFirst(true)
-    })
-
-    // TokenSetup must show the entry form — not the "already set on this repo" message
+    // Must show the entry form — not the "already set on this repo" short-circuit
     await waitFor(() =>
       expect(screen.queryByText(/already set on this repo/i)).not.toBeInTheDocument(),
     )
     expect(screen.getByRole('button', { name: /save to repo/i })).toBeInTheDocument()
+  })
+
+  it('disables Set/Update buttons while status is checking', () => {
+    vi.spyOn(secrets, 'checkSecretExists').mockImplementation(() => new Promise(() => {}))
+    render(<SecretsView {...BASE_PROPS} />)
+    const setButtons = screen.getAllByRole('button', { name: /^set$/i })
+    expect(setButtons.length).toBeGreaterThan(0)
+    setButtons.forEach((btn) => expect(btn).toBeDisabled())
   })
 
   it('resets configuring state when repo changes so TokenSetup is not shown for new repo', async () => {
