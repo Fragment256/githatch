@@ -595,7 +595,7 @@ function TaskRow({
               </button>
               <button
                 onClick={handleToggle}
-                disabled={toggling || deleting}
+                disabled={toggling || deleting || triggering}
                 aria-label={enabled ? 'Pause task' : 'Resume task'}
                 className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white disabled:opacity-50"
               >
@@ -603,14 +603,14 @@ function TaskRow({
               </button>
               <button
                 onClick={handleTrigger}
-                disabled={triggering || !enabled || polling || deleting}
+                disabled={triggering || !enabled || polling || deleting || toggling}
                 className="border-2 border-black bg-black px-3 py-1.5 font-mono text-xs tracking-widest text-white uppercase transition-colors duration-100 hover:bg-white hover:text-black disabled:opacity-50"
               >
                 {triggering ? 'Triggering…' : triggered ? 'Triggered!' : 'Run now'}
               </button>
               <button
                 onClick={() => setConfirmDelete(true)}
-                disabled={triggering || polling || deleting}
+                disabled={triggering || polling || deleting || toggling}
                 aria-label="Delete task"
                 className="ml-1 p-1 text-black/30 transition-colors duration-100 hover:text-black disabled:opacity-50"
               >

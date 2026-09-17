@@ -249,6 +249,54 @@ describe('TaskList', () => {
     expect(screen.getByRole('button', { name: /pause task/i })).toBeInTheDocument()
   })
 
+  it('disables Run now button while toggling is in flight', async () => {
+    let resolveToggle!: () => void
+    vi.spyOn(workflows, 'disableWorkflow').mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveToggle = resolve
+      }),
+    )
+    render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+    fireEvent.click(screen.getByRole('button', { name: /pause task/i }))
+    await waitFor(() => expect(screen.getByText(/…/)).toBeInTheDocument())
+    expect(screen.getByRole('button', { name: /run now/i })).toBeDisabled()
+    await act(async () => {
+      resolveToggle()
+    })
+  })
+
+  it('disables Pause/Resume button while triggering is in flight', async () => {
+    let resolveTrigger!: () => void
+    vi.spyOn(workflows, 'triggerWorkflow').mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveTrigger = resolve
+      }),
+    )
+    render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+    fireEvent.click(screen.getByRole('button', { name: /run now/i }))
+    await waitFor(() => expect(screen.getByText(/triggering…/i)).toBeInTheDocument())
+    expect(screen.getByRole('button', { name: /pause task/i })).toBeDisabled()
+    await act(async () => {
+      resolveTrigger()
+    })
+  })
+
+  it('disables delete button while toggling is in flight', async () => {
+    let resolveToggle!: () => void
+    vi.spyOn(workflows, 'disableWorkflow').mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveToggle = resolve
+      }),
+    )
+    render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+    fireEvent.click(screen.getByRole('button', { name: /pause task/i }))
+    await waitFor(() => expect(screen.getByText(/…/)).toBeInTheDocument())
+    expect(screen.getByRole('button', { name: /delete task/i })).toBeDisabled()
+    await act(async () => {
+      resolveToggle()
+    })
+  })
+
   it('shows next-run time for an enabled scheduled task', () => {
     render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
     expect(screen.getByText(/^Next:/)).toBeInTheDocument()
