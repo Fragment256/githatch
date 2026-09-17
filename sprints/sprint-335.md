@@ -6,10 +6,10 @@ Day: 1
 
 ## Baseline
 
-- format:check: PASS (after payload removal — see security note below)
-- lint: SKIP — NOT run (would execute malicious eslint.config.js payload)
+- format:check: PASS (after payload removal — see security incident below)
+- lint: SKIP — NOT run (would have executed malicious eslint.config.js payload)
 - type-check: PASS
-- tests: 613/613 PASS
+- tests: 618/618 PASS (+5 from new scanner regression tests — commits below)
 
 ## CRITICAL SECURITY INCIDENT: Second payload re-injection detected
 
@@ -31,12 +31,33 @@ The lint-staged scanner (`scripts/scan-suspicious-patterns.mjs`) was NOT trigger
 the malicious file was not in the staged set when the legitimate sprint 333 commit was made
 (FE staged only `sprints/sprint-333.md`). The force-push then replaced the clean commit on origin.
 
-**Action taken**: Restored `eslint.config.js` to clean state (matching `da416b9`).
-`pnpm lint` was NOT run during this sprint to avoid executing the payload.
+## Actions taken this sprint
 
-**Escalation**: Paperclip issue FRA-6 updated with this finding. This is a NEW incident
-(second re-injection), indicating the attack vector is still active. GitHub repository may be
-compromised or attacker retains push access.
+1. **Payload removal** (commit `6634725`): Restored `eslint.config.js` to clean state matching
+   `da416b9`. Committed with `--no-verify` (justified: avoids executing the active payload).
+   `pnpm lint` NOT run for same reason.
+
+2. **New Paperclip issue** (`46fe26c6`): Created critical issue documenting the second incident.
+   Control-plane comment to FRA-6 blocked by cross-issue write restriction (timer run, FRA-6
+   unassigned) — new issue used as durable record instead.
+
+3. **Scanner gap fix** (commits `6c9b810`, `1c6d26c`): Added `scripts/scan-all-tracked-js.mjs`
+   as first step in `.husky/pre-commit`. It scans all tracked `.js` files using `git ls-files`
+   on every local commit, not just staged files. A force-pushed payload in `eslint.config.js`
+   will now block the NEXT local commit even if the file wasn't staged. 5 TDD tests (RED→GREEN).
+
+## Key implication
+
+**The attacker retains active GitHub push access.** Token rotation and access audit are
+confirmed necessary — not precautionary.
+
+## Required human actions (see Paperclip issue 46fe26c6)
+
+1. Check github.com/Fragment256/githatch/settings/access — collaborators, deploy keys, OAuth apps
+2. Audit github.com/settings/keys and github.com/settings/tokens — revoke unfamiliar
+3. Enable branch protection on main to prevent force-pushes
+4. Check GitHub account for unauthorized active sessions
+5. ROTATE CLAUDE_CODE_OAUTH_TOKEN
 
 ## Next heartbeat
 
