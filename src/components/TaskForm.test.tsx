@@ -292,6 +292,16 @@ describe('TaskForm', () => {
     expect(screen.getByTestId('yaml-preview')).toBeInTheDocument()
   })
 
+  // Bug fix sprint 325: blank custom-cron expression must be rejected, not silently dropped
+  it('shows error when "Custom cron…" selected but cron expression left blank', () => {
+    render(<TaskForm onSubmit={mockSubmit} />)
+    fireEvent.change(screen.getByLabelText(/schedule/i), { target: { value: 'custom' } })
+    fillMinimal()
+    fireEvent.click(screen.getByRole('button', { name: /create task/i }))
+    expect(screen.getByText(/enter a cron expression/i)).toBeInTheDocument()
+    expect(mockSubmit).not.toHaveBeenCalled()
+  })
+
   // isDuplicating: shows "New task"/"Create task" even when initialConfig is provided
   it('shows "New task" heading and "Create task" button when isDuplicating is true', () => {
     render(<TaskForm onSubmit={mockSubmit} initialConfig={baseConfig} isDuplicating={true} />)
