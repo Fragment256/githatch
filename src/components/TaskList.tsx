@@ -603,7 +603,7 @@ function TaskRow({
               </button>
               <button
                 onClick={handleTrigger}
-                disabled={triggering || !enabled || polling}
+                disabled={triggering || !enabled || polling || deleting}
                 className="border-2 border-black bg-black px-3 py-1.5 font-mono text-xs tracking-widest text-white uppercase transition-colors duration-100 hover:bg-white hover:text-black disabled:opacity-50"
               >
                 {triggering ? 'Triggering…' : triggered ? 'Triggered!' : 'Run now'}

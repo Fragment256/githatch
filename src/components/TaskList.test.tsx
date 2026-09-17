@@ -210,6 +210,23 @@ describe('TaskList', () => {
     })
   })
 
+  it('disables Run now button while delete is in flight', async () => {
+    let resolveDelete!: () => void
+    vi.spyOn(github, 'deleteWorkflowFile').mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveDelete = resolve
+      }),
+    )
+    render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+    fireEvent.click(screen.getByRole('button', { name: /delete task/i }))
+    fireEvent.click(screen.getByRole('button', { name: /^delete$/i }))
+    await waitFor(() => expect(screen.getByRole('button', { name: /^delete…$/i })).toBeDisabled())
+    expect(screen.getByRole('button', { name: /run now/i })).toBeDisabled()
+    await act(async () => {
+      resolveDelete()
+    })
+  })
+
   it('shows Pause button for an enabled task and calls disableWorkflow on click', async () => {
     vi.spyOn(workflows, 'disableWorkflow').mockResolvedValue(undefined)
     render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
