@@ -517,7 +517,10 @@ function TaskRow({
     setDeleteError(null)
     try {
       await deleteWorkflowFile({ token, owner, repo, path: task.path })
-      if (isMountedRef.current) onRefresh()
+      // Call onRefresh unconditionally: if a concurrent editLoading YAML fetch caused this
+      // TaskRow to unmount before delete completed, the task list would stay stale (ghost entry)
+      // and onRefresh would never increment editLoadRequestId. Call it regardless of mount state.
+      onRefresh()
     } catch (err) {
       if (isMountedRef.current)
         setDeleteError(err instanceof Error ? err.message : 'Failed to delete')
@@ -601,7 +604,7 @@ function TaskRow({
               </button>
               <button
                 onClick={handleToggle}
-                disabled={toggling || deleting || triggering || polling}
+                disabled={toggling || deleting || triggering || polling || editLoading}
                 aria-label={enabled ? 'Pause task' : 'Resume task'}
                 className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white disabled:opacity-50"
               >
@@ -609,7 +612,7 @@ function TaskRow({
               </button>
               <button
                 onClick={handleTrigger}
-                disabled={triggering || !enabled || polling || deleting || toggling}
+                disabled={triggering || !enabled || polling || deleting || toggling || editLoading}
                 className="border-2 border-black bg-black px-3 py-1.5 font-mono text-xs tracking-widest text-white uppercase transition-colors duration-100 hover:bg-white hover:text-black disabled:opacity-50"
               >
                 {triggering ? 'Triggering…' : triggered ? 'Triggered!' : 'Run now'}

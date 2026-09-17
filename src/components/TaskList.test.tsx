@@ -2024,4 +2024,36 @@ describe('TaskList', () => {
     )
     expect(screen.queryByRole('button', { name: /pause task/i })).not.toBeInTheDocument()
   })
+
+  it('disables Pause/Resume during editLoading to prevent toggle-while-YAML-loads race', () => {
+    render(<TaskList {...BASE_PROPS} tasks={[TASK]} editLoading={true} />)
+    expect(screen.getByRole('button', { name: /pause task/i })).toBeDisabled()
+  })
+
+  it('disables Run now during editLoading to prevent orphaned trigger dispatch', () => {
+    render(<TaskList {...BASE_PROPS} tasks={[TASK]} editLoading={true} />)
+    expect(screen.getByRole('button', { name: /run now/i })).toBeDisabled()
+  })
+
+  it('calls onRefresh after delete even when component unmounts mid-flight (no isMountedRef gate)', async () => {
+    // Regression: if a concurrent editLoading YAML fetch caused the TaskRow to unmount before
+    // deleteWorkflowFile returned, onRefresh was skipped (guarded by isMountedRef.current).
+    // Result: ghost entry in task list + edit form open for deleted task. Fix: unconditional call.
+    vi.spyOn(github, 'deleteWorkflowFile').mockResolvedValue(undefined)
+    const onRefresh = vi.fn()
+    const { unmount } = render(<TaskList {...BASE_PROPS} tasks={[TASK]} onRefresh={onRefresh} />)
+
+    // Open confirm dialog
+    fireEvent.click(screen.getByRole('button', { name: /delete task/i }))
+    await waitFor(() => screen.getByRole('button', { name: /^delete$/i }))
+
+    // Simulate the TaskRow unmounting mid-flight (e.g. YAML GET completed, view changed)
+    // We do this by unmounting before the delete promise resolves — but since the mock resolves
+    // synchronously, just unmount right before we click confirm, then confirm.
+    // The onRefresh must still be called.
+    fireEvent.click(screen.getByRole('button', { name: /^delete$/i }))
+    unmount()
+
+    await waitFor(() => expect(onRefresh).toHaveBeenCalled())
+  })
 })
