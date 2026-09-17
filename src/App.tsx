@@ -220,6 +220,7 @@ export default function App() {
               disabled={saving}
               onClick={() => {
                 ++editLoadRequestId.current
+                setEditLoading(false)
                 setDuplicatingConfig(null)
                 setSelectedTemplate(null)
                 setSaveError(null)
@@ -248,6 +249,7 @@ export default function App() {
               disabled={saving}
               onClick={() => {
                 ++editLoadRequestId.current
+                setEditLoading(false)
                 setSaving(false)
                 setView('about')
               }}
@@ -261,6 +263,7 @@ export default function App() {
                 disabled={saving}
                 onLogout={() => {
                   ++editLoadRequestId.current
+                  setEditLoading(false)
                   logout()
                   setSaving(false)
                   setActiveRepo(null)
@@ -324,6 +327,7 @@ export default function App() {
                 <button
                   onClick={() => {
                     ++editLoadRequestId.current
+                    setEditLoading(false)
                     setView('tasks')
                   }}
                   className={`px-3 py-1 font-mono text-xs tracking-widest uppercase transition-colors duration-100 ${
@@ -335,6 +339,7 @@ export default function App() {
                 <button
                   onClick={() => {
                     ++editLoadRequestId.current
+                    setEditLoading(false)
                     setSaveError(null)
                     setView('tools')
                   }}
@@ -347,6 +352,7 @@ export default function App() {
                 <button
                   onClick={() => {
                     ++editLoadRequestId.current
+                    setEditLoading(false)
                     setSaveError(null)
                     setView('activity')
                   }}
@@ -362,6 +368,7 @@ export default function App() {
                   <button
                     onClick={() => {
                       ++editLoadRequestId.current
+                      setEditLoading(false)
                       setView('token-setup')
                     }}
                     className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white"
@@ -379,6 +386,7 @@ export default function App() {
                       setDuplicatingConfig(null)
                       setSelectedTemplate(null)
                       ++editLoadRequestId.current
+                      setEditLoading(false)
                       setActiveRepo(null)
                     }}
                     className="border border-black px-2.5 py-1 font-mono text-xs tracking-widest text-black uppercase transition-colors duration-100 hover:bg-black hover:text-white"
@@ -390,6 +398,7 @@ export default function App() {
                   <button
                     onClick={() => {
                       ++editLoadRequestId.current
+                      setEditLoading(false)
                       setSaveError(null)
                       setView('new-task')
                     }}
@@ -415,10 +424,12 @@ export default function App() {
                 hasTasks={tasks.length > 0}
                 onSetupToken={() => {
                   ++editLoadRequestId.current
+                  setEditLoading(false)
                   setView('token-setup')
                 }}
                 onNewTask={() => {
                   ++editLoadRequestId.current
+                  setEditLoading(false)
                   setSaveError(null)
                   setView('new-task')
                 }}
@@ -444,6 +455,7 @@ export default function App() {
                   editLoading={editLoading}
                   onRefresh={() => {
                     ++editLoadRequestId.current
+                    setEditLoading(false)
                     loadTasks()
                   }}
                   onEdit={handleEditTask}

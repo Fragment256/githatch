@@ -1131,4 +1131,48 @@ describe('App — task form submission', () => {
     await waitFor(() => expect(mockLoad).toHaveBeenCalled())
     await waitFor(() => expect(mockAddTask).toHaveBeenCalled())
   })
+
+  it('re-enables Edit and Duplicate after navigating away during an in-flight edit load', async () => {
+    // Bug: navigation handlers increment editLoadRequestId (cancels the in-flight fetch) but
+    // omit setEditLoading(false). The finally block guards setEditLoading(false) behind
+    // id === editLoadRequestId.current, so the flag stays true permanently — Edit and Duplicate
+    // remain disabled for the rest of the session.
+    const task: GithatchTask = {
+      slug: 'daily-digest',
+      displayName: 'Daily Digest',
+      schedule: '0 9 * * *',
+      workflowId: 1,
+      path: '.github/workflows/githatch-daily-digest.yml',
+      enabled: true,
+      outputDestination: { type: 'new_issue' },
+      prompt: 'Summarize.',
+    }
+    mockUseTasks.mockReturnValue({ ...defaultTasksState, tasks: [task] })
+
+    // Fetch that never resolves — keeps editLoading=true indefinitely
+    vi.mocked(github.fetchFileContent).mockReturnValueOnce(new Promise<string>(() => {}))
+
+    render(<App />, { wrapper })
+
+    // Click Edit — slow fetch starts, editLoading becomes true
+    const editBtn = await screen.findByRole('button', { name: /edit/i })
+    fireEvent.click(editBtn)
+
+    // Confirm buttons are disabled while in-flight
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /edit/i })).toBeDisabled()
+      expect(screen.getByRole('button', { name: /duplicate/i })).toBeDisabled()
+    })
+
+    // Navigate to Tools (increments editLoadRequestId, cancels in-flight fetch)
+    fireEvent.click(screen.getByRole('button', { name: /^tools$/i }))
+    // Navigate back to Tasks so TaskList is visible
+    fireEvent.click(screen.getByRole('button', { name: /^tasks$/i }))
+
+    // Edit and Duplicate must be re-enabled — editLoading must have been cleared on navigation
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /edit/i })).not.toBeDisabled()
+      expect(screen.getByRole('button', { name: /duplicate/i })).not.toBeDisabled()
+    })
+  })
 })
