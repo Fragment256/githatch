@@ -247,4 +247,23 @@ describe('useAuth — login / logout', () => {
     expect(result.current.user).toBeNull()
     expect(result.current.error).toBeNull()
   })
+
+  it('logout during in-flight token validation does not restore state', async () => {
+    let resolveValidation: (u: typeof MOCK_USER) => void = () => {}
+    mockGetStoredToken.mockReturnValue('stored-token')
+    mockGetAuthenticatedUser.mockReturnValue(
+      new Promise((r) => {
+        resolveValidation = r
+      }),
+    )
+    const { result } = renderHook(() => useAuth())
+    act(() => {
+      result.current.logout()
+    })
+    await act(async () => {
+      resolveValidation(MOCK_USER)
+    })
+    expect(result.current.token).toBeNull()
+    expect(result.current.user).toBeNull()
+  })
 })

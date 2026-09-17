@@ -130,7 +130,7 @@ export function parseProvider(yaml: string): Provider {
 }
 
 export function parsePromptFromYaml(yaml: string): string {
-  const blockMatch = yaml.match(/ {10}prompt: \|\n([\s\S]+)$/)
+  const blockMatch = yaml.match(/ {10}prompt: \|\n((?:[ ]{11,}[^\n]*\n?|[ ]*\n)*)/)
   if (blockMatch) {
     const lines = blockMatch[1].split('\n')
     // Detect actual indentation from first non-empty line to handle both old (10) and new (12) format

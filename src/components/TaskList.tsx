@@ -358,6 +358,7 @@ function TaskRow({
   onLastRunChangeRef.current = onLastRunChange
 
   useEffect(() => {
+    isMountedRef.current = true
     return () => {
       isMountedRef.current = false
       // eslint-disable-next-line react-hooks/exhaustive-deps

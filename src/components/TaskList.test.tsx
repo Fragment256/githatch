@@ -78,6 +78,18 @@ describe('TaskList', () => {
     })
   })
 
+  it('trigger button returns to Run now after success inside StrictMode', async () => {
+    vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
+    render(
+      <StrictMode>
+        <TaskList {...BASE_PROPS} tasks={[TASK]} />
+      </StrictMode>,
+    )
+    fireEvent.click(screen.getByRole('button', { name: /run now/i }))
+    // isMountedRef must be true after remount so setTriggering(false) fires in finally
+    await waitFor(() => expect(screen.queryByText(/triggering…/i)).not.toBeInTheDocument())
+  })
+
   it('shows trigger error when triggerWorkflow rejects', async () => {
     vi.spyOn(workflows, 'triggerWorkflow').mockRejectedValue(new Error('Permission denied'))
     render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)

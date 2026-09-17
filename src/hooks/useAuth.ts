@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   buildAuthUrl,
   exchangeCodeForToken,
@@ -26,6 +26,7 @@ export function useAuth() {
     loading: !!getStoredToken() || !!new URLSearchParams(window.location.search).get('code'),
     error: null,
   })
+  const sessionRevRef = useRef(0)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -90,10 +91,12 @@ export function useAuth() {
     const stored = getStoredToken()
     if (stored) {
       let cancelled = false
+      const myRev = ++sessionRevRef.current
       setState((s) => ({ ...s, loading: true }))
       getAuthenticatedUser(stored)
         .then((user) => {
-          if (!cancelled) setState({ token: stored, user, loading: false, error: null })
+          if (!cancelled && sessionRevRef.current === myRev)
+            setState({ token: stored, user, loading: false, error: null })
         })
         .catch((err: unknown) => {
           if (cancelled) return
@@ -122,6 +125,7 @@ export function useAuth() {
   }
 
   const logout = () => {
+    ++sessionRevRef.current
     clearToken()
     setState({ token: null, user: null, loading: false, error: null })
   }
