@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-17 (sprint 300 — day 2 baseline, cycle 100)
+
+- Action: day 2 baseline (cycle 100)
+- Summary: format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 594/594 ✓. No drift from sprint 299.
+- Next: sprint 301 (day 3 — Explore audit)
+
+---
+
 ## 2026-09-17 (sprint 299 — day 1 baseline, cycle 100)
 
 - Action: day 1 baseline (cycle 100)
