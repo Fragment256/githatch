@@ -19,6 +19,7 @@ Investigation revealed the full credential-stealing payload had been re-introduc
 (`8c4163b`) on origin/main via force push.
 
 Both commits share:
+
 - Same parent: `14a405f`
 - Same author timestamp: `1789652964 +0100`
 - Same author: `Luke <lukemaxwellshouse@gmail.com>`
