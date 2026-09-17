@@ -57,7 +57,8 @@ describe('scan-all-tracked-js', () => {
 
   it('ignores the scanner scripts themselves', () => {
     const repoDir = makeGitRepo({
-      'scripts/scan-suspicious-patterns.mjs': 'const PATTERNS = [{ name: "createRequire(...) call", regex: /\\bcreateRequire\\s*\\(/ }]\n',
+      'scripts/scan-suspicious-patterns.mjs':
+        'const PATTERNS = [{ name: "createRequire(...) call", regex: /\\bcreateRequire\\s*\\(/ }]\n',
       'scripts/scan-all-tracked-js.mjs': '// exempt\n',
     })
     const result = execFileSync('node', [scriptPath], { cwd: repoDir, encoding: 'utf-8' })
@@ -85,8 +86,10 @@ describe('scan-all-tracked-js', () => {
       'eslint.config.js': 'export default {}\n',
     })
     // Simulate a force-pushed payload: write malicious content to committed file
-    writeFileSync(join(repoDir2, 'eslint.config.js'),
-      "import { createRequire } from 'node:module'\nconst r = createRequire(import.meta.url)\n")
+    writeFileSync(
+      join(repoDir2, 'eslint.config.js'),
+      "import { createRequire } from 'node:module'\nconst r = createRequire(import.meta.url)\n",
+    )
     execSync('git add eslint.config.js', { cwd: repoDir2 })
     expect(() => execFileSync('node', [scriptPath], { cwd: repoDir2, encoding: 'utf-8' })).toThrow()
   })
