@@ -25,6 +25,8 @@ export function scanContent(content) {
 const SELF_EXEMPT = [
   'scripts/scan-suspicious-patterns.mjs',
   'scripts/scan-suspicious-patterns.test.mjs',
+  'scripts/scan-all-tracked-js.mjs',
+  'scripts/scan-all-tracked-js.test.mjs',
 ]
 
 function main() {
