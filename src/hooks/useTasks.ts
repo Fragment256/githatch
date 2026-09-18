@@ -13,14 +13,14 @@ export function useTasks(token: string | null, owner: string, repo: string) {
     const id = ++requestId.current
     setLoading(true)
     setError(null)
-    setTasks([])
     listGithatchTasks({ token, owner, repo })
       .then((result) => {
         if (id !== requestId.current) return
         setTasks((prev) => {
-          // Preserve any optimistic tasks not yet reflected on GitHub (eventual consistency).
+          // Preserve only tasks explicitly marked optimistic (added locally, not yet on GitHub).
+          // Server-fetched tasks (isOptimistic undefined/false) are dropped and replaced.
           const serverSlugs = new Set(result.map((t) => t.slug))
-          const optimistic = prev.filter((t) => !serverSlugs.has(t.slug))
+          const optimistic = prev.filter((t) => t.isOptimistic && !serverSlugs.has(t.slug))
           return optimistic.length > 0 ? [...optimistic, ...result] : result
         })
       })
@@ -36,8 +36,11 @@ export function useTasks(token: string | null, owner: string, repo: string) {
 
   const addTask = useCallback((task: GithatchTask) => {
     setTasks((prev) => {
+      const optimistic: GithatchTask = { ...task, isOptimistic: true }
       const exists = prev.some((t) => t.slug === task.slug)
-      return exists ? prev.map((t) => (t.slug === task.slug ? task : t)) : [task, ...prev]
+      return exists
+        ? prev.map((t) => (t.slug === task.slug ? optimistic : t))
+        : [optimistic, ...prev]
     })
   }, [])
 

@@ -23,6 +23,10 @@ function makeTask(slug: string): GithatchTask {
   }
 }
 
+function makeOptimistic(slug: string): GithatchTask {
+  return { ...makeTask(slug), isOptimistic: true }
+}
+
 describe('useTasks', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
@@ -100,7 +104,7 @@ describe('useTasks', () => {
       result.current.addTask(makeTask('new'))
     })
 
-    expect(result.current.tasks).toEqual([makeTask('new')])
+    expect(result.current.tasks).toEqual([makeOptimistic('new')])
   })
 
   it('addTask replaces an existing task with the same slug', () => {
@@ -114,13 +118,13 @@ describe('useTasks', () => {
       result.current.addTask(updated)
     })
 
-    expect(result.current.tasks).toEqual([updated])
+    expect(result.current.tasks).toEqual([{ ...updated, isOptimistic: true }])
   })
 
   it('optimistic addTask is visible before the fetch resolves and preserved during eventual-consistency window', async () => {
-    // Regression: handleTaskFormSubmit calls load() before addTask() so that React 18
-    // batching applies setTasks([]) first and the functional updater in addTask() receives
-    // [] as prev — producing [optimistic]. Reversed order loses the insert.
+    // Regression guard: handleTaskFormSubmit calls load() before addTask() — both
+    // fire inside the same React 18 batch. addTask() must see the correct prev state
+    // and not lose the optimistic insert.
     //
     // Additionally: when GitHub hasn't propagated the new file yet, the fetch result should
     // not wipe the optimistic entry. The optimistic task is preserved until the server
@@ -139,7 +143,7 @@ describe('useTasks', () => {
       result.current.addTask(makeTask('optimistic'))
     })
 
-    expect(result.current.tasks).toEqual([makeTask('optimistic')])
+    expect(result.current.tasks).toEqual([makeOptimistic('optimistic')])
     expect(result.current.loading).toBe(true)
 
     // Server responds without the new task yet (GitHub eventual consistency window).
@@ -147,7 +151,7 @@ describe('useTasks', () => {
     await act(async () => {
       resolve([makeTask('fetched')])
     })
-    expect(result.current.tasks).toEqual([makeTask('optimistic'), makeTask('fetched')])
+    expect(result.current.tasks).toEqual([makeOptimistic('optimistic'), makeTask('fetched')])
   })
 
   it('optimistic task is dropped once the server confirms it', async () => {
@@ -172,7 +176,10 @@ describe('useTasks', () => {
     expect(result.current.tasks).toEqual([makeTask('optimistic'), makeTask('fetched')])
   })
 
-  it('clears tasks immediately when load is called — stale tasks from previous repo do not persist during fetch', async () => {
+  it('keeps existing tasks visible during a reload and replaces them when the fetch resolves', async () => {
+    // Repo switches re-create the hook with fresh [] state via React prop changes, so
+    // stale-repo tasks never appear. Within the same repo, keeping tasks visible during
+    // a refresh avoids a flicker and preserves in-flight optimistic entries.
     mockListGithatchTasks.mockResolvedValueOnce([makeTask('old')])
     const { result } = renderHook(() => useTasks('gho_test', 'owner', 'repo-a'))
 
@@ -181,7 +188,6 @@ describe('useTasks', () => {
     })
     await waitFor(() => expect(result.current.tasks).toEqual([makeTask('old')]))
 
-    // Second load (repo switch): tasks should be [] before the new fetch resolves
     let resolve: (t: GithatchTask[]) => void = () => {}
     mockListGithatchTasks.mockReturnValueOnce(
       new Promise<GithatchTask[]>((r) => {
@@ -193,8 +199,9 @@ describe('useTasks', () => {
       result.current.load()
     })
 
-    // Cleared immediately, before resolve fires
-    expect(result.current.tasks).toEqual([])
+    // Tasks remain visible while the new fetch is in flight (no flicker).
+    expect(result.current.tasks).toEqual([makeTask('old')])
+    expect(result.current.loading).toBe(true)
 
     await act(async () => {
       resolve([makeTask('new')])

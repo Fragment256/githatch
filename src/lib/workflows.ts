@@ -26,6 +26,8 @@ export interface GithatchTask {
   enabled: boolean
   outputDestination: OutputDestination
   prompt: string
+  /** Set to true for locally-added tasks not yet confirmed by a server fetch. */
+  isOptimistic?: boolean
 }
 
 export interface RunOutput {

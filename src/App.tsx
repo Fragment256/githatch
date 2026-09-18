@@ -436,17 +436,17 @@ export default function App() {
               />
             )}
 
-            {view === 'tasks' && (
+            {view === 'tasks' && token && (
               <ErrorBoundary>
-                <AgentConfig token={token!} owner={owner} repo={repo} />
+                <AgentConfig token={token} owner={owner} repo={repo} />
               </ErrorBoundary>
             )}
 
-            {view === 'tasks' && (
+            {view === 'tasks' && token && (
               <ErrorBoundary>
                 <TaskList
                   tasks={tasks}
-                  token={token!}
+                  token={token}
                   owner={owner}
                   repo={repo}
                   defaultBranch={defaultBranch}
