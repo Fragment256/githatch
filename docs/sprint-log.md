@@ -3366,3 +3366,24 @@ No drift from sprint 403. All quality checks clean after cycle 135 bug fixes.
 No drift from sprint 404. All quality checks clean.
 
 **Next sprint:** 406 (Explore audit, cycle 136).
+
+## Sprint 406 — 2026-09-18 (Explore audit cycle 136)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓
+
+**Explore audit:** 4 bugs found and fixed.
+
+- Bug 1 (`GettingStarted.tsx` `dismiss()`): `localStorage.setItem` unguarded — throws `QuotaExceededError` in iOS Safari private browsing, blocking dismiss. Fixed: wrapped in try/catch.
+- Bug 2 (`useRepo.ts` `setActiveRepo`): `localStorage.setItem` and `removeItem` unguarded — same iOS Safari private mode issue. Fixed: both wrapped in try/catch.
+- Bug 3 (`auth.ts` `storeToken`): `localStorage.setItem` unguarded — `QuotaExceededError` was caught by `useAuth` and re-thrown as misleading "Could not reach GitHub" after successful OAuth. Fixed: wrapped in try/catch.
+- Bug 4 (`workflows.ts` `listGithatchTasks`): `throw` on >1 MB workflow files replaced with `return null` — one oversized file no longer aborts the entire task list.
+
+**Next sprint:** 407 (day 1 — baseline, cycle 137).
+
+## Sprint 407 — 2026-09-18 (day 1 — baseline cycle 137)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓
+
+No drift from sprint 406. All quality checks clean after cycle 136 bug fixes.
+
+**Next sprint:** 408 (day 2 — baseline, cycle 137).
