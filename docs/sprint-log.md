@@ -3129,3 +3129,11 @@ No drift from sprint 374. All quality checks clean.
 No drift from sprint 376. All quality checks clean.
 
 **Next sprint:** 378 (day 2 — baseline cycle 127).
+
+## Sprint 378 — 2026-09-18 (day 2 — baseline cycle 127)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓
+
+No drift from sprint 377. All quality checks clean.
+
+**Next sprint:** 379 (day 3 — Explore audit cycle 127).
