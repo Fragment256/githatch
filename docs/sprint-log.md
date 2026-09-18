@@ -3387,3 +3387,11 @@ No drift from sprint 404. All quality checks clean.
 No drift from sprint 406. All quality checks clean after cycle 136 bug fixes.
 
 **Next sprint:** 408 (day 2 — baseline, cycle 137).
+
+## Sprint 408 — 2026-09-18 (day 2 — baseline cycle 137)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓
+
+No drift from sprint 407. All quality checks clean.
+
+**Next sprint:** 409 (Explore audit, cycle 137).
