@@ -3506,3 +3506,11 @@ No drift from sprint 419. All quality checks clean.
 DRY — full read of all 31 non-test source files, no new correctness bugs found. All prior fixes stable (sprints 301–420). Dry streak extends across cycles 120–121, 123–141 Explore audits.
 
 **Next sprint:** 422 (day 1 — baseline, cycle 142).
+
+## Sprint 422 — 2026-09-18 (day 1 — baseline cycle 142)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓
+
+No drift from sprint 421. All quality checks clean.
+
+**Next sprint:** 423 (day 2 — baseline, cycle 142).
