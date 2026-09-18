@@ -287,7 +287,7 @@ export async function fetchRunOutput(params: {
       `${API}/repos/${owner}/${repo}/issues?creator=github-actions%5Bbot%5D&since=${encodeURIComponent(run.createdAt)}&per_page=100&sort=created&direction=asc&state=all`
     let pr: IssueItem | undefined
     while (url && !pr) {
-      const res = await fetch(url, { headers })
+      const res: Response = await fetch(url, { headers })
       if (!res.ok) throw new Error(`GitHub API error ${res.status}`)
       const items = (await res.json()) as IssueItem[]
       // `since` filters by updated_at, not created_at — exclude pre-existing items that were recently updated
@@ -317,7 +317,7 @@ export async function fetchRunOutput(params: {
       `${API}/repos/${owner}/${repo}/issues?creator=github-actions%5Bbot%5D&since=${encodeURIComponent(run.createdAt)}&per_page=100&sort=created&direction=asc&state=all`
     let issue: IssueItem | undefined
     while (url && !issue) {
-      const res = await fetch(url, { headers })
+      const res: Response = await fetch(url, { headers })
       if (!res.ok) throw new Error(`GitHub API error ${res.status}`)
       const items = (await res.json()) as IssueItem[]
       // `since` filters by updated_at, not created_at — exclude pre-existing items that were recently updated
@@ -347,7 +347,7 @@ export async function fetchRunOutput(params: {
       `${API}/repos/${owner}/${repo}/issues/${issueNumber}/comments?since=${encodeURIComponent(run.createdAt)}&per_page=100&direction=asc`
     let botComment: CommentItem | undefined
     while (url && !botComment) {
-      const res = await fetch(url, { headers })
+      const res: Response = await fetch(url, { headers })
       if (!res.ok) throw new Error(`GitHub API error ${res.status}`)
       const comments = (await res.json()) as CommentItem[]
       // `since` filters by updated_at, not created_at — exclude pre-existing comments recently touched
