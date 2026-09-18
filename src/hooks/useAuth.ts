@@ -55,11 +55,12 @@ export function useAuth() {
       exchangeCodeForToken(code, GITHUB_CLIENT_ID, getRedirectUri())
         .then(async (token) => {
           if (cancelled || sessionRevRef.current !== myRev) return
-          storeToken(token)
           try {
             const user = await getAuthenticatedUser(token)
-            if (!cancelled && sessionRevRef.current === myRev)
+            if (!cancelled && sessionRevRef.current === myRev) {
+              storeToken(token)
               setState({ token, user, loading: false, error: null })
+            }
           } catch (err: unknown) {
             if (cancelled || sessionRevRef.current !== myRev) return
             const message =

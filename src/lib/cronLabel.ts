@@ -163,6 +163,7 @@ export function formatRelativeTime(future: Date, from: Date = new Date()): strin
   const diffMs = future.getTime() - from.getTime()
   if (diffMs <= 0) return 'now'
   const diffMins = Math.round(diffMs / 60000)
+  if (diffMins === 0) return 'in less than a minute'
   if (diffMins < 60) return `in ${diffMins} minute${diffMins === 1 ? '' : 's'}`
   const diffHours = Math.round(diffMins / 60)
   if (diffHours < 24) return `in ${diffHours} hour${diffHours === 1 ? '' : 's'}`

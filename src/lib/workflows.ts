@@ -137,6 +137,8 @@ export async function listGithatchTasks(params: TaskParams): Promise<GithatchTas
     githatchFiles.map(async (file) => {
       const slug = file.name.replace(/^githatch-/, '').replace(/\.yml$/, '')
       const workflowId = workflowIdByPath.get(file.path)
+      // Actions API may not have indexed a file that just appeared in Contents API; skip until sync.
+      if (workflowId === undefined) return null
       const state = workflowStateByPath.get(file.path) ?? 'active'
       const enabled = state === 'active'
 
