@@ -3065,3 +3065,11 @@ No drift from sprint 269. No bugs found.
 No drift from sprint 368. No bugs found.
 
 **Next sprint:** 370 (day 3 — Explore audit cycle 124).
+
+## Sprint 370 — 2026-09-18 (day 3 — Explore audit cycle 124)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓
+
+**Explore audit:** Dry. Full read of all 30 non-test source files. No correctness bugs found. All prior fixes (sprints 301–364) stable. Dry streak extends.
+
+**Next sprint:** 371 (day 1 — baseline, cycle 125).
