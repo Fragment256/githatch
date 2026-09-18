@@ -3201,3 +3201,11 @@ No drift from sprint 383. All quality checks clean.
 **Explore audit:** DRY — full read of all 31 non-test source files, no new correctness bugs found. All prior fixes stable (sprints 301–384).
 
 **Next sprint:** 386 (day 1 — baseline, cycle 130).
+
+## Sprint 386 — 2026-09-18 (day 1 — baseline cycle 130)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓
+
+No drift from sprint 385. All quality checks clean.
+
+**Next sprint:** 387 (day 2 — baseline cycle 130).
