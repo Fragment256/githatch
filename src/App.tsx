@@ -249,6 +249,8 @@ export default function App() {
                 ++editLoadRequestId.current
                 setEditLoading(false)
                 setSaving(false)
+                setDuplicatingConfig(null)
+                setSelectedTemplate(null)
                 setView('about')
               }}
               className="px-2 font-mono text-xs tracking-widest text-black/40 uppercase hover:text-black disabled:opacity-40"
@@ -398,6 +400,8 @@ export default function App() {
                       ++editLoadRequestId.current
                       setEditLoading(false)
                       setSaveError(null)
+                      setDuplicatingConfig(null)
+                      setSelectedTemplate(null)
                       setView('new-task')
                     }}
                     className="border-2 border-black bg-black px-3 py-1.5 font-mono text-xs tracking-widest text-white uppercase transition-colors duration-100 hover:bg-white hover:text-black"
@@ -429,6 +433,8 @@ export default function App() {
                   ++editLoadRequestId.current
                   setEditLoading(false)
                   setSaveError(null)
+                  setDuplicatingConfig(null)
+                  setSelectedTemplate(null)
                   setView('new-task')
                 }}
               />

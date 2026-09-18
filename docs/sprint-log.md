@@ -3570,3 +3570,13 @@ No drift from sprint 427. All quality checks clean.
 No drift from sprint 428. All quality checks clean.
 
 **Next sprint:** 430 (Explore audit, cycle 144).
+
+## Sprint 430 — 2026-09-18 (Explore audit, cycle 144 — 1 bug fixed)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓
+
+**Bug found and fixed (MEDIUM):**
+
+- `App.tsx` About button and "+ New task" button: navigating to About or back to "+ New task" did not clear `duplicatingConfig` or `selectedTemplate`. After: Duplicate task → About → Back → "+ New task", the form rendered with the stale duplication config, silently pre-filling fields with the old task's data. Fix: added `setDuplicatingConfig(null)` and `setSelectedTemplate(null)` to the About button `onClick`, the "+ New task" button `onClick`, and the `GettingStarted` `onNewTask` callback.
+
+**Next sprint:** 431 (day 1 — baseline, cycle 145).
