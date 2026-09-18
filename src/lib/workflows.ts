@@ -150,8 +150,7 @@ export async function listGithatchTasks(params: TaskParams): Promise<GithatchTas
         throw new Error(`Failed to fetch workflow file ${file.name}: ${fileRes.status}`)
       }
       const { content } = (await fileRes.json()) as { content: string | null }
-      if (content == null)
-        throw new Error(`Workflow file ${file.name} is too large to fetch via Contents API (>1 MB)`)
+      if (content == null) return null // file >1 MB; skip rather than failing all tasks
       const binary = atob(content.replace(/\s/g, ''))
       const bytes = new Uint8Array(binary.length)
       for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)

@@ -35,7 +35,11 @@ export function GettingStarted({
   const allDone = secretStatus === 'present' && hasTasks
 
   function dismiss() {
-    localStorage.setItem(dismissKey(repoFullName), 'true')
+    try {
+      localStorage.setItem(dismissKey(repoFullName), 'true')
+    } catch {
+      // QuotaExceededError in iOS Safari private mode; in-memory state still dismisses
+    }
     setDismissedFor(repoFullName)
   }
 

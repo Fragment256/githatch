@@ -25,10 +25,14 @@ export function useRepo(token: string | null) {
 
   const setActiveRepo = useCallback((repo: GitHubRepo | null) => {
     setActiveRepoState(repo)
-    if (repo) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(repo))
-    } else {
-      localStorage.removeItem(STORAGE_KEY)
+    try {
+      if (repo) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(repo))
+      } else {
+        localStorage.removeItem(STORAGE_KEY)
+      }
+    } catch {
+      // QuotaExceededError in iOS Safari private mode; in-memory state is already updated
     }
   }, [])
 

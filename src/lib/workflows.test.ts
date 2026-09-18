@@ -350,9 +350,9 @@ describe('listGithatchTasks', () => {
     expect(tasks[0].slug).toBe('daily-standup')
   })
 
-  it('throws a descriptive error when GitHub returns null content for a file >1 MB', async () => {
+  it('silently skips a workflow file when GitHub returns null content (>1 MB)', async () => {
     // GitHub Contents API returns { content: null, encoding: 'none' } for files >1 MB.
-    // Without a null guard, atob(null.replace(...)) throws a TypeError — not a useful error.
+    // The task should be omitted from results rather than rejecting the entire list.
     const workflowsListResponse = [
       { name: 'githatch-daily-standup.yml', path: '.github/workflows/githatch-daily-standup.yml' },
     ]
@@ -382,9 +382,8 @@ describe('listGithatchTasks', () => {
       })
     vi.stubGlobal('fetch', fetchMock)
 
-    await expect(
-      listGithatchTasks({ token: 'gho_test', owner: 'testuser', repo: 'my-repo' }),
-    ).rejects.toThrow(/too large/i)
+    const tasks = await listGithatchTasks({ token: 'gho_test', owner: 'testuser', repo: 'my-repo' })
+    expect(tasks).toEqual([])
   })
 
   it('does not throw "too large" for a 0-byte workflow file (content: "")', async () => {

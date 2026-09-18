@@ -102,7 +102,11 @@ export function getStoredToken(): string | null {
 }
 
 export function storeToken(token: string): void {
-  localStorage.setItem(TOKEN_KEY, token)
+  try {
+    localStorage.setItem(TOKEN_KEY, token)
+  } catch {
+    // QuotaExceededError in iOS Safari private mode; token remains in React state
+  }
 }
 
 export function clearToken(): void {
