@@ -3163,3 +3163,25 @@ No drift from sprint 379. All quality checks clean.
 No drift from sprint 380. All quality checks clean.
 
 **Next sprint:** 382 (day 3 — Explore audit cycle 128).
+
+## Sprint 382 — 2026-09-18 (day 3 — Explore audit cycle 128)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓
+
+**Explore audit:** 3 bugs found and fixed. Full read of all 32 non-test source files.
+
+**Bug — useAuth.ts storeToken outside success path (MEDIUM):** `storeToken` was called before checking whether `getAuthenticatedUser` succeeded. A transient non-401 failure stored an orphaned token in localStorage, leaving the app in a reload-loop (token present, user null). Fix: move `storeToken` inside the success branch.
+
+**Bug — workflows.ts tasks with undefined workflowId (MEDIUM):** `fetchWorkflowTasks` did not skip tasks where `workflowId` was undefined. The Contents API races ahead of the Actions API during indexing; downstream trigger/enable/disable calls produced 404 URLs with literal "undefined" in the path. Fix: filter out tasks with `workflowId === undefined` before processing.
+
+**Bug — cronLabel.ts formatRelativeTime "in 0 minutes" (LOW):** `formatRelativeTime` returned "in 0 minutes" for futures 1–29s away. `Math.round` mapped sub-30s deltas to 0 before the minutes branch ran. Fix: added a sub-60s guard to return "in less than a minute".
+
+**Next sprint:** 383 (day 1 — baseline, cycle 129).
+
+## Sprint 383 — 2026-09-18 (day 1 — baseline cycle 129)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓
+
+No drift from sprint 382. All quality checks clean.
+
+**Next sprint:** 384 (day 2 — baseline cycle 129).
