@@ -3226,4 +3226,10 @@ No drift from sprint 386. All quality checks clean.
 
 **Next sprint:** 389 (day 1 — baseline, cycle 131).
 
-**Next sprint:** 388 (day 3 — Explore audit cycle 130).
+## Sprint 389 — 2026-09-18 (day 1 — baseline cycle 131)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓
+
+No drift from sprint 388. All quality checks clean.
+
+**Next sprint:** 390 (day 2 — baseline, cycle 131).
