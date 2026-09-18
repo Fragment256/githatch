@@ -3395,3 +3395,14 @@ No drift from sprint 406. All quality checks clean after cycle 136 bug fixes.
 No drift from sprint 407. All quality checks clean.
 
 **Next sprint:** 409 (Explore audit, cycle 137).
+
+## Sprint 409 — 2026-09-18 (Explore audit cycle 137)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓
+
+**Explore audit:** 2 bugs found and fixed.
+
+- Bug 1 (`App.tsx` `handleEditFormSubmit`): stale-id guard at line 139 was placed between `upsertWorkflowFile` and `deleteWorkflowFile`. On rename, if the user navigated away while the upsert was in flight, the function exited early — leaving both the old and new workflow files in the repo, running duplicate cron jobs indefinitely. Fixed: removed the early-return guard between the two writes; UI state guard (`id === editLoadRequestId.current`) retained after both writes complete.
+- Bug 2 (`useAuth.ts` OAuth callback): when `getAuthenticatedUser` threw a non-401 transient error, `storeToken(token)` was not called — the valid OAuth token was placed in React state but not persisted to `localStorage`. On page refresh the user appeared logged out and had to re-complete OAuth. Fixed: `storeToken(token)` now called in the non-401 catch path before `setState`.
+
+**Next sprint:** 410 (day 1 — baseline, cycle 138).
