@@ -3350,3 +3350,11 @@ No drift from sprint 401. All quality checks clean.
 - Bug 3 agent finding (yamlGenerator.ts `lastIndexOf`) dismissed as false positive — `lastIndexOf` correctly targets the appended instruction (always last), preserving any user-authored `\n\nWhen done,` occurrences.
 
 **Next sprint:** 404 (day 1 — baseline, cycle 136).
+
+## Sprint 404 — 2026-09-18 (day 1 — baseline cycle 136)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓
+
+No drift from sprint 403. All quality checks clean after cycle 135 bug fixes.
+
+**Next sprint:** 405 (day 2 — baseline, cycle 136).
