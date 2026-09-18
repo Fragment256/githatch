@@ -4,6 +4,22 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-18 (sprint 434 — Explore audit, cycle 145/146 — DRY)
+
+- Action: Explore audit — all non-test source files read
+- Summary: format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓. Dry. All 34 source files audited. No new correctness bugs found. All prior fixes confirmed in place. (Sprint 433 was a rogue baseline — cycle 146 day 1 — committed without log entry.)
+- Next: sprint 435 (day 1 — baseline, cycle 147)
+
+---
+
+## 2026-09-18 (sprint 433 — day 1 baseline, cycle 146) [backfill]
+
+- Action: day 1 baseline (cycle 146 — note: sprint 432 log planned this as Explore audit; baseline was committed instead)
+- Summary: format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓. No drift from sprint 432.
+- Next: sprint 434 (Explore audit, cycle 145/146)
+
+---
+
 ## 2026-09-18 (sprint 432 — day 2 baseline, cycle 145)
 
 - Action: day 2 baseline
