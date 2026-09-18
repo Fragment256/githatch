@@ -3636,3 +3636,67 @@ No drift from sprint 428. All quality checks clean.
 - `App.tsx` About button and "+ New task" button: navigating to About or back to "+ New task" did not clear `duplicatingConfig` or `selectedTemplate`. After: Duplicate task → About → Back → "+ New task", the form rendered with the stale duplication config, silently pre-filling fields with the old task's data. Fix: added `setDuplicatingConfig(null)` and `setSelectedTemplate(null)` to the About button `onClick`, the "+ New task" button `onClick`, and the `GettingStarted` `onNewTask` callback.
 
 **Next sprint:** 431 (day 1 — baseline, cycle 145).
+
+## Sprint 431 — 2026-09-18 (day 1 — baseline cycle 145)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓
+
+No drift from sprint 430. All quality checks clean.
+
+**Next sprint:** 432 (day 2 — baseline, cycle 145).
+
+## Sprint 432 — 2026-09-18 (day 2 — baseline cycle 145)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓
+
+No drift from sprint 431. All quality checks clean.
+
+**Next sprint:** 433 (day 1 — baseline, cycle 146).
+
+## Sprint 433 — 2026-09-18 (day 1 — baseline cycle 146)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓
+
+No drift from sprint 432. All quality checks clean.
+
+**Next sprint:** 434 (Explore audit, cycle 145/146).
+
+## Sprint 434 — 2026-09-18 (Explore audit, cycle 145/146 — DRY)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓
+
+DRY — full read of all 34 non-test source files. No new correctness bugs found. All prior fixes confirmed in place.
+
+**Next sprint:** 435 (day 1 — baseline, cycle 147).
+
+## Sprint 435 — 2026-09-19 (day 1 — baseline cycle 147)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓
+
+No drift from sprint 434. All quality checks clean.
+
+**Next sprint:** 436 (day 2 — baseline, cycle 147).
+
+## Sprint 436 — 2026-09-19 (day 2 — baseline cycle 147)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓
+
+No drift from sprint 435. All quality checks clean.
+
+**Next sprint:** 437 (Explore audit, cycle 147).
+
+## Sprint 437 — 2026-09-19 (Explore audit, cycle 147 — DRY)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓
+
+DRY — full read of all 34 non-test source files. No new correctness bugs found. All prior fixes confirmed in place. Dry streak extends (cycles 121, 123–147).
+
+**Next sprint:** 438 (day 1 — baseline, cycle 148).
+
+## Sprint 438 — 2026-09-19 (day 1 — baseline cycle 148)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓
+
+No drift from sprint 437. All quality checks clean.
+
+**Next sprint:** 439 (day 2 — baseline, cycle 148).
