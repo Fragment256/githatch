@@ -136,7 +136,6 @@ export default function App() {
     setSaveError(null)
     try {
       await upsertWorkflowFile({ token, owner, repo, slug: newSlug, yaml })
-      if (id !== editLoadRequestId.current) return
       if (newSlug !== editingTask.slug) {
         try {
           await deleteWorkflowFile({ token, owner, repo, path: editingTask.path })

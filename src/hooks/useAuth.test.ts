@@ -191,13 +191,13 @@ describe('useAuth — OAuth callback (code in URL)', () => {
     expect(result.current.error).toBeTruthy()
   })
 
-  it('keeps token in state but not localStorage when getAuthenticatedUser fails with transient error', async () => {
+  it('stores valid token to localStorage when getAuthenticatedUser fails with transient error', async () => {
     setSearch({ code: 'auth-code', state: 'test-state' })
     mockExchangeCodeForToken.mockResolvedValue('gho_new_token')
     mockGetAuthenticatedUser.mockRejectedValue(new TypeError('Failed to fetch'))
     const { result } = renderHook(() => useAuth())
     await waitFor(() => expect(result.current.loading).toBe(false))
-    expect(mockStoreToken).not.toHaveBeenCalled()
+    expect(mockStoreToken).toHaveBeenCalledWith('gho_new_token')
     expect(mockClearToken).not.toHaveBeenCalled()
     expect(result.current.token).toBe('gho_new_token')
     expect(result.current.error).toBeTruthy()

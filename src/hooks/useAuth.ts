@@ -71,6 +71,7 @@ export function useAuth() {
               clearToken()
               setState({ token: null, user: null, loading: false, error: message })
             } else {
+              storeToken(token)
               setState({
                 token,
                 user: null,
