@@ -136,6 +136,7 @@ export default function App() {
     setSaveError(null)
     try {
       await upsertWorkflowFile({ token, owner, repo, slug: newSlug, yaml })
+      if (id !== editLoadRequestId.current) return
       if (newSlug !== editingTask.slug) {
         try {
           await deleteWorkflowFile({ token, owner, repo, path: editingTask.path })
@@ -186,8 +187,6 @@ export default function App() {
         setDuplicatingConfig(null)
         setSelectedTemplate(null)
         setView('tasks')
-        // load() before addTask() so React 18 batching applies setTasks([]) first;
-        // addTask's functional updater then receives [] as prev → [newTask] persists.
         loadTasks()
         addTask({
           slug,

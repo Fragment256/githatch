@@ -24,8 +24,13 @@ export function GettingStarted({
   // Track which repo the user dismissed in this session. On repo change, dismissedFor !== repoFullName
   // so localStorage is checked synchronously — no stale-state frame from useEffect.
   const [dismissedFor, setDismissedFor] = useState<string | null>(null)
-  const isDismissed =
-    dismissedFor === repoFullName || localStorage.getItem(dismissKey(repoFullName)) === 'true'
+  let storedDismiss = false
+  try {
+    storedDismiss = localStorage.getItem(dismissKey(repoFullName)) === 'true'
+  } catch {
+    // SecurityError in private browsing or storage-restricted environments
+  }
+  const isDismissed = dismissedFor === repoFullName || storedDismiss
 
   const allDone = secretStatus === 'present' && hasTasks
 

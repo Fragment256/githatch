@@ -3337,3 +3337,16 @@ No drift from sprint 400. All quality checks clean.
 No drift from sprint 401. All quality checks clean.
 
 **Next sprint:** 403 (day 3 — Explore audit, cycle 135).
+
+## Sprint 403 — 2026-09-18 (day 3 — Explore audit cycle 135)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓
+
+**Explore audit:** 2 bugs found and fixed.
+
+- Bug 1 (`App.tsx:139`): Missing staleness check before rename/delete in `handleEditFormSubmit`. If user navigated away during an upsert with a slug rename, the old workflow file was deleted even though a new session owned the request ID. Fixed: added `if (id !== editLoadRequestId.current) return` immediately after `await upsertWorkflowFile(...)`.
+- Bug 2 (`GettingStarted.tsx:27`): `localStorage.getItem` called bare in the render body, uncaught by any ErrorBoundary. Throws `SecurityError` in iOS Safari private browsing. Fixed: wrapped in try/catch.
+- Stale comment removed (`App.tsx:189`): wrong explanation of `addTask`/`loadTasks` ordering, already flagged in sprint 394.
+- Bug 3 agent finding (yamlGenerator.ts `lastIndexOf`) dismissed as false positive — `lastIndexOf` correctly targets the appended instruction (always last), preserving any user-authored `\n\nWhen done,` occurrences.
+
+**Next sprint:** 404 (day 1 — baseline, cycle 136).
