@@ -3113,3 +3113,11 @@ No drift from sprint 373. All quality checks clean.
 No drift from sprint 374. All quality checks clean.
 
 **Next sprint:** 376 (day 3 — Explore audit cycle 126).
+
+## Sprint 376 — 2026-09-18 (day 3 — Explore audit cycle 126)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓
+
+**Explore audit:** Dry. Full read of all 31 non-test source files. No correctness bugs found. All prior fixes (sprints 301–375) stable. Dry streak extends (cycles 121, 123, 124, 125, 126 all dry).
+
+**Next sprint:** 377 (day 1 — baseline, cycle 127).
