@@ -3406,3 +3406,11 @@ No drift from sprint 407. All quality checks clean.
 - Bug 2 (`useAuth.ts` OAuth callback): when `getAuthenticatedUser` threw a non-401 transient error, `storeToken(token)` was not called — the valid OAuth token was placed in React state but not persisted to `localStorage`. On page refresh the user appeared logged out and had to re-complete OAuth. Fixed: `storeToken(token)` now called in the non-401 catch path before `setState`.
 
 **Next sprint:** 410 (day 1 — baseline, cycle 138).
+
+## Sprint 410 — 2026-09-18 (day 1 — baseline cycle 138)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓
+
+No drift from sprint 409. All quality checks clean.
+
+**Next sprint:** 411 (day 2 — baseline, cycle 138).
