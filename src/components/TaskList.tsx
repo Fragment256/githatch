@@ -621,7 +621,7 @@ function TaskRow({
               </button>
               <button
                 onClick={() => setConfirmDelete(true)}
-                disabled={triggering || polling || deleting || toggling}
+                disabled={triggering || polling || deleting || toggling || editLoading}
                 aria-label="Delete task"
                 className="ml-1 p-1 text-black/30 transition-colors duration-100 hover:text-black disabled:opacity-50"
               >

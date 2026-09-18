@@ -1014,11 +1014,12 @@ describe('App — task form submission', () => {
     expect(screen.getByRole('button', { name: /logout/i })).toBeDisabled()
   })
 
-  it('cancels an in-flight edit fetch when task is deleted via onRefresh', async () => {
-    // Bug fix sprint 310: onRefresh prop (called by TaskList after delete) did not increment
-    // editLoadRequestId, so a slow edit fetch completing after the delete opened an edit form
-    // for a task that was already gone — submitting would silently re-create the deleted file.
-    // Fix: onRefresh now increments editLoadRequestId to cancel any stale edit fetch.
+  it('delete button is disabled while an edit fetch is in-flight', async () => {
+    // Sprint 379 primary fix: delete button gains `|| editLoading` in its disabled condition.
+    // Prior race: user could open and confirm a delete while App was mid-flight fetching the
+    // task YAML; the stale edit fetch completing after the delete would silently re-create the
+    // deleted file. The primary guard is now the disabled UI; onRefresh still increments
+    // editLoadRequestId as defence-in-depth.
     const task: GithatchTask = {
       slug: 'daily-digest',
       displayName: 'Daily Digest',
@@ -1030,42 +1031,21 @@ describe('App — task form submission', () => {
       prompt: 'Summarize.',
     }
     mockUseTasks.mockReturnValue({ ...defaultTasksState, tasks: [task] })
-    mockLoad.mockClear()
 
-    let resolveYaml: (yaml: string) => void = () => {}
     vi.mocked(github.fetchFileContent).mockReturnValueOnce(
-      new Promise<string>((resolve) => {
-        resolveYaml = resolve
+      new Promise<string>(() => {
+        // never resolves — keeps editLoading=true indefinitely
       }),
     )
-    vi.mocked(github.deleteWorkflowFile).mockResolvedValue(undefined)
 
     render(<App />, { wrapper })
 
-    // Click Edit — slow fetch starts, tasks view remains
+    // Click Edit — slow fetch starts, editLoading becomes true
     const editBtn = await screen.findByRole('button', { name: /^edit$/i })
     fireEvent.click(editBtn)
 
-    // Click the trash-icon delete button to open the confirm dialog
-    fireEvent.click(screen.getByRole('button', { name: /delete task/i }))
-
-    // Confirm the deletion
-    await waitFor(() => screen.getByRole('button', { name: /^delete$/i }))
-    fireEvent.click(screen.getByRole('button', { name: /^delete$/i }))
-
-    // Wait for onRefresh to fire (loadTasks called via onRefresh)
-    await waitFor(() => expect(mockLoad).toHaveBeenCalled())
-
-    // Resolve the now-stale edit fetch
-    await act(async () => {
-      resolveYaml(
-        'name: Daily Digest\non:\n  schedule:\n    - cron: "0 9 * * *"\n  workflow_dispatch:\njobs:\n  run:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: anthropics/claude-code-action@v1\n        with:\n          prompt: |\n            Summarize.\n',
-      )
-    })
-
-    // Edit form must NOT have appeared — stale fetch was cancelled by onRefresh
-    expect(screen.queryByRole('button', { name: /save changes/i })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /← back/i })).not.toBeInTheDocument()
+    // Delete button must be disabled while editLoading is true
+    await waitFor(() => expect(screen.getByRole('button', { name: /delete task/i })).toBeDisabled())
   })
 
   it('Githatch logo button is disabled while save is in-flight', async () => {

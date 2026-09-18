@@ -3137,3 +3137,13 @@ No drift from sprint 376. All quality checks clean.
 No drift from sprint 377. All quality checks clean.
 
 **Next sprint:** 379 (day 3 — Explore audit cycle 127).
+
+## Sprint 379 — 2026-09-18 (day 3 — Explore audit cycle 127)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓
+
+**Explore audit:** 1 bug found and fixed. Full read of all 32 non-test source files.
+
+**Bug — TaskList.tsx delete button missing `|| editLoading` in disabled condition (CONFIRMED):** Every other action button in `TaskRow` (Edit, Duplicate, History, Prompt, Toggle/Pause, Run now) was disabled when `editLoading` was true, but the delete button was not. A user could open the confirm dialog and confirm a delete while App was mid-flight fetching the task YAML for editing. The stale edit fetch completing after the delete would silently re-create the deleted workflow file on GitHub. Fix: added `|| editLoading` to the delete button's `disabled` prop. Test updated: "cancels an in-flight edit fetch when task is deleted via onRefresh" → "delete button is disabled while an edit fetch is in-flight" (sprint 310 defence-in-depth via onRefresh still intact; primary guard is now the disabled UI).
+
+**Next sprint:** 380 (day 1 — baseline, cycle 128).
