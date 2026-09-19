@@ -4064,3 +4064,11 @@ Dry streak extends: cycles 121, 123–158 Explore audits all dry (except sprint 
 No drift from sprint 473. All quality checks clean. eslint.config.js clean. Scanner test stderr (createRequire fixture) is expected test output — not a real violation.
 
 **Next sprint:** 475 (day 2 — baseline, cycle 160).
+
+## Sprint 475 — 2026-09-19 (day 2 — baseline, cycle 160)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 635/635 ✓
+
+No drift from sprint 474. All quality checks clean. eslint.config.js clean. Scanner test stderr (createRequire fixture) is expected test output — not a real violation.
+
+**Next sprint:** 476 (Explore audit, cycle 160).
