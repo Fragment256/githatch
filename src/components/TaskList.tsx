@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react'
 import type { GithatchTask, WorkflowRun } from '@/lib/workflows'
 import type { OutputDestination } from '@/lib/yamlGenerator'
 import { describeCron, nextCronRun, formatRelativeTime } from '@/lib/cronLabel'
@@ -373,6 +373,13 @@ function TaskRow({
       if (triggeredTimerRef.current !== null) clearTimeout(triggeredTimerRef.current)
     }
   }, [])
+
+  // Synchronously disable the Run now button before the browser paints when workflowId
+  // transitions undefined→number. The useEffect below is async (post-paint), leaving one
+  // rendered frame where the button would be enabled before prevRunIdRef is initialised.
+  useLayoutEffect(() => {
+    if (task.workflowId) setFetchingLastRun(true)
+  }, [task.workflowId])
 
   useEffect(() => {
     if (!task.workflowId) return

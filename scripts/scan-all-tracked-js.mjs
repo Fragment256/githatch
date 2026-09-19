@@ -20,7 +20,7 @@ const SELF_EXEMPT_PREFIXES = [
 function main() {
   let trackedFiles
   try {
-    trackedFiles = execSync('git ls-files --cached --others --exclude-standard "*.js"', {
+    trackedFiles = execSync('git ls-files --cached --exclude-standard "*.js"', {
       encoding: 'utf-8',
     })
       .trim()

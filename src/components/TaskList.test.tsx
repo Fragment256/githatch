@@ -1223,6 +1223,26 @@ describe('TaskList', () => {
       await waitFor(() => expect(workflows.triggerWorkflow).toHaveBeenCalledOnce())
     })
 
+    it('disables Run now button synchronously when workflowId transitions from undefined to a number', () => {
+      // Regression: fetchingLastRun was initialized from useState(!!task.workflowId) and only
+      // updated via useEffect (async, post-paint). When an optimistic task received its workflowId
+      // the button group became visible for one frame with fetchingLastRun=false, allowing a click
+      // before prevRunIdRef was initialised — the poll would then misidentify a pre-existing run.
+      const optimistic: GithatchTask = { ...TASK, workflowId: undefined }
+      vi.spyOn(workflows, 'getWorkflowRuns').mockReturnValue(new Promise(() => {})) // never resolves
+
+      const { rerender } = render(<TaskList {...BASE_PROPS} tasks={[optimistic]} />)
+
+      // Registering... placeholder — no Run now button yet
+      expect(screen.queryByRole('button', { name: /run now/i })).not.toBeInTheDocument()
+
+      // Server confirms workflowId
+      rerender(<TaskList {...BASE_PROPS} tasks={[{ ...TASK, workflowId: 42 }]} />)
+
+      // Button must be disabled: initial fetch is in flight, prevRunIdRef not yet set
+      expect(screen.getByRole('button', { name: /run now/i })).toBeDisabled()
+    })
+
     it('prevRunIdRef stays in sync after polling completes so a second trigger does not re-detect the finished run', async () => {
       // Scenario: initial fetch returns no runs; first trigger finds completed run id=200;
       // second trigger must not treat run id=200 as "new" again.

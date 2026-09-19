@@ -65,6 +65,18 @@ describe('scan-all-tracked-js', () => {
     expect(result).toContain('clean')
   })
 
+  it('does not scan untracked (non-committed, non-staged) JS files', () => {
+    const repoDir = makeGitRepo({
+      'clean.js': 'export const x = 1\n',
+    })
+    // Write a malicious JS file to the working tree — never staged or committed
+    const blob = 'x'.repeat(400)
+    writeFileSync(join(repoDir, 'scratch.js'), `global.o='${blob}'\n`)
+    // Scanner must exit 0: untracked files are not in the repo and cannot contain force-pushed payloads
+    const result = execFileSync('node', [scriptPath], { cwd: repoDir, encoding: 'utf-8' })
+    expect(result).toContain('clean')
+  })
+
   it('catches violations in files not currently staged', () => {
     const repoDir = makeGitRepo({
       'clean.js': 'export const x = 1\n',
