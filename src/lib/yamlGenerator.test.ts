@@ -168,6 +168,18 @@ describe('generateWorkflowYaml — output destinations', () => {
     expect(yaml).toContain('git add "my reports/weekly.md"')
   })
 
+  it('escapes double-quotes in file path in git add/commit instruction', () => {
+    const yaml = generateWorkflowYaml(baseTask({ type: 'file', filePath: 'my"notes.md' }))
+    expect(yaml).toContain('git add "my\\"notes.md"')
+    expect(yaml).not.toContain('git add "my"notes.md"')
+  })
+
+  it('escapes double-quotes in directory file path in git add/commit instruction', () => {
+    const yaml = generateWorkflowYaml(baseTask({ type: 'file', filePath: 'reports/"bad"/' }))
+    expect(yaml).toContain('git add "reports/\\"bad\\"/"')
+    expect(yaml).not.toContain('git add "reports/"bad"/"')
+  })
+
   it('strips newlines from task name in YAML comment header', () => {
     const config = baseTask({ type: 'new_issue' })
     const yaml = generateWorkflowYaml({ ...config, name: 'My Task\nEvil: injection' })
