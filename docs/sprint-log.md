@@ -3914,3 +3914,11 @@ Commit: `0ef755a`
 No drift from sprint 458. All quality checks clean. eslint.config.js clean.
 
 **Next sprint:** 460 (day 2 — baseline, cycle 155).
+
+## Sprint 460 — 2026-09-19 (day 2 — baseline, cycle 155)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 625/625 ✓
+
+No drift from sprint 459. All quality checks clean. eslint.config.js clean.
+
+**Next sprint:** 461 (Explore audit, cycle 155).
