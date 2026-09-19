@@ -3922,3 +3922,22 @@ No drift from sprint 458. All quality checks clean. eslint.config.js clean.
 No drift from sprint 459. All quality checks clean. eslint.config.js clean.
 
 **Next sprint:** 461 (Explore audit, cycle 155).
+
+## Sprint 461 — 2026-09-19 (Explore audit, cycle 155)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 625/625 ✓
+
+4 correctness bugs found and fixed.
+
+**Fixes:**
+
+1. **MEDIUM: `TaskList.tsx`** — `Run now` button disabled while initial `getWorkflowRuns` fetch is in flight. `prevRunIdRef.current` was `null` before the fetch completed, so `run.id !== null` is always true, meaning any pre-existing run would be treated as the triggered run. Added `fetchingLastRun` state (init `!!task.workflowId`, cleared on fetch complete/error), added `|| fetchingLastRun` to trigger button's disabled guard.
+2. **MEDIUM: `useRepo.ts`** — stale `permissions` not refreshed. Repo refresh only triggered on `id` or `default_branch` change. Added `freshRepo.permissions?.push !== activeRepo.permissions?.push` to the update condition.
+3. **LOW: `auth.ts`** — `avatar_url` not included in `/user` response validation. Added `|| !data.avatar_url` guard so a missing `avatar_url` throws rather than silently becoming `undefined` behind the `string` type.
+4. **LOW: `workflows.ts`** — missing `sha` guard in `updateWorkflowSchedule`. `sha` typed as `string` but not validated; added explicit throw before the PUT body uses it.
+
+10 TaskList tests updated to `await act(async () => { await Promise.resolve() })` after `render()` to respect the new disabled-while-fetching state. "fires before initial fetch" test replaced with "disables Run now button while initial fetch is in flight".
+
+Commit: `23d53f1`
+
+**Next sprint:** 462 (day 1 — baseline, cycle 156).
