@@ -4188,3 +4188,17 @@ No drift from sprint 485. All quality checks clean. eslint.config.js clean. Scan
 No drift from sprint 486. All quality checks clean.
 
 **Next sprint:** 488 (Explore audit, cycle 164).
+
+## Sprint 488 — 2026-09-19 (Explore audit, cycle 164)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 646/646 ✓
+
+Explore audit (cycle 164): full read of all 34 non-test source files + 2 scripts. **2 correctness bugs found and fixed** (dry streak resets, +2 tests).
+
+**Bug 1 fixed (scripts/scan-all-tracked-js.mjs):** `git ls-files` called with `--others` flag alongside `--cached`, causing untracked (non-committed, non-staged) `.js` files in the working tree to be scanned. A developer's local scratch `.js` file containing `eval()` or `createRequire` would block unrelated commits. The script's stated goal is catching force-pushed payloads in committed content — untracked files cannot be pushed. Fix: remove `--others`. 1 new test.
+
+**Bug 2 fixed (src/components/TaskList.tsx TaskRow):** `fetchingLastRun` was initialised via `useState(!!task.workflowId)` and only set to `true` via `useEffect` (post-paint). When an optimistic task received its `workflowId` from a server refresh, the button group became visible for one rendered frame with `fetchingLastRun=false` — a click in that frame would trigger `triggerWorkflow` before `prevRunIdRef` was initialised, causing the polling loop to treat any pre-existing run as the newly triggered one. Fix: add `useLayoutEffect(() => { if (task.workflowId) setFetchingLastRun(true) }, [task.workflowId])` so the button is disabled synchronously before paint. 1 new regression test.
+
+Commit: `f37c14e` (fix: exclude untracked files from JS scanner; disable Run-now synchronously on workflowId arrive)
+
+**Next sprint:** 489 (day 1 — baseline, cycle 165).
