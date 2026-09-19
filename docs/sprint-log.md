@@ -4172,3 +4172,11 @@ Explore audit (cycle 163): full read of all 34 non-test source files + 2 scripts
 Commit: `8c03c4f` (fix: verify DELETE landed before rollback; always call loadTasks after write)
 
 **Next sprint:** 486 (day 1 — baseline, cycle 164).
+
+## Sprint 486 — 2026-09-19 (day 1 — baseline, cycle 164)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 644/644 ✓
+
+No drift from sprint 485. All quality checks clean. eslint.config.js clean. Scanner test stderr (createRequire fixture) is expected test output — not a real violation.
+
+**Next sprint:** 487 (day 2 — baseline, cycle 164).
