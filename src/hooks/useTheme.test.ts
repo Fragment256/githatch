@@ -61,4 +61,42 @@ describe('useTheme', () => {
     expect(result.current.theme).toBe('light')
     expect(() => act(() => result.current.toggleTheme())).not.toThrow()
   })
+
+  it('defaults to dark when OS prefers dark mode and no stored theme', () => {
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn((query: string) => ({
+        matches: query === '(prefers-color-scheme: dark)',
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      })),
+    )
+    const { result } = renderHook(() => useTheme())
+    expect(result.current.theme).toBe('dark')
+    expect(document.documentElement.classList.contains('dark')).toBe(true)
+  })
+
+  it('stored theme takes precedence over OS dark mode preference', () => {
+    localStorage.setItem('githatch:theme', 'light')
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn((query: string) => ({
+        matches: query === '(prefers-color-scheme: dark)',
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      })),
+    )
+    const { result } = renderHook(() => useTheme())
+    expect(result.current.theme).toBe('light')
+  })
 })

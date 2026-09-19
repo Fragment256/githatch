@@ -11,6 +11,11 @@ function getStoredTheme(): Theme {
   } catch {
     // localStorage unavailable
   }
+  try {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark'
+  } catch {
+    // matchMedia unavailable
+  }
   return 'light'
 }
 

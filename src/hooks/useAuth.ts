@@ -120,6 +120,8 @@ export function useAuth() {
       return () => {
         cancelled = true
       }
+    } else {
+      setState((s) => (s.loading ? { ...s, loading: false } : s))
     }
   }, [])
 

@@ -103,6 +103,18 @@ describe('useAuth — stored token present', () => {
     expect(result.current.error).toBeTruthy()
   })
 
+  it('resolves loading to false when stored token is cleared before effect runs', async () => {
+    // Simulate multi-tab: token present at init (loading=true) but gone by the time effect reads it.
+    // loading must resolve to false; getAuthenticatedUser must not be called.
+    mockGetStoredToken
+      .mockReturnValueOnce('gho_stored') // first call: token in state
+      .mockReturnValueOnce('gho_stored') // second call: loading flag
+      .mockReturnValue(null) // effect call: token cleared
+    const { result } = renderHook(() => useAuth())
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(mockGetAuthenticatedUser).not.toHaveBeenCalled()
+  })
+
   it('loading is true on the initial render when token is stored (no loading=false flash)', () => {
     // useLayoutEffect fires before useEffect, capturing the state from the first render.
     // With the old bug (loading: false initial state), capturedLoading would be false here.
