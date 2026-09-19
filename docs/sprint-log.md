@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-09-19 (sprint 441 — day 1 baseline, cycle 149)
+
+- Action: day 1 baseline
+- Summary: format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓. No drift from sprint 440. eslint.config.js clean.
+- Next: sprint 442 (day 2 — baseline, cycle 149)
+
+---
+
 ## 2026-09-19 (sprint 440 — Explore audit, cycle 148 — DRY)
 
 - Action: Explore audit — all 34 non-test source files read
