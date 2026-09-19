@@ -3876,3 +3876,11 @@ DRY — full read of all 34 non-test source files. No new correctness bugs found
 No drift from sprint 455. All quality checks clean. eslint.config.js clean.
 
 **Next sprint:** 457 (day 2 — baseline, cycle 154).
+
+## 2026-09-19 (CI hardening)
+
+- Action: issues
+- Summary: Added `pnpm run scan` alias for the payload scanner (PR #59); filed #60 for wiring it into ci.yml/deploy.yml, blocked by the bot's GitHub App lacking `workflows` permission (same gap as PR #36).
+- Rationale: #46/#44 (Aug incident: obfuscated payload live in eslint.config.js for 5 days, plus severed git history) remain open and require human-only actions (token rotation, force-push decision) that I should not take autonomously. Investigating them surfaced a concrete, still-open gap — the scanner added post-incident (#51) never runs in CI, only via local pre-commit hook — which is safe, additive automation work I could act on directly, ranking above inventing unrelated feature work with an empty backlog.
+- PR: #59
+- ROADMAP updated: yes (Paused section cross-references #60)
