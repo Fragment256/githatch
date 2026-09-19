@@ -170,8 +170,9 @@ export function patchScheduleInYaml(yaml: string, schedule: string | undefined):
       'Could not locate on:/permissions: block in workflow YAML — schedule not updated',
     )
   }
-  const onBlock = schedule
-    ? `on:\n  schedule:\n    - cron: '${schedule}'\n  workflow_dispatch:`
+  const safeCron = schedule?.replace(/'/g, "''")
+  const onBlock = safeCron
+    ? `on:\n  schedule:\n    - cron: '${safeCron}'\n  workflow_dispatch:`
     : `on:\n  workflow_dispatch:`
   return yaml.replace(re, `\n${onBlock}\n\npermissions:`)
 }
@@ -265,10 +266,14 @@ export async function fetchRunOutput(params: {
 
   if (outputDestination.type === 'file') {
     const { filePath } = outputDestination
-    const ref = defaultBranch ?? 'main'
+    if (defaultBranch == null) throw new Error('defaultBranch is required for file output type')
+    const ref = defaultBranch
     const isDir = filePath.endsWith('/')
     const treeOrBlob = isDir ? 'tree' : 'blob'
-    const urlPath = isDir ? filePath.slice(0, -1) : filePath
+    const urlPath = (isDir ? filePath.slice(0, -1) : filePath)
+      .split('/')
+      .map(encodeURIComponent)
+      .join('/')
     return {
       type: 'file_link',
       title: filePath,

@@ -568,3 +568,52 @@ describe('generateWorkflowYaml — weekday schedule', () => {
     expect(yaml).toContain("'0 8 * * 1-5'")
   })
 })
+
+describe('generateWorkflowYaml — model newline injection prevention', () => {
+  it('strips newlines from model string in claude_oauth --model flag', () => {
+    const yaml = generateWorkflowYaml({
+      name: 'Test',
+      provider: 'claude_oauth',
+      model: 'claude-opus-4\nmalicious: true',
+      prompt: 'Do something.',
+      outputDestination: { type: 'new_issue' },
+    })
+    expect(yaml).not.toContain('\nmalicious: true')
+    expect(yaml).toContain('claude-opus-4 malicious: true')
+  })
+
+  it('strips newlines from model string in githatch:model comment', () => {
+    const yaml = generateWorkflowYaml({
+      name: 'Test',
+      provider: 'claude_oauth',
+      model: 'claude-opus-4\ninjected: true',
+      prompt: 'Do something.',
+      outputDestination: { type: 'new_issue' },
+    })
+    expect(yaml).not.toContain('\ninjected: true')
+  })
+
+  it('strips newlines from model string in codex provider model line', () => {
+    const yaml = generateWorkflowYaml({
+      name: 'Test',
+      provider: 'codex',
+      model: 'gpt-4o\nextra: field',
+      prompt: 'Do something.',
+      outputDestination: { type: 'new_issue' },
+    })
+    expect(yaml).not.toContain('\nextra: field')
+    expect(yaml).toContain('gpt-4o extra: field')
+  })
+
+  it('strips newlines from model string in synthetic provider model line', () => {
+    const yaml = generateWorkflowYaml({
+      name: 'Test',
+      provider: 'synthetic',
+      model: 'kimi-k2.6\nbad: payload',
+      prompt: 'Do something.',
+      outputDestination: { type: 'new_issue' },
+    })
+    expect(yaml).not.toContain('\nbad: payload')
+    expect(yaml).toContain('kimi-k2.6 bad: payload')
+  })
+})

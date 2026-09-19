@@ -292,13 +292,16 @@ describe('TaskForm', () => {
     expect(screen.getByTestId('yaml-preview')).toBeInTheDocument()
   })
 
-  // Bug fix sprint 325: blank custom-cron expression must be rejected, not silently dropped
-  it('shows error when "Custom cron…" selected but cron expression left blank', () => {
+  // Bug fix sprint 325: blank custom-cron expression must be rejected, not silently dropped.
+  // Updated sprint 470: submit button is disabled (not just guarded in handleSubmit) so blank
+  // cron is rejected before any form submission attempt.
+  it('disables submit button when "Custom cron…" is selected but cron expression left blank', () => {
     render(<TaskForm onSubmit={mockSubmit} />)
     fireEvent.change(screen.getByLabelText(/schedule/i), { target: { value: 'custom' } })
     fillMinimal()
-    fireEvent.click(screen.getByRole('button', { name: /create task/i }))
-    expect(screen.getByText(/enter a cron expression/i)).toBeInTheDocument()
+    const btn = screen.getByRole('button', { name: /create task/i })
+    expect((btn as HTMLButtonElement).disabled).toBe(true)
+    fireEvent.click(btn)
     expect(mockSubmit).not.toHaveBeenCalled()
   })
 
@@ -309,5 +312,12 @@ describe('TaskForm', () => {
     expect(screen.getByRole('button', { name: /create task/i })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: /edit task/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /save changes/i })).not.toBeInTheDocument()
+  })
+
+  it('submit button is disabled when "Custom cron…" is selected with empty cron field', () => {
+    render(<TaskForm onSubmit={mockSubmit} />)
+    fireEvent.change(screen.getByLabelText(/schedule/i), { target: { value: 'custom' } })
+    const btn = screen.getByRole('button', { name: /create task/i })
+    expect((btn as HTMLButtonElement).disabled).toBe(true)
   })
 })

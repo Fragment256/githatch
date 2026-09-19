@@ -171,6 +171,19 @@ describe('ToolsPanel', () => {
     expect((btn as HTMLButtonElement).disabled).toBe(false)
   })
 
+  it('clears checkError when Install succeeds after a prior check failure', async () => {
+    vi.spyOn(tools, 'checkToolInstalled').mockRejectedValue(new Error('403 Forbidden'))
+    vi.spyOn(tools, 'installTool').mockResolvedValue(undefined)
+
+    render(<ToolsPanel {...defaultProps} />)
+    await waitFor(() => screen.getByText(/403 Forbidden/))
+
+    await userEvent.click(screen.getByRole('button', { name: 'Install' }))
+
+    await waitFor(() => expect(screen.queryByText(/403 Forbidden/)).toBeNull())
+    expect(screen.getByText('Installed')).toBeDefined()
+  })
+
   it('shows check error and Install button when checkToolInstalled throws (e.g. 403)', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 403 }))
     render(<ToolsPanel {...defaultProps} />)

@@ -520,7 +520,9 @@ export function TaskForm({
 
       <button
         type="submit"
-        disabled={loading || customCronInvalid}
+        disabled={
+          loading || customCronInvalid || (values.schedule === 'custom' && !resolvedSchedule)
+        }
         className="border-2 border-black bg-black px-4 py-3 font-mono text-xs tracking-widest text-white uppercase transition-colors duration-100 hover:bg-white hover:text-black disabled:opacity-50"
       >
         {loading

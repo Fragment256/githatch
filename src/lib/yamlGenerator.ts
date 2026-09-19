@@ -167,8 +167,10 @@ export function taskConfigFromYaml(
 }
 
 function buildAgentStep(config: TaskConfig, promptYaml: string, allowedTools: string): string {
+  const safeModel = config.model?.replace(/[\r\n]/g, ' ')
+
   if (config.provider === 'codex') {
-    const modelLine = config.model ? `\n          model: ${config.model}` : ''
+    const modelLine = safeModel ? `\n          model: ${safeModel}` : ''
     return `      - name: Run Codex agent
         uses: openai/codex-action@${CODEX_ACTION_REF} # v1
         with:
@@ -178,7 +180,7 @@ function buildAgentStep(config: TaskConfig, promptYaml: string, allowedTools: st
   }
 
   if (config.provider === 'synthetic') {
-    const syntheticModel = config.model || 'kimi-k2.6'
+    const syntheticModel = safeModel || 'kimi-k2.6'
     return `      - name: Run Synthetic agent
         uses: openai/codex-action@${CODEX_ACTION_REF} # v1
         env:
@@ -190,7 +192,7 @@ function buildAgentStep(config: TaskConfig, promptYaml: string, allowedTools: st
           prompt: ${promptYaml}`
   }
 
-  const modelFlag = config.model ? ` --model ${config.model}` : ''
+  const modelFlag = safeModel ? ` --model ${safeModel}` : ''
   return `      - name: Run Claude agent
         uses: anthropics/claude-code-action@${CLAUDE_CODE_ACTION_REF} # v1
         with:
@@ -202,6 +204,7 @@ function buildAgentStep(config: TaskConfig, promptYaml: string, allowedTools: st
 export function generateWorkflowYaml(config: TaskConfig): string {
   const slug = slugify(config.name)
   const safeName = config.name.replace(/[\r\n]/g, ' ')
+  const safeModel = config.model?.replace(/[\r\n]/g, ' ')
   const fullPrompt = buildPromptWithOutput(config)
 
   const outputType = config.outputDestination.type
@@ -237,7 +240,7 @@ export function generateWorkflowYaml(config: TaskConfig): string {
 
   const agentStep = buildAgentStep(config, promptYaml, allowedTools)
 
-  const modelComment = config.model ? `\n# githatch:model=${config.model}` : ''
+  const modelComment = safeModel ? `\n# githatch:model=${safeModel}` : ''
 
   return `# Githatch — ${safeName}
 ${outputComment}

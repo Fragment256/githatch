@@ -51,6 +51,7 @@ function ToolCard({
     const id = ++requestIdRef.current
     setInstalling(true)
     setError(null)
+    setCheckError(null)
     try {
       await installTool({ token, owner, repo, tool })
       if (id !== requestIdRef.current) return

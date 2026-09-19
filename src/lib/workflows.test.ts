@@ -1503,4 +1503,63 @@ describe('fetchRunOutput — HTTP error propagation', () => {
       }),
     ).rejects.toThrow()
   })
+
+  it('URL-encodes path segments with spaces in file htmlUrl', async () => {
+    vi.stubGlobal('fetch', vi.fn())
+
+    const result = await fetchRunOutput({
+      token: 'gho_test',
+      owner: 'testuser',
+      repo: 'my-repo',
+      run: baseRun,
+      outputDestination: { type: 'file', filePath: 'reports/Q1 summary.md' },
+      defaultBranch: 'main',
+    })
+
+    expect(result!.htmlUrl).toBe(
+      'https://github.com/testuser/my-repo/blob/main/reports/Q1%20summary.md',
+    )
+  })
+
+  it('URL-encodes path segments with special chars (#, ?) in file htmlUrl', async () => {
+    vi.stubGlobal('fetch', vi.fn())
+
+    const result = await fetchRunOutput({
+      token: 'gho_test',
+      owner: 'testuser',
+      repo: 'my-repo',
+      run: baseRun,
+      outputDestination: { type: 'file', filePath: 'reports/data#1.md' },
+      defaultBranch: 'main',
+    })
+
+    expect(result!.htmlUrl).toBe(
+      'https://github.com/testuser/my-repo/blob/main/reports/data%231.md',
+    )
+  })
+
+  it('throws when defaultBranch is absent for file output type', async () => {
+    vi.stubGlobal('fetch', vi.fn())
+
+    await expect(
+      fetchRunOutput({
+        token: 'gho_test',
+        owner: 'testuser',
+        repo: 'my-repo',
+        run: baseRun,
+        outputDestination: { type: 'file', filePath: 'reports/weekly.md' },
+      }),
+    ).rejects.toThrow(/defaultBranch/)
+  })
+})
+
+describe('patchScheduleInYaml — single-quote injection prevention', () => {
+  const baseYaml =
+    '# Githatch — Test\nname: githatch-test\n\non:\n  workflow_dispatch:\n\npermissions:\n  contents: write\n'
+
+  it('escapes a single quote in the cron expression', () => {
+    const result = patchScheduleInYaml(baseYaml, "0 9 * * 1'--inject")
+    expect(result).toContain("cron: '0 9 * * 1''--inject'")
+    expect(result).not.toContain("cron: '0 9 * * 1'--inject'")
+  })
 })
