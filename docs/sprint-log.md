@@ -3796,3 +3796,11 @@ No drift from sprint 444. All quality checks clean. eslint.config.js clean.
 DRY — full read of all 31 non-trivial source files (App.tsx, all hooks, all lib/, all components/). No new correctness bugs found. Request-ID patterns, stale closure guards, polling design, cron logic, diff algorithm, edit rollback, optimistic updates — all confirmed correct. Dry streak extends (cycles 121, 123–150).
 
 **Next sprint:** 447 (day 1 — baseline, cycle 151).
+
+## Sprint 447 — 2026-09-19 (day 1 — baseline cycle 151)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓
+
+No drift from sprint 446. All quality checks clean. eslint.config.js clean.
+
+**Next sprint:** 448 (day 2 — baseline, cycle 151).
