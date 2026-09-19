@@ -3756,3 +3756,11 @@ DRY — full read of all 34 non-test source files. No new correctness bugs found
 No drift from sprint 440. All quality checks clean.
 
 **Next sprint:** 442 (day 2 — baseline, cycle 149).
+
+## Sprint 442 — 2026-09-19 (day 2 — baseline cycle 149)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓
+
+No drift from sprint 441. All quality checks clean. eslint.config.js clean (scan-all-tracked-js ✓).
+
+**Next sprint:** 443 (Explore audit, cycle 149).
