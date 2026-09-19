@@ -3748,3 +3748,11 @@ No drift from sprint 438. All quality checks clean.
 DRY — full read of all 34 non-test source files. No new correctness bugs found. All prior fixes confirmed in place. One candidate (polling not stopping on error) ruled out: existing test confirms transient-error recovery is intentional design — polling continues through errors so subsequent successful polls clear them. Dry streak extends (cycles 121, 123–148).
 
 **Next sprint:** 441 (day 1 — baseline, cycle 149).
+
+## Sprint 441 — 2026-09-19 (day 1 — baseline cycle 149)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓
+
+No drift from sprint 440. All quality checks clean.
+
+**Next sprint:** 442 (day 2 — baseline, cycle 149).
