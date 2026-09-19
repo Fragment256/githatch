@@ -4112,3 +4112,11 @@ Explore audit (cycle 161): full read of all 34 non-test source files. **1 correc
 Commit: `43d0d56` (fix: use single-quoted shell args in file-output commit instructions)
 
 **Next sprint:** 480 (day 1 — baseline, cycle 162).
+
+## Sprint 480 — 2026-09-19 (day 1 — baseline, cycle 162)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 639/639 ✓
+
+No drift from sprint 479. All quality checks clean. eslint.config.js clean. Scanner test stderr (createRequire fixture) is expected test output — not a real violation.
+
+**Next sprint:** 481 (day 2 — baseline, cycle 162).
