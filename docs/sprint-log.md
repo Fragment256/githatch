@@ -4030,3 +4030,11 @@ DRY streak resets to 0. 6 correctness bugs fixed via TDD. Commit: `6a9630d`
 Dry streak resets (cycles 121, 123–157 were dry; cycle 158 found bugs).
 
 **Next sprint:** 471 (day 1 — baseline, cycle 159).
+
+## Sprint 471 — 2026-09-19 (day 1 — baseline, cycle 159)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 635/635 ✓
+
+No drift from sprint 470. All quality checks clean. eslint.config.js clean. Scanner test stderr (createRequire fixture) is expected test output — not a real violation.
+
+**Next sprint:** 472 (day 2 — baseline, cycle 159).
