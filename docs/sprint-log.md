@@ -3877,6 +3877,28 @@ No drift from sprint 455. All quality checks clean. eslint.config.js clean.
 
 **Next sprint:** 457 (day 2 — baseline, cycle 154).
 
+## Sprint 457 — 2026-09-19 (day 2 — baseline cycle 154)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓
+
+No drift from sprint 456. All quality checks clean. eslint.config.js clean.
+
+**Next sprint:** 458 (Explore audit, cycle 154).
+
+## Sprint 458 — 2026-09-19 (Explore audit, cycle 154)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 625/625 ✓
+
+**Audit:** Unscoped Explore audit ran per precedent. Full read of all 34 non-test source files. 3 correctness bugs fixed via TDD (622→625 tests). Dry streak resets to 0.
+
+1. **MEDIUM: `buildPromptWithOutput` unquoted `fp` in `git add` instruction** — `git add ${fp}` with a filePath containing spaces (e.g. `my reports/weekly.md`) would split into two shell arguments, causing the AI agent to stage the wrong file. Fix: `git add "${fp}"` in both file-output branches.
+2. **LOW: `config.name` newline injection in YAML comment header** — `# Githatch — ${config.name}` with a name containing `\n` broke out of the comment and put text at YAML document root (invalid YAML). Fix: strip `\r\n` via `safeName` before interpolation.
+3. **LOW: `filePath` newline injection in output_type comment** — `# githatch:output_type=file path=${filePath}` had the same YAML comment injection path. Fix: strip `\r\n` via `safeFilePath`.
+
+Commit: `0ef755a`
+
+**Next sprint:** 459 (day 1 — baseline, cycle 155).
+
 ## 2026-09-19 (CI hardening)
 
 - Action: issues
