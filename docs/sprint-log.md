@@ -4100,3 +4100,15 @@ No drift from sprint 476. All quality checks clean. eslint.config.js clean. Scan
 No drift from sprint 477. All quality checks clean. eslint.config.js clean. Scanner test stderr (createRequire fixture) is expected test output — not a real violation.
 
 **Next sprint:** 479 (Explore audit, cycle 161).
+
+## Sprint 479 — 2026-09-19 (Explore audit, cycle 161)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 639/639 ✓
+
+Explore audit (cycle 161): full read of all 34 non-test source files. **1 correctness bug found and fixed** (dry streak resets).
+
+**Bug fixed (yamlGenerator.ts):** `buildPromptWithOutput` embedded raw `filePath` in double-quoted shell strings with only `\` and `"` escaped. Characters like `$`, `` ` ``, `!` passed through unescaped and would be expanded by the shell when the generated command runs in a GitHub Actions runner. A path like `notes/$SECRET/out.md` would silently expand `$SECRET` to an environment variable value; a backtick path would execute a subshell. Fix: switch to single-quoted shell strings (`'` → `'\''` escaping). 2 new tests + 3 updated tests. 637→639.
+
+Commit: `43d0d56` (fix: use single-quoted shell args in file-output commit instructions)
+
+**Next sprint:** 480 (day 1 — baseline, cycle 162).
