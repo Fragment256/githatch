@@ -825,6 +825,81 @@ describe('App — task form submission', () => {
     expect(mockLoad).toHaveBeenCalledTimes(1)
   })
 
+  it('calls loadTasks inside the id guard after a successful edit-form save', async () => {
+    // Regression: loadTasks() in handleEditFormSubmit success path was outside the
+    // id === editLoadRequestId.current guard, so a concurrent onRefresh() from an unmounted
+    // TaskRow delete could fire a stale load even when the guard had already failed.
+    authWithRepo()
+    const task: GithatchTask = {
+      slug: 'daily-digest',
+      displayName: 'Daily Digest',
+      schedule: '0 9 * * *',
+      workflowId: 1,
+      path: '.github/workflows/githatch-daily-digest.yml',
+      enabled: true,
+      outputDestination: { type: 'new_issue' },
+      prompt: 'Summarize.',
+    }
+    mockUseTasks.mockReturnValue({ ...defaultTasksState, tasks: [task] })
+    vi.mocked(github.fetchFileContent).mockResolvedValue(
+      'name: Daily Digest\non:\n  schedule:\n    - cron: "0 9 * * *"\n  workflow_dispatch:\njobs:\n  run:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: anthropics/claude-code-action@v1\n        with:\n          prompt: |\n            Summarize.\n',
+    )
+    vi.mocked(github.upsertWorkflowFile).mockResolvedValue(undefined)
+
+    render(<App />, { wrapper })
+
+    const editBtn = await screen.findByRole('button', { name: /^edit$/i })
+    fireEvent.click(editBtn)
+    await waitFor(() => screen.getByRole('button', { name: /save changes/i }))
+    fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
+    await waitFor(() => screen.getByRole('button', { name: /commit to repo/i }))
+
+    // Clear mount-effect load so only the post-save load is counted
+    mockLoad.mockClear()
+
+    fireEvent.click(screen.getByRole('button', { name: /commit to repo/i }))
+
+    // loadTasks must be called once after the successful save
+    await waitFor(() => expect(mockLoad).toHaveBeenCalledOnce())
+  })
+
+  it('calls loadTasks inside the id guard when edit-form save fails with a network error', async () => {
+    // Regression: loadTasks() in the handleEditFormSubmit catch block had no id guard, so a
+    // concurrent onRefresh() could cause a stale load after a failed save.
+    authWithRepo()
+    const task: GithatchTask = {
+      slug: 'daily-digest',
+      displayName: 'Daily Digest',
+      schedule: '0 9 * * *',
+      workflowId: 1,
+      path: '.github/workflows/githatch-daily-digest.yml',
+      enabled: true,
+      outputDestination: { type: 'new_issue' },
+      prompt: 'Summarize.',
+    }
+    mockUseTasks.mockReturnValue({ ...defaultTasksState, tasks: [task] })
+    vi.mocked(github.fetchFileContent).mockResolvedValue(
+      'name: Daily Digest\non:\n  schedule:\n    - cron: "0 9 * * *"\n  workflow_dispatch:\njobs:\n  run:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: anthropics/claude-code-action@v1\n        with:\n          prompt: |\n            Summarize.\n',
+    )
+    vi.mocked(github.upsertWorkflowFile).mockRejectedValue(new Error('Network error'))
+
+    render(<App />, { wrapper })
+
+    const editBtn = await screen.findByRole('button', { name: /^edit$/i })
+    fireEvent.click(editBtn)
+    await waitFor(() => screen.getByRole('button', { name: /save changes/i }))
+    fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
+    await waitFor(() => screen.getByRole('button', { name: /commit to repo/i }))
+
+    mockLoad.mockClear()
+
+    fireEvent.click(screen.getByRole('button', { name: /commit to repo/i }))
+
+    // Error must appear and loadTasks must be called to refresh state
+    await waitFor(() => expect(screen.getByText('Network error')).toBeInTheDocument())
+    expect(mockLoad).toHaveBeenCalledOnce()
+  })
+
   it('calls load after successful new-task submission so workflowId is populated', async () => {
     vi.mocked(github.upsertWorkflowFile).mockResolvedValue(undefined)
     render(<App />, { wrapper })
