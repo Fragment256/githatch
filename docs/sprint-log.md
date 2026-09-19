@@ -4142,3 +4142,11 @@ Explore audit (cycle 162): full read of all 34 non-test source files + 2 scripts
 Commit: `536e72e` (fix: use OS dark mode preference as default theme; resolve loading when stored token clears)
 
 **Next sprint:** 483 (day 1 — baseline, cycle 163).
+
+## Sprint 483 — 2026-09-19 (day 1 — baseline, cycle 163)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 642/642 ✓
+
+No drift from sprint 482. All quality checks clean. eslint.config.js clean. Scanner test stderr (createRequire fixture) is expected test output — not a real violation.
+
+**Next sprint:** 484 (day 2 — baseline, cycle 163).
