@@ -4180,3 +4180,11 @@ Commit: `8c03c4f` (fix: verify DELETE landed before rollback; always call loadTa
 No drift from sprint 485. All quality checks clean. eslint.config.js clean. Scanner test stderr (createRequire fixture) is expected test output — not a real violation.
 
 **Next sprint:** 487 (day 2 — baseline, cycle 164).
+
+## Sprint 487 — 2026-09-19 (day 2 — baseline, cycle 164)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 644/644 ✓
+
+No drift from sprint 486. All quality checks clean.
+
+**Next sprint:** 488 (Explore audit, cycle 164).
