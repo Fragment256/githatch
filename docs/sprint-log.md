@@ -4072,3 +4072,15 @@ No drift from sprint 473. All quality checks clean. eslint.config.js clean. Scan
 No drift from sprint 474. All quality checks clean. eslint.config.js clean. Scanner test stderr (createRequire fixture) is expected test output — not a real violation.
 
 **Next sprint:** 476 (Explore audit, cycle 160).
+
+## Sprint 476 — 2026-09-19 (Explore audit, cycle 160)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 637/637 ✓
+
+Explore audit (cycle 160): full read of all 34 non-test source files. **1 correctness bug found and fixed** (dry streak resets).
+
+**Bug fixed (yamlGenerator.ts):** `buildPromptWithOutput` embedded raw `filePath` in double-quoted shell arguments without escaping `"`. A path like `my"notes.md` would break `git add "my"notes.md"` with a shell syntax error, causing the task to fail at runtime. Fix: escape `\` and `"` via `shellFp` before embedding in shell strings. 2 new tests (file path + directory path with embedded quotes). 635→637 tests.
+
+Commit: `8101ee2` (fix: escape double-quotes in filePath shell args in buildPromptWithOutput)
+
+**Next sprint:** 477 (day 1 — baseline, cycle 161).
