@@ -189,11 +189,34 @@ describe('deleteWorkflowFile', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
-  it('throws when DELETE fails', async () => {
+  it('throws when DELETE fails and file still exists on verify', async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ sha: 'abc123' }) })
       .mockResolvedValueOnce({ ok: false, status: 403 })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ sha: 'abc123' }) })
+    vi.stubGlobal('fetch', fetchMock)
+    await expect(deleteWorkflowFile(params)).rejects.toThrow()
+    expect(fetchMock).toHaveBeenCalledTimes(3)
+  })
+
+  it('succeeds when DELETE network error but verify shows file is gone', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ sha: 'abc123' }) })
+      .mockRejectedValueOnce(new TypeError('network error'))
+      .mockResolvedValueOnce({ ok: false, status: 404 })
+    vi.stubGlobal('fetch', fetchMock)
+    await expect(deleteWorkflowFile(params)).resolves.toBeUndefined()
+    expect(fetchMock).toHaveBeenCalledTimes(3)
+  })
+
+  it('throws when DELETE network error and verify also fails', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ sha: 'abc123' }) })
+      .mockRejectedValueOnce(new TypeError('network error'))
+      .mockRejectedValueOnce(new TypeError('network error'))
     vi.stubGlobal('fetch', fetchMock)
     await expect(deleteWorkflowFile(params)).rejects.toThrow()
   })

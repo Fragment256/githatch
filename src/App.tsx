@@ -162,13 +162,13 @@ export default function App() {
         setEditingConfig(null)
         setEditingOriginalYaml(null)
         setView('tasks')
-        loadTasks()
       }
+      loadTasks()
     } catch (err) {
       if (id === editLoadRequestId.current) {
         setSaveError(err instanceof Error ? err.message : 'Failed to save workflow')
-        loadTasks()
       }
+      loadTasks()
     } finally {
       if (id === editLoadRequestId.current) setSaving(false)
     }
@@ -182,11 +182,11 @@ export default function App() {
     const slug = slugify(config.name)
     try {
       await upsertWorkflowFile({ token, owner, repo, slug, yaml })
+      loadTasks()
       if (id === editLoadRequestId.current) {
         setDuplicatingConfig(null)
         setSelectedTemplate(null)
         setView('tasks')
-        loadTasks()
         addTask({
           slug,
           displayName: config.name,

@@ -99,12 +99,24 @@ export async function deleteWorkflowFile(params: {
   }
   const { sha } = (await getRes.json()) as { sha: string }
 
-  const deleteRes = await fetch(url, {
-    method: 'DELETE',
-    headers: { ...headers, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message: `chore: remove githatch workflow`, sha }),
-  })
-  if (!deleteRes.ok) throw new Error(`Failed to delete workflow file: ${deleteRes.status}`)
+  let deleteErr: unknown
+  try {
+    const deleteRes = await fetch(url, {
+      method: 'DELETE',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: `chore: remove githatch workflow`, sha }),
+    })
+    if (deleteRes.ok) return
+    deleteErr = new Error(`Failed to delete workflow file: ${deleteRes.status}`)
+  } catch (err) {
+    deleteErr = err
+  }
+  // Response lost (network error) or HTTP error — verify whether the delete actually landed.
+  // If the file is now 404, the DELETE reached GitHub; treat as success so callers don't
+  // mistakenly rollback a write that already went through.
+  const verifyRes = await fetch(url, { headers }).catch(() => null)
+  if (verifyRes?.status === 404) return
+  throw deleteErr
 }
 
 export async function fetchFileContent(params: {
