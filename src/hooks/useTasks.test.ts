@@ -176,6 +176,30 @@ describe('useTasks', () => {
     expect(result.current.tasks).toEqual([makeTask('optimistic'), makeTask('fetched')])
   })
 
+  it('clears optimistic tasks from a previous repo when the repo prop changes', async () => {
+    mockListGithatchTasks.mockResolvedValue([makeTask('b')])
+
+    const { result, rerender } = renderHook(({ repo }) => useTasks('gho_test', 'owner', repo), {
+      initialProps: { repo: 'repo-a' },
+    })
+
+    // Add an optimistic task in repo-a
+    act(() => {
+      result.current.addTask(makeTask('optimistic-a'))
+    })
+    expect(result.current.tasks).toEqual([makeOptimistic('optimistic-a')])
+
+    // Switch to repo-b — tasks should be cleared immediately
+    rerender({ repo: 'repo-b' })
+    expect(result.current.tasks).toEqual([])
+
+    // load() for repo-b returns only repo-b's tasks — optimistic-a must not appear
+    await act(async () => {
+      result.current.load()
+    })
+    await waitFor(() => expect(result.current.tasks).toEqual([makeTask('b')]))
+  })
+
   it('keeps existing tasks visible during a reload and replaces them when the fetch resolves', async () => {
     // Repo switches re-create the hook with fresh [] state via React prop changes, so
     // stale-repo tasks never appear. Within the same repo, keeping tasks visible during

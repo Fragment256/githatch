@@ -403,6 +403,16 @@ describe('canPreviewCron', () => {
     // */N minute + both constrained
     expect(canPreviewCron('*/5 2 * * 1')).toBe(false)
   })
+
+  it('returns false for plain-wildcard hour or minute (nextCronRun returns null for these)', () => {
+    // '0 * * * *' — hour is bare *, nextCronRun hits the !^\d+$ guard at line 67
+    expect(canPreviewCron('0 * * * *')).toBe(false)
+    expect(canPreviewCron('30 * * * *')).toBe(false)
+    // '* 9 * * *' — minute is bare *, same guard
+    expect(canPreviewCron('* 9 * * *')).toBe(false)
+    // '* * * * *' — both are bare *, same guard
+    expect(canPreviewCron('* * * * *')).toBe(false)
+  })
 })
 
 describe('formatRelativeTime', () => {

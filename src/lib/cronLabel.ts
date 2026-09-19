@@ -156,6 +156,10 @@ export function canPreviewCron(expr: string): boolean {
   if (minute.startsWith('*/') && (hour !== '*' || dow !== '*')) return false
   if (hour.startsWith('*/') && dow !== '*') return false
   if (hour.startsWith('*/') && minute !== '0' && minute !== '00') return false
+  // For non-step patterns, both minute and hour must be plain digits
+  if (!minute.startsWith('*/') && !hour.startsWith('*/')) {
+    if (!/^\d+$/.test(minute) || !/^\d+$/.test(hour)) return false
+  }
   return true
 }
 

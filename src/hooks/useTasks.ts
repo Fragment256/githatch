@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import type { GithatchTask } from '@/lib/workflows'
 import { listGithatchTasks } from '@/lib/workflows'
 
@@ -7,6 +7,11 @@ export function useTasks(token: string | null, owner: string, repo: string) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const requestId = useRef(0)
+
+  useEffect(() => {
+    setTasks([])
+    setError(null)
+  }, [owner, repo])
 
   const load = useCallback(() => {
     if (!token) return
