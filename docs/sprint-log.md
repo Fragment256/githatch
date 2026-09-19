@@ -4128,3 +4128,17 @@ No drift from sprint 479. All quality checks clean. eslint.config.js clean. Scan
 No drift from sprint 480. All quality checks clean. eslint.config.js clean. Scanner test stderr (createRequire fixture) is expected test output — not a real violation.
 
 **Next sprint:** 482 (Explore audit, cycle 162).
+
+## Sprint 482 — 2026-09-19 (Explore audit, cycle 162)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 642/642 ✓
+
+Explore audit (cycle 162): full read of all 34 non-test source files + 2 scripts. **2 correctness bugs found and fixed** (dry streak resets).
+
+**Bug 1 fixed (useTheme.ts):** `getStoredTheme()` returned hardcoded `'light'` as the fallback when no theme was stored, ignoring the OS `prefers-color-scheme: dark` media query. First-time visitors with OS dark mode always got light theme. Fix: check `window.matchMedia('(prefers-color-scheme: dark)').matches` before falling back to `'light'`. 2 new tests.
+
+**Bug 2 fixed (useAuth.ts):** When `loading` was initialised to `true` (stored token present at mount), but another tab cleared the token between the initial render and the effect run, `getStoredToken()` returned `null` in the effect, the `if (stored)` branch was skipped, and `loading` was never reset — stuck at `true` forever. Fix: add `else { setState(s => s.loading ? { ...s, loading: false } : s) }` so the spinner resolves even when the token disappears before the effect fires. 1 new test.
+
+Commit: `536e72e` (fix: use OS dark mode preference as default theme; resolve loading when stored token clears)
+
+**Next sprint:** 483 (day 1 — baseline, cycle 163).
