@@ -3957,3 +3957,13 @@ No drift from sprint 461. All quality checks clean. eslint.config.js clean.
 No drift from sprint 462. All quality checks clean. eslint.config.js clean.
 
 **Next sprint:** 464 (Explore audit, cycle 156).
+
+## Sprint 464 — 2026-09-19 (Explore audit, cycle 156)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 625/625 ✓
+
+DRY — full read of all 31 non-test source files, no new correctness bugs found. All prior fixes stable (TaskList.tsx fetchingLastRun, useRepo.ts permissions refresh, auth.ts avatar_url, workflows.ts sha guard, yamlGenerator.ts YAML injection fixes). eslint.config.js clean.
+
+Dry streak extends: cycles 121, 123–156 Explore audits all dry.
+
+**Next sprint:** 465 (day 1 — baseline, cycle 157).
