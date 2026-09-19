@@ -4120,3 +4120,11 @@ Commit: `43d0d56` (fix: use single-quoted shell args in file-output commit instr
 No drift from sprint 479. All quality checks clean. eslint.config.js clean. Scanner test stderr (createRequire fixture) is expected test output — not a real violation.
 
 **Next sprint:** 481 (day 2 — baseline, cycle 162).
+
+## Sprint 481 — 2026-09-19 (day 2 — baseline, cycle 162)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 639/639 ✓
+
+No drift from sprint 480. All quality checks clean. eslint.config.js clean. Scanner test stderr (createRequire fixture) is expected test output — not a real violation.
+
+**Next sprint:** 482 (Explore audit, cycle 162).
