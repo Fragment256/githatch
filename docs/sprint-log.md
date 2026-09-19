@@ -3764,3 +3764,11 @@ No drift from sprint 440. All quality checks clean.
 No drift from sprint 441. All quality checks clean. eslint.config.js clean (scan-all-tracked-js ✓).
 
 **Next sprint:** 443 (Explore audit, cycle 149).
+
+## Sprint 443 — 2026-09-19 (Explore audit, cycle 149 — DRY)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 622/622 ✓
+
+DRY — full read of all 34 non-test source files. No new correctness bugs found. All prior fixes confirmed in place. Dry streak extends (cycles 121, 123–149).
+
+**Next sprint:** 444 (day 1 — baseline, cycle 150).
