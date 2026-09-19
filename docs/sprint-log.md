@@ -4009,3 +4009,24 @@ No drift from sprint 467. All quality checks clean. eslint.config.js clean. Scan
 No drift from sprint 468. All quality checks clean. eslint.config.js clean. Scanner test stderr (createRequire fixture) is expected test output — not a real violation.
 
 **Next sprint:** 470 (Explore audit, cycle 158).
+
+## Sprint 470 — 2026-09-19 (Explore audit, cycle 158)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 635/635 ✓
+
+DRY streak resets to 0. 6 correctness bugs fixed via TDD. Commit: `6a9630d`
+
+**Bugs fixed:**
+
+1. **MEDIUM: `yamlGenerator.ts`** — `config.model` had no newline stripping in 4 YAML insertion points (`--model` flag, `model:` line, `githatch:model` comment). Injection risk: a newline in model string would produce invalid/injected YAML. Fix: `safeModel = config.model?.replace(/[\r\n]/g, ' ')` in both `buildAgentStep` and `generateWorkflowYaml`.
+2. **MEDIUM: `workflows.ts`** — `urlPath` in `fetchRunOutput` file HTML URL was not URL-encoded. Spaces or `#`/`?` in file path produced broken GitHub links. Fix: `.split('/').map(encodeURIComponent).join('/')`.
+3. **MEDIUM: `ToolsPanel.tsx`** — `handleInstall` did not clear `checkError`. After a prior check failure, successfully installing left the error message and "Installed" badge simultaneously visible. Fix: add `setCheckError(null)` in `handleInstall`.
+4. **LOW: `workflows.ts`** — `patchScheduleInYaml` embedded cron schedule in YAML single-quoted scalar without escaping single quotes. Fix: `schedule?.replace(/'/g, "''")`.
+5. **LOW: `workflows.ts`** — `defaultBranch` optional in `fetchRunOutput` silently fell back to `'main'` for file output type, producing a broken URL on non-main repos. Fix: throw when absent.
+6. **LOW: `TaskForm.tsx`** — submit button was not disabled when custom cron field was empty; only non-empty invalid expressions disabled it. Fix: add `|| (values.schedule === 'custom' && !resolvedSchedule)` to disabled condition.
+
+10 new tests added (TDD: RED then GREEN). 1 pre-existing test updated to match improved disabled-button behaviour for empty custom cron.
+
+Dry streak resets (cycles 121, 123–157 were dry; cycle 158 found bugs).
+
+**Next sprint:** 471 (day 1 — baseline, cycle 159).
