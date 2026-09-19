@@ -4092,3 +4092,11 @@ Commit: `8101ee2` (fix: escape double-quotes in filePath shell args in buildProm
 No drift from sprint 476. All quality checks clean. eslint.config.js clean. Scanner test stderr (createRequire fixture) is expected test output — not a real violation.
 
 **Next sprint:** 478 (day 2 — baseline, cycle 161).
+
+## Sprint 478 — 2026-09-19 (day 2 — baseline, cycle 161)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 637/637 ✓
+
+No drift from sprint 477. All quality checks clean. eslint.config.js clean. Scanner test stderr (createRequire fixture) is expected test output — not a real violation.
+
+**Next sprint:** 479 (Explore audit, cycle 161).
