@@ -4056,3 +4056,11 @@ DRY — full read of all 34 non-test source files, no new correctness bugs found
 Dry streak extends: cycles 121, 123–158 Explore audits all dry (except sprint 355/358 in cycles 119–120, sprint 461 in cycle 155, sprint 470 in cycle 158); cycle 159 DRY.
 
 **Next sprint:** 474 (day 1 — baseline, cycle 160).
+
+## Sprint 474 — 2026-09-19 (day 1 — baseline, cycle 160)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 635/635 ✓
+
+No drift from sprint 473. All quality checks clean. eslint.config.js clean. Scanner test stderr (createRequire fixture) is expected test output — not a real violation.
+
+**Next sprint:** 475 (day 2 — baseline, cycle 160).
