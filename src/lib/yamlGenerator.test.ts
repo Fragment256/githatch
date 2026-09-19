@@ -162,6 +162,27 @@ describe('generateWorkflowYaml — output destinations', () => {
     const yaml = generateWorkflowYaml(baseTask({ type: 'new_issue' }))
     expect(yaml).not.toContain('pull-requests')
   })
+
+  it('quotes file path in git add instruction when path contains spaces', () => {
+    const yaml = generateWorkflowYaml(baseTask({ type: 'file', filePath: 'my reports/weekly.md' }))
+    expect(yaml).toContain('git add "my reports/weekly.md"')
+  })
+
+  it('strips newlines from task name in YAML comment header', () => {
+    const config = baseTask({ type: 'new_issue' })
+    const yaml = generateWorkflowYaml({ ...config, name: 'My Task\nEvil: injection' })
+    const firstLine = yaml.split('\n')[0]
+    expect(firstLine).toBe('# Githatch — My Task Evil: injection')
+  })
+
+  it('strips newlines from file path in output_type comment', () => {
+    const yaml = generateWorkflowYaml(
+      baseTask({ type: 'file', filePath: 'reports/\nevil: injection\n' }),
+    )
+    // Newline in filePath must not break out of the YAML comment — 'evil: injection'
+    // must stay on the same comment line, not appear as a bare YAML key.
+    expect(yaml).not.toMatch(/^evil: injection/m)
+  })
 })
 
 describe('generateWorkflowYaml — schedule presets', () => {

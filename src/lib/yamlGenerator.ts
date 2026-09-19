@@ -62,11 +62,11 @@ function buildPromptWithOutput(config: TaskConfig): string {
     const fp = outputDestination.filePath
     if (fp.endsWith('/')) {
       lines.push(
-        `\nWhen done, create a new file in \`${fp}\` named with today's date in YYYY-MM-DD format followed by \`-report.md\` (e.g. \`${fp}2026-01-01-report.md\`) and write your response there, then commit: git add ${fp} && git commit -m "chore: add report to ${fp}" && git push`,
+        `\nWhen done, create a new file in \`${fp}\` named with today's date in YYYY-MM-DD format followed by \`-report.md\` (e.g. \`${fp}2026-01-01-report.md\`) and write your response there, then commit: git add "${fp}" && git commit -m "chore: add report to ${fp}" && git push`,
       )
     } else {
       lines.push(
-        `\nWhen done, write your response to the file \`${fp}\` and commit it: git add ${fp} && git commit -m "chore: update ${fp}" && git push`,
+        `\nWhen done, write your response to the file \`${fp}\` and commit it: git add "${fp}" && git commit -m "chore: update ${fp}" && git push`,
       )
     }
   } else if (outputDestination.type === 'pull_request') {
@@ -201,16 +201,21 @@ function buildAgentStep(config: TaskConfig, promptYaml: string, allowedTools: st
 
 export function generateWorkflowYaml(config: TaskConfig): string {
   const slug = slugify(config.name)
+  const safeName = config.name.replace(/[\r\n]/g, ' ')
   const fullPrompt = buildPromptWithOutput(config)
 
   const outputType = config.outputDestination.type
+  const safeFilePath =
+    outputType === 'file'
+      ? (config.outputDestination as { filePath: string }).filePath.replace(/[\r\n]/g, ' ')
+      : ''
   const outputComment =
     outputType === 'issue_comment'
       ? `# githatch:output_type=issue_comment issue=#${(config.outputDestination as { issueNumber: number }).issueNumber}`
       : outputType === 'new_issue'
         ? '# githatch:output_type=new_issue'
         : outputType === 'file'
-          ? `# githatch:output_type=file path=${(config.outputDestination as { filePath: string }).filePath}`
+          ? `# githatch:output_type=file path=${safeFilePath}`
           : outputType === 'pull_request'
             ? '# githatch:output_type=pull_request'
             : '# githatch:output_type=agent_managed'
@@ -234,7 +239,7 @@ export function generateWorkflowYaml(config: TaskConfig): string {
 
   const modelComment = config.model ? `\n# githatch:model=${config.model}` : ''
 
-  return `# Githatch — ${config.name}
+  return `# Githatch — ${safeName}
 ${outputComment}
 # githatch:provider=${config.provider}${modelComment}
 name: githatch-${slug}
