@@ -60,14 +60,14 @@ function buildPromptWithOutput(config: TaskConfig): string {
     )
   } else if (outputDestination.type === 'file') {
     const fp = outputDestination.filePath
-    const shellFp = fp.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+    const shellFp = fp.replace(/'/g, "'\\''")
     if (fp.endsWith('/')) {
       lines.push(
-        `\nWhen done, create a new file in \`${fp}\` named with today's date in YYYY-MM-DD format followed by \`-report.md\` (e.g. \`${fp}2026-01-01-report.md\`) and write your response there, then commit: git add "${shellFp}" && git commit -m "chore: add report to ${shellFp}" && git push`,
+        `\nWhen done, create a new file in \`${fp}\` named with today's date in YYYY-MM-DD format followed by \`-report.md\` (e.g. \`${fp}2026-01-01-report.md\`) and write your response there, then commit: git add '${shellFp}' && git commit -m 'chore: add report to ${shellFp}' && git push`,
       )
     } else {
       lines.push(
-        `\nWhen done, write your response to the file \`${fp}\` and commit it: git add "${shellFp}" && git commit -m "chore: update ${shellFp}" && git push`,
+        `\nWhen done, write your response to the file \`${fp}\` and commit it: git add '${shellFp}' && git commit -m 'chore: update ${shellFp}' && git push`,
       )
     }
   } else if (outputDestination.type === 'pull_request') {

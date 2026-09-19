@@ -165,19 +165,31 @@ describe('generateWorkflowYaml — output destinations', () => {
 
   it('quotes file path in git add instruction when path contains spaces', () => {
     const yaml = generateWorkflowYaml(baseTask({ type: 'file', filePath: 'my reports/weekly.md' }))
-    expect(yaml).toContain('git add "my reports/weekly.md"')
+    expect(yaml).toContain("git add 'my reports/weekly.md'")
   })
 
-  it('escapes double-quotes in file path in git add/commit instruction', () => {
-    const yaml = generateWorkflowYaml(baseTask({ type: 'file', filePath: 'my"notes.md' }))
-    expect(yaml).toContain('git add "my\\"notes.md"')
-    expect(yaml).not.toContain('git add "my"notes.md"')
+  it('escapes single-quotes in file path in git add/commit instruction', () => {
+    const yaml = generateWorkflowYaml(baseTask({ type: 'file', filePath: "my'notes.md" }))
+    expect(yaml).toContain("git add 'my'\\''notes.md'")
+    expect(yaml).not.toContain("git add 'my'notes.md'")
   })
 
-  it('escapes double-quotes in directory file path in git add/commit instruction', () => {
-    const yaml = generateWorkflowYaml(baseTask({ type: 'file', filePath: 'reports/"bad"/' }))
-    expect(yaml).toContain('git add "reports/\\"bad\\"/"')
-    expect(yaml).not.toContain('git add "reports/"bad"/"')
+  it('escapes single-quotes in directory file path in git add/commit instruction', () => {
+    const yaml = generateWorkflowYaml(baseTask({ type: 'file', filePath: "reports/'bad'/" }))
+    expect(yaml).toContain("git add 'reports/'\\''bad'\\''/'")
+    expect(yaml).not.toContain("git add 'reports/'bad'/'")
+  })
+
+  it('does not expand $ in file path in git add/commit instruction', () => {
+    const yaml = generateWorkflowYaml(baseTask({ type: 'file', filePath: 'notes/$SECRET/out.md' }))
+    expect(yaml).toContain("git add 'notes/$SECRET/out.md'")
+    expect(yaml).not.toContain('git add "notes/$SECRET/out.md"')
+  })
+
+  it('does not expand backtick in file path in git add/commit instruction', () => {
+    const yaml = generateWorkflowYaml(baseTask({ type: 'file', filePath: 'notes/`id`/out.md' }))
+    expect(yaml).toContain("git add 'notes/`id`/out.md'")
+    expect(yaml).not.toContain('git add "notes/`id`/out.md"')
   })
 
   it('strips newlines from task name in YAML comment header', () => {
