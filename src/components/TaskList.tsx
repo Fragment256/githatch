@@ -348,6 +348,7 @@ function TaskRow({
     // else: parent still stale — skip until it catches up
   }, [task.enabled])
   const [lastRun, setLastRun] = useState<WorkflowRun | null>(null)
+  const [fetchingLastRun, setFetchingLastRun] = useState(!!task.workflowId)
   const [polling, setPolling] = useState(false)
   const [triggeredOutput, setTriggeredOutput] = useState<RunOutput | null>(null)
   const prevRunIdRef = useRef<number | null>(null)
@@ -375,6 +376,7 @@ function TaskRow({
 
   useEffect(() => {
     if (!task.workflowId) return
+    setFetchingLastRun(true)
     let cancelled = false
     const id = ++fetchLastRunRequestId.current
     getWorkflowRuns({ token, owner, repo, workflowId: task.workflowId, defaultBranch, perPage: 1 })
@@ -384,10 +386,12 @@ function TaskRow({
         setLastRun(run)
         prevRunIdRef.current = run?.id ?? null
         latestRunIdRef.current = run?.id ?? null
+        setFetchingLastRun(false)
         onLastRunChangeRef.current(task.slug, run)
       })
       .catch(() => {
         if (cancelled || id !== fetchLastRunRequestId.current) return
+        setFetchingLastRun(false)
         onLastRunChangeRef.current(task.slug, null)
       })
     return () => {
@@ -614,7 +618,15 @@ function TaskRow({
               </button>
               <button
                 onClick={handleTrigger}
-                disabled={triggering || !enabled || polling || deleting || toggling || editLoading}
+                disabled={
+                  triggering ||
+                  !enabled ||
+                  polling ||
+                  deleting ||
+                  toggling ||
+                  editLoading ||
+                  fetchingLastRun
+                }
                 className="border-2 border-black bg-black px-3 py-1.5 font-mono text-xs tracking-widest text-white uppercase transition-colors duration-100 hover:bg-white hover:text-black disabled:opacity-50"
               >
                 {triggering ? 'Triggering…' : triggered ? 'Triggered!' : 'Run now'}

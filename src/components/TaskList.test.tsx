@@ -67,6 +67,9 @@ describe('TaskList', () => {
   it('calls triggerWorkflow when Run now is clicked', async () => {
     vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
     render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+    await act(async () => {
+      await Promise.resolve()
+    })
     fireEvent.click(screen.getByRole('button', { name: /run now/i }))
     await waitFor(() => expect(workflows.triggerWorkflow).toHaveBeenCalledOnce())
     expect(workflows.triggerWorkflow).toHaveBeenCalledWith({
@@ -85,6 +88,9 @@ describe('TaskList', () => {
         <TaskList {...BASE_PROPS} tasks={[TASK]} />
       </StrictMode>,
     )
+    await act(async () => {
+      await Promise.resolve()
+    })
     fireEvent.click(screen.getByRole('button', { name: /run now/i }))
     // isMountedRef must be true after remount so setTriggering(false) fires in finally
     await waitFor(() => expect(screen.queryByText(/triggering…/i)).not.toBeInTheDocument())
@@ -93,6 +99,9 @@ describe('TaskList', () => {
   it('shows trigger error when triggerWorkflow rejects', async () => {
     vi.spyOn(workflows, 'triggerWorkflow').mockRejectedValue(new Error('Permission denied'))
     render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+    await act(async () => {
+      await Promise.resolve()
+    })
     fireEvent.click(screen.getByRole('button', { name: /run now/i }))
     await waitFor(() => expect(screen.getByText(/Permission denied/)).toBeInTheDocument())
   })
@@ -201,6 +210,9 @@ describe('TaskList', () => {
       }),
     )
     render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+    await act(async () => {
+      await Promise.resolve()
+    })
     fireEvent.click(screen.getByRole('button', { name: /run now/i }))
     // While triggerWorkflow is in-flight, triggering=true — delete button must be disabled
     await waitFor(() => expect(screen.getByText(/triggering…/i)).toBeInTheDocument())
@@ -273,6 +285,9 @@ describe('TaskList', () => {
       }),
     )
     render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+    await act(async () => {
+      await Promise.resolve()
+    })
     fireEvent.click(screen.getByRole('button', { name: /run now/i }))
     await waitFor(() => expect(screen.getByText(/triggering…/i)).toBeInTheDocument())
     expect(screen.getByRole('button', { name: /pause task/i })).toBeDisabled()
@@ -322,6 +337,9 @@ describe('TaskList', () => {
       }),
     )
     render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+    await act(async () => {
+      await Promise.resolve()
+    })
     fireEvent.click(screen.getByRole('button', { name: /run now/i }))
     await waitFor(() => expect(screen.getByText(/triggering…/i)).toBeInTheDocument())
     expect(screen.getByRole('button', { name: /^edit$/i })).toBeDisabled()
@@ -954,6 +972,9 @@ describe('TaskList', () => {
       vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
       vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(asResult([]))
       render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      await act(async () => {
+        await Promise.resolve()
+      })
       fireEvent.click(screen.getByRole('button', { name: /run now/i }))
       await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
     })
@@ -962,6 +983,9 @@ describe('TaskList', () => {
       vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
       vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(asResult([]))
       render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      await act(async () => {
+        await Promise.resolve()
+      })
       fireEvent.click(screen.getByRole('button', { name: /run now/i }))
       await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
       expect(screen.queryByRole('link', { name: /^Queued$/i })).not.toBeInTheDocument()
@@ -1046,6 +1070,9 @@ describe('TaskList', () => {
       vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
       vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(asResult([]))
       render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      await act(async () => {
+        await Promise.resolve()
+      })
       fireEvent.click(screen.getByRole('button', { name: /run now/i }))
       await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
       // Button shows "Triggered!" for 3 s then returns to "Run now" — either way disabled
@@ -1061,6 +1088,9 @@ describe('TaskList', () => {
       vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
       vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(asResult([]))
       render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      await act(async () => {
+        await Promise.resolve()
+      })
       fireEvent.click(screen.getByRole('button', { name: /run now/i }))
       await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
 
@@ -1168,48 +1198,29 @@ describe('TaskList', () => {
       await waitFor(() => expect(screen.queryByText(/^Queued$/i)).not.toBeInTheDocument())
     })
 
-    it('does not show output from a pre-existing run when trigger fires before initial fetch resolves', async () => {
-      const PRE_EXISTING: WorkflowRun = {
-        id: 50,
-        status: 'completed',
-        conclusion: 'success',
-        createdAt: '2024-01-01T08:00:00Z',
-        htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/50',
-      }
-
-      // Initial mount fetch — deferred so lastRun stays null when Run now is clicked
+    it('disables Run now button while initial fetch is in flight', async () => {
+      // Initial mount fetch — deferred to test disabled state
       let resolveInitialFetch!: (r: WorkflowRunsResult) => void
-      vi.spyOn(workflows, 'getWorkflowRuns')
-        .mockReturnValueOnce(
-          new Promise<WorkflowRunsResult>((resolve) => {
-            resolveInitialFetch = resolve
-          }),
-        )
-        .mockResolvedValue(asResult([PRE_EXISTING])) // poller returns pre-existing run
-
+      vi.spyOn(workflows, 'getWorkflowRuns').mockReturnValueOnce(
+        new Promise<WorkflowRunsResult>((resolve) => {
+          resolveInitialFetch = resolve
+        }),
+      )
       vi.spyOn(workflows, 'triggerWorkflow').mockResolvedValue(undefined)
-      vi.spyOn(workflows, 'fetchRunOutput').mockResolvedValue(null)
 
       render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
 
-      // Trigger before initial fetch resolves (lastRun is null)
+      // Button must be disabled while initial fetch is pending
+      expect(screen.getByRole('button', { name: /run now/i })).toBeDisabled()
+
+      // Resolve initial fetch — button must become enabled
+      await act(async () => {
+        resolveInitialFetch(asResult([]))
+      })
+
+      expect(screen.getByRole('button', { name: /run now/i })).not.toBeDisabled()
       fireEvent.click(screen.getByRole('button', { name: /run now/i }))
-      await waitFor(() => expect(screen.getByText(/^Queued$/i)).toBeInTheDocument())
-
-      // Resolve initial fetch — fix sets prevRunIdRef.current = 50
-      await act(async () => {
-        resolveInitialFetch(asResult([PRE_EXISTING]))
-      })
-
-      // First poll tick — poller gets PRE_EXISTING (id=50)
-      // With fix: prevRunIdRef.current = 50 → run.id === 50 → SKIP
-      await act(async () => {
-        vi.advanceTimersByTime(8000)
-        await Promise.resolve()
-      })
-
-      // fetchRunOutput must NOT be called for the pre-existing run
-      expect(workflows.fetchRunOutput).not.toHaveBeenCalled()
+      await waitFor(() => expect(workflows.triggerWorkflow).toHaveBeenCalledOnce())
     })
 
     it('prevRunIdRef stays in sync after polling completes so a second trigger does not re-detect the finished run', async () => {

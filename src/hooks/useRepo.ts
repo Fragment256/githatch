@@ -47,7 +47,8 @@ export function useRepo(token: string | null) {
       setActiveRepo(null)
     } else if (
       freshRepo.default_branch !== activeRepo.default_branch ||
-      freshRepo.id !== activeRepo.id
+      freshRepo.id !== activeRepo.id ||
+      freshRepo.permissions?.push !== activeRepo.permissions?.push
     ) {
       setActiveRepo(freshRepo)
     }
