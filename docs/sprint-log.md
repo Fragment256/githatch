@@ -4158,3 +4158,17 @@ No drift from sprint 482. All quality checks clean. eslint.config.js clean. Scan
 No drift from sprint 483. All quality checks clean. eslint.config.js clean. Scanner test stderr (createRequire fixture) is expected test output — not a real violation.
 
 **Next sprint:** 485 (Explore audit, cycle 163).
+
+## Sprint 485 — 2026-09-19 (Explore audit, cycle 163)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 644/644 ✓
+
+Explore audit (cycle 163): full read of all 34 non-test source files + 2 scripts. **2 correctness bugs found and fixed** (dry streak resets, +2 tests).
+
+**Bug 1 fixed (github.ts deleteWorkflowFile):** After a DELETE failure (network error or non-2xx), the function immediately re-throws. If the DELETE actually reached GitHub but the response was lost in transit, the caller's rollback logic would then delete the newly written file — silently destroying the user's workflow. Fix: after any DELETE failure, re-verify with a GET. If the file is now 404, the DELETE landed; return success. 3 new tests.
+
+**Bug 2 fixed (App.tsx handleEditFormSubmit + handleTaskFormSubmit):** `loadTasks()` was inside the `id === editLoadRequestId.current` guard. If the user navigated away while a GitHub write was in-flight (incrementing the request id), the write would complete on GitHub but the local task list would never refresh — stale until the next manual reload. Fix: call `loadTasks()` unconditionally after the write succeeds (before `addTask` in handleTaskFormSubmit to preserve React 18 batching order). Existing test validated the ordering constraint.
+
+Commit: `8c03c4f` (fix: verify DELETE landed before rollback; always call loadTasks after write)
+
+**Next sprint:** 486 (day 1 — baseline, cycle 164).
