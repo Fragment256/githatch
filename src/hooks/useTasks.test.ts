@@ -200,6 +200,39 @@ describe('useTasks', () => {
     await waitFor(() => expect(result.current.tasks).toEqual([makeTask('b')]))
   })
 
+  it('discards an in-flight load when the repo changes even if no new load() is called', async () => {
+    // Regression guard: requestId.current was not incremented in the repo-change cleanup
+    // effect, so an in-flight load() for the old repo could complete and write its results
+    // into the new repo's task list before any new load() was triggered.
+    let resolveStale: (tasks: GithatchTask[]) => void = () => {}
+    mockListGithatchTasks.mockReturnValueOnce(
+      new Promise<GithatchTask[]>((resolve) => {
+        resolveStale = resolve
+      }),
+    )
+
+    const { result, rerender } = renderHook(({ repo }) => useTasks('gho_test', 'owner', repo), {
+      initialProps: { repo: 'repo-a' },
+    })
+
+    act(() => {
+      result.current.load()
+    })
+
+    // Switch repo without calling load() — the repo-change effect fires but no new
+    // load() is issued yet. The in-flight load for repo-a must still be discarded.
+    rerender({ repo: 'repo-b' })
+    expect(result.current.tasks).toEqual([])
+    expect(result.current.loading).toBe(false)
+
+    // Resolve the stale repo-a fetch — must not pollute repo-b's state
+    await act(async () => {
+      resolveStale([makeTask('a')])
+    })
+
+    expect(result.current.tasks).toEqual([])
+  })
+
   it('keeps existing tasks visible during a reload and replaces them when the fetch resolves', async () => {
     // Repo switches re-create the hook with fresh [] state via React prop changes, so
     // stale-repo tasks never appear. Within the same repo, keeping tasks visible during

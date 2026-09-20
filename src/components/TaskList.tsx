@@ -334,14 +334,23 @@ function TaskRow({
   const [toggling, setToggling] = useState(false)
   const [toggleError, setToggleError] = useState<string | null>(null)
   const [enabled, setEnabled] = useState(task.enabled)
-  // After a successful toggle, holds the committed state. Prevents a parent re-render with
-  // stale task.enabled (from polling before GitHub propagates) from overwriting local state.
-  // Cleared once the parent's task.enabled finally matches the committed value.
-  const resolvedEnabledRef = useRef<boolean | null>(null)
+  // After a successful toggle, guards against stale poll data overwriting local state.
+  // `expected`: the committed value we're waiting GitHub to propagate.
+  // `needIntermediate`: when a second rapid toggle lands before the first is confirmed,
+  // we must see the first toggle's propagated value (the opposite of expected) before
+  // accepting expected — otherwise a pre-first-toggle stale poll that coincidentally
+  // equals expected clears the guard too early.
+  const resolvedEnabledRef = useRef<{ expected: boolean; needIntermediate: boolean } | null>(null)
   useEffect(() => {
     if (resolvedEnabledRef.current === null) {
       setEnabled(task.enabled)
-    } else if (resolvedEnabledRef.current === task.enabled) {
+    } else if (resolvedEnabledRef.current.needIntermediate) {
+      if (task.enabled !== resolvedEnabledRef.current.expected) {
+        // Saw the intermediate value — first toggle has propagated, now wait for the second
+        resolvedEnabledRef.current = { ...resolvedEnabledRef.current, needIntermediate: false }
+      }
+      // else: intermediate not yet seen, skip
+    } else if (task.enabled === resolvedEnabledRef.current.expected) {
       resolvedEnabledRef.current = null
       setEnabled(task.enabled)
     }
@@ -513,7 +522,14 @@ function TaskRow({
       } else {
         await enableWorkflow({ token, owner, repo, workflowId: task.workflowId, defaultBranch })
       }
-      resolvedEnabledRef.current = nextEnabled
+      const prior = resolvedEnabledRef.current
+      resolvedEnabledRef.current = {
+        expected: nextEnabled,
+        // If there's a pending guard for the opposite value, the first toggle hasn't
+        // been confirmed yet. Require seeing that intermediate value before accepting
+        // nextEnabled — prevents stale polls that equal nextEnabled from clearing the guard.
+        needIntermediate: prior !== null && prior.expected !== nextEnabled,
+      }
       if (isMountedRef.current) setEnabled(nextEnabled)
     } catch (err) {
       if (isMountedRef.current)

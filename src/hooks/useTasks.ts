@@ -9,8 +9,10 @@ export function useTasks(token: string | null, owner: string, repo: string) {
   const requestId = useRef(0)
 
   useEffect(() => {
+    ++requestId.current
     setTasks([])
     setError(null)
+    setLoading(false)
   }, [owner, repo])
 
   const load = useCallback(() => {

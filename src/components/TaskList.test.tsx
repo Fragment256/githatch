@@ -2056,6 +2056,54 @@ describe('TaskList', () => {
     expect(screen.queryByRole('button', { name: /pause task/i })).not.toBeInTheDocument()
   })
 
+  it('holds resolvedEnabledRef guard through a rapid double-toggle (A→B→A) until both GitHub propagations arrive', async () => {
+    // Regression: after a second toggle back to the original value, a stale poll carrying
+    // that original value coincidentally matched resolvedEnabledRef.current and cleared the
+    // guard prematurely — causing the UI to show the wrong state when the first toggle's
+    // propagation arrived.
+    vi.spyOn(workflows, 'disableWorkflow').mockResolvedValue(undefined)
+    vi.spyOn(workflows, 'enableWorkflow').mockResolvedValue(undefined)
+    const enabledTask: GithatchTask = { ...TASK, enabled: true }
+    const { rerender } = render(<TaskList {...BASE_PROPS} tasks={[enabledTask]} />)
+
+    // Toggle 1: Pause (true → false)
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /pause task/i }))
+    })
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /resume task/i })).toBeInTheDocument(),
+    )
+
+    // Toggle 2: Resume (false → true) before GitHub has propagated toggle 1
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /resume task/i }))
+    })
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /pause task/i })).toBeInTheDocument(),
+    )
+
+    // Stale poll with original value (true) arrives — must NOT clear the guard
+    // (guard expected=true but needIntermediate=true because toggle 1 hasn't propagated yet)
+    rerender(<TaskList {...BASE_PROPS} tasks={[enabledTask]} />)
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /pause task/i })).toBeInTheDocument(),
+    )
+
+    // GitHub propagates toggle 1 (false) — intermediate seen, guard advances
+    const disabledTask: GithatchTask = { ...TASK, enabled: false }
+    rerender(<TaskList {...BASE_PROPS} tasks={[disabledTask]} />)
+    // Guard's needIntermediate clears but expected=true, so Pause still shows
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /pause task/i })).toBeInTheDocument(),
+    )
+
+    // GitHub propagates toggle 2 (true) — final value matches expected, guard clears
+    rerender(<TaskList {...BASE_PROPS} tasks={[enabledTask]} />)
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /pause task/i })).toBeInTheDocument(),
+    )
+  })
+
   it('disables Pause/Resume during editLoading to prevent toggle-while-YAML-loads race', () => {
     render(<TaskList {...BASE_PROPS} tasks={[TASK]} editLoading={true} />)
     expect(screen.getByRole('button', { name: /pause task/i })).toBeDisabled()
