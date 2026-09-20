@@ -265,4 +265,25 @@ describe('useTasks', () => {
     })
     await waitFor(() => expect(result.current.tasks).toEqual([makeTask('new')]))
   })
+
+  it('clears tasks immediately when token changes to null (logout) without a repo change', async () => {
+    // Regression guard: token was missing from the reset useEffect deps. A token→null
+    // transition (logout) while owner/repo stay the same left stale tasks visible until
+    // the next repo change.
+    mockListGithatchTasks.mockResolvedValueOnce([makeTask('a')])
+
+    const { result, rerender } = renderHook(({ token }) => useTasks(token, 'owner', 'repo-a'), {
+      initialProps: { token: 'gho_test' as string | null },
+    })
+
+    await act(async () => {
+      result.current.load()
+    })
+    await waitFor(() => expect(result.current.tasks).toEqual([makeTask('a')]))
+
+    // Token becomes null (logout) — tasks must be cleared immediately.
+    rerender({ token: null })
+    expect(result.current.tasks).toEqual([])
+    expect(result.current.loading).toBe(false)
+  })
 })

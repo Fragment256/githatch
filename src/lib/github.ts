@@ -98,6 +98,7 @@ export async function deleteWorkflowFile(params: {
     throw new Error(`Failed to fetch workflow file for deletion: ${getRes.status}`)
   }
   const { sha } = (await getRes.json()) as { sha: string }
+  if (!sha) throw new Error(`Failed to delete workflow file: GitHub response missing sha`)
 
   let deleteErr: unknown
   try {

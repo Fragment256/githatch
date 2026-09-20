@@ -13,7 +13,7 @@ export function useTasks(token: string | null, owner: string, repo: string) {
     setTasks([])
     setError(null)
     setLoading(false)
-  }, [owner, repo])
+  }, [owner, repo, token])
 
   const load = useCallback(() => {
     if (!token) return

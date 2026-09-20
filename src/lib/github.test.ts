@@ -226,6 +226,14 @@ describe('deleteWorkflowFile', () => {
     await expect(deleteWorkflowFile(params)).rejects.toThrow(/failed to fetch workflow file/i)
     await expect(deleteWorkflowFile(params)).rejects.not.toThrow(/not found/i)
   })
+
+  it('throws when GET response body is missing sha (malformed GitHub response)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ type: 'file' }) }),
+    )
+    await expect(deleteWorkflowFile(params)).rejects.toThrow(/missing sha/)
+  })
 })
 
 describe('listRepoSecrets', () => {
