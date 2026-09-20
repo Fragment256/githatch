@@ -101,15 +101,13 @@ export function AgentConfig({ token, owner, repo }: Props) {
     fetchRepoAgentConfig({ token, owner, repo })
       .then((result) => {
         if (id !== requestIdRef.current) return
+        setLoading(false)
         setConfig(result)
       })
       .catch((err: unknown) => {
         if (id !== requestIdRef.current) return
-        setError(err instanceof Error ? err.message : 'Failed to load config')
-      })
-      .finally(() => {
-        if (id !== requestIdRef.current) return
         setLoading(false)
+        setError(err instanceof Error ? err.message : 'Failed to load config')
       })
     return () => {
       ++requestIdRef.current
@@ -120,7 +118,8 @@ export function AgentConfig({ token, owner, repo }: Props) {
     <div className="border border-black">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between px-4 py-3 font-mono text-xs tracking-widest uppercase hover:bg-gray-50"
+        disabled={open && loading}
+        className="flex w-full items-center justify-between px-4 py-3 font-mono text-xs tracking-widest uppercase hover:bg-gray-50 disabled:cursor-not-allowed"
       >
         <span>Agent config</span>
         <span className="text-black/30">{open ? '▲' : '▼'}</span>

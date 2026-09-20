@@ -12,6 +12,32 @@ const BASE_PROPS = {
 describe('AgentConfig', () => {
   beforeEach(() => vi.restoreAllMocks())
 
+  it('toggle button is disabled while a fetch is in progress', async () => {
+    let resolve!: (v: Awaited<ReturnType<typeof github.fetchRepoAgentConfig>>) => void
+    vi.spyOn(github, 'fetchRepoAgentConfig').mockImplementation(
+      () =>
+        new Promise((r) => {
+          resolve = r
+        }),
+    )
+    render(<AgentConfig {...BASE_PROPS} />)
+    const btn = screen.getByRole('button', { name: /agent config/i })
+    fireEvent.click(btn) // open panel — fetch starts
+    expect(btn).toBeDisabled()
+    await act(async () => {
+      resolve({
+        hasClaude: true,
+        hasSettings: false,
+        skills: [],
+        agents: [],
+        hasAgentsMd: false,
+        hasCodexConfig: false,
+        hasCodexHooks: false,
+      })
+    })
+    expect(btn).not.toBeDisabled()
+  })
+
   it('renders collapsed by default', () => {
     render(<AgentConfig {...BASE_PROPS} />)
     expect(screen.getByRole('button', { name: /agent config/i })).toBeInTheDocument()
