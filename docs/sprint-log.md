@@ -4448,3 +4448,16 @@ No drift from sprint 512. All quality checks clean. Commit: `9b5819b`.
 No drift from sprint 513. All quality checks clean.
 
 **Next sprint:** 515 (Explore audit, cycle 175).
+
+## Sprint 515 — 2026-09-20 (Explore audit, cycle 175)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 657/657 ✓
+
+Explore audit (cycle 175): 2 bugs found and fixed.
+
+- LOW: `useTasks.ts` — token missing from reset useEffect deps: logout without repo change left stale tasks visible. Added token to [owner, repo, token]. 1 regression test.
+- LOW: `github.ts deleteWorkflowFile` — sha not guarded after GET response destructure: malformed GitHub response would send undefined sha to DELETE, producing cryptic 422. Added explicit null check. 1 regression test.
+
+Commit: `b52f382`.
+
+**Next sprint:** 516 (day 1 — baseline, cycle 176).
