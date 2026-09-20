@@ -4202,3 +4202,97 @@ Explore audit (cycle 164): full read of all 34 non-test source files + 2 scripts
 Commit: `f37c14e` (fix: exclude untracked files from JS scanner; disable Run-now synchronously on workflowId arrive)
 
 **Next sprint:** 489 (day 1 — baseline, cycle 165).
+
+## Sprint 489 — 2026-09-19 (day 1 — baseline, cycle 165)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 646/646 ✓
+
+No drift from sprint 488. All quality checks clean.
+
+Commit: `05c7c5e` (chore: sprint 489 — day 1 baseline cycle 165)
+
+**Next sprint:** 490 (day 2 — baseline, cycle 165).
+
+## Sprint 490 — 2026-09-19 (day 2 — baseline, cycle 165)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 646/646 ✓
+
+No drift from sprint 489. All quality checks clean.
+
+Commit: `3f0f22a` (chore: sprint 490 — day 2 baseline cycle 165)
+
+**Next sprint:** 491 (Explore audit, cycle 165).
+
+## Sprint 491 — 2026-09-19 (Explore audit, cycle 165)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 650/650 ✓
+
+Explore audit (cycle 165): full read of all 34 non-test source files + 2 scripts. **3 correctness bugs found and fixed** (dry streak resets, +4 tests).
+
+**Bug 1 fixed (src/lib/cronLabel.ts canPreviewCron):** Returned `true` for expressions like `'0 * * * *'` where `nextCronRun` returned `null` (bare wildcard hour/minute not handled by any of the three nextCronRun branches). Fix: add guard — when neither minute nor hour is a step pattern, both must be plain digits. 2 new tests.
+
+**Bug 2 fixed (src/hooks/useTasks.ts):** Optimistic tasks from a previous repo leaked into the next repo when `owner`/`repo` props changed without unmounting. Fix: `useEffect` that clears tasks and error on `owner`/`repo` change. 1 new regression test.
+
+**Bug 3 fixed (src/App.tsx handleEditFormSubmit + handleTaskFormSubmit):** `loadTasks()` in three places bypassed the `id === editLoadRequestId.current` guard. A concurrent `onRefresh()` from an unmounted TaskRow's delete increments `editLoadRequestId.current` while a save is in-flight, making the id stale. All three calls moved inside the id guard, preserving load-before-addTask order required by React 18 batching. 1 new regression test.
+
+Commits: `ebf93cd` (fix: canPreviewCron wildcard inconsistency and useTasks optimistic task leak) · `ad807c5` (fix: guard loadTasks behind id check in handleEditFormSubmit and handleTaskFormSubmit)
+
+**Next sprint:** 492 (day 1 — baseline, cycle 166).
+
+## Sprint 492 — 2026-09-20 (day 1 — baseline, cycle 166)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 650/650 ✓
+
+No drift from sprint 491. All quality checks clean.
+
+Commit: `373ecb0` (chore: sprint 492 — day 1 baseline cycle 166)
+
+**Next sprint:** 493 (day 2 — baseline, cycle 166).
+
+## Sprint 493 — 2026-09-20 (day 2 — baseline, cycle 166)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 650/650 ✓
+
+No drift from sprint 492. All quality checks clean. (Sprint log entry backfilled — checks recorded in FRA-23; no standalone commit.)
+
+**Next sprint:** 494 (Explore audit, cycle 167).
+
+## Sprint 494 — 2026-09-20 (Explore audit, cycle 167)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 650/650 ✓
+
+Explore audit (cycle 167): no bugs found. Dry streak: 1. (Sprint log entry backfilled — checks recorded in FRA-23; no standalone commit.)
+
+**Next sprint:** 495 (day 1 — baseline, cycle 168).
+
+## Sprint 495 — 2026-09-20 (day 1 — baseline, cycle 168)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 650/650 ✓
+
+No drift from sprint 494. All quality checks clean. (Sprint log entry backfilled — checks recorded in FRA-23; no standalone commit.)
+
+**Next sprint:** 496 (day 2 — baseline, cycle 168).
+
+## Sprint 496 — 2026-09-20 (day 2 — baseline, cycle 168)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 650/650 ✓
+
+No drift from sprint 495. All quality checks clean. (Sprint log entry backfilled — checks recorded in FRA-23; no standalone commit.)
+
+**Next sprint:** 497 (Explore audit, cycle 169).
+
+## Sprint 497 — 2026-09-20 (Explore audit, cycle 169)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 650/650 ✓
+
+Explore audit (cycle 169): no bugs found. Dry streak: 2. (Sprint log entry backfilled — checks recorded in FRA-23; no standalone commit.)
+
+**Next sprint:** 498 (day 1 — baseline, cycle 170).
+
+## Sprint 498 — 2026-09-20 (day 1 — baseline, cycle 170)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 650/650 ✓
+
+No drift from sprint 497. All quality checks clean.
+
+**Next sprint:** 499 (day 2 — baseline, cycle 170).
