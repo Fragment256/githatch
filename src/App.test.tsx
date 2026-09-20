@@ -825,6 +825,52 @@ describe('App — task form submission', () => {
     expect(mockLoad).toHaveBeenCalledTimes(1)
   })
 
+  it('when rename delete fails but rollback succeeds, shows a clear message that original task is unchanged', async () => {
+    // Bug: throw deleteErr surfaces a raw API error like "Network error" implying the user's
+    // original file was affected, when in fact the state is perfectly clean (new file rolled back,
+    // old file never touched). Fix: replace throw deleteErr with a user-friendly message.
+    const task: GithatchTask = {
+      slug: 'daily-digest',
+      displayName: 'Daily Digest',
+      schedule: '0 9 * * *',
+      workflowId: 1,
+      path: '.github/workflows/githatch-daily-digest.yml',
+      enabled: true,
+      outputDestination: { type: 'new_issue' },
+      prompt: 'Summarize.',
+    }
+    mockUseTasks.mockReturnValue({ ...defaultTasksState, tasks: [task] })
+    vi.mocked(github.fetchFileContent).mockResolvedValue(
+      'name: Daily Digest\non:\n  schedule:\n    - cron: "0 9 * * *"\n  workflow_dispatch:\njobs:\n  run:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: anthropics/claude-code-action@v1\n        with:\n          prompt: |\n            Summarize.\n',
+    )
+    // upsert succeeds; delete (old file) fails; rollback delete succeeds
+    vi.mocked(github.deleteWorkflowFile)
+      .mockRejectedValueOnce(new Error('Network error'))
+      .mockResolvedValueOnce(undefined)
+
+    render(<App />, { wrapper })
+
+    const editBtn = await screen.findByRole('button', { name: /^edit$/i })
+    fireEvent.click(editBtn)
+    await waitFor(() => screen.getByRole('button', { name: /save changes/i }))
+
+    // Change the task name to trigger a rename
+    const nameInput = screen.getByRole('textbox', { name: /task name/i })
+    fireEvent.change(nameInput, { target: { value: 'Brand New Name' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
+    await waitFor(() => screen.getByRole('button', { name: /commit to repo/i }))
+    fireEvent.click(screen.getByRole('button', { name: /commit to repo/i }))
+
+    // Error must clearly state the original task is unchanged, not expose raw API error
+    await waitFor(() => {
+      expect(screen.getByText(/rename failed.*original task is unchanged/i)).toBeInTheDocument()
+    })
+
+    // Must NOT show the raw API error that implies original was affected
+    expect(screen.queryByText(/network error/i)).not.toBeInTheDocument()
+  })
+
   it('calls loadTasks inside the id guard after a successful edit-form save', async () => {
     // Regression: loadTasks() in handleEditFormSubmit success path was outside the
     // id === editLoadRequestId.current guard, so a concurrent onRefresh() from an unmounted

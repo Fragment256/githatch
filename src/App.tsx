@@ -139,7 +139,7 @@ export default function App() {
       if (newSlug !== editingTask.slug) {
         try {
           await deleteWorkflowFile({ token, owner, repo, path: editingTask.path })
-        } catch (deleteErr) {
+        } catch {
           let rollbackFailed = false
           await deleteWorkflowFile({
             token,
@@ -154,7 +154,7 @@ export default function App() {
               `Rename failed and rollback also failed — both "${editingTask.slug}" and "${newSlug}" workflow files now exist in the repo. Please delete one manually.`,
             )
           }
-          throw deleteErr
+          throw new Error('Rename failed — your original task is unchanged.')
         }
       }
       if (id === editLoadRequestId.current) {

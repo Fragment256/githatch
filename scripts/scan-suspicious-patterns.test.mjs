@@ -92,4 +92,16 @@ describe('scanContent', () => {
 
     expect(() => execFileSync('node', [scriptPath, maliciousFile], { stdio: 'pipe' })).toThrow()
   })
+
+  it('CLI exits zero and skips unreadable files instead of crashing with a stack trace', () => {
+    // Bug: readFileSync without try-catch crashes on ENOENT/EACCES (e.g. TOCTOU between
+    // lint-staged collecting paths and the script running), blocking the commit with a raw
+    // stack trace. The companion scan-all-tracked-js.mjs already uses try/catch { continue }.
+    tmpDir = mkdtempSync(join(tmpdir(), 'scan-test-'))
+    const nonexistentFile = join(tmpDir, 'does-not-exist.js')
+    // File deliberately not created — simulates a path that vanished after lint-staged enumerated it
+    expect(() =>
+      execFileSync('node', [scriptPath, nonexistentFile], { stdio: 'pipe' }),
+    ).not.toThrow()
+  })
 })

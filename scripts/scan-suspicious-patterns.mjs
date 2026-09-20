@@ -36,7 +36,12 @@ function main() {
   let hasViolations = false
 
   for (const file of files) {
-    const content = readFileSync(file, 'utf-8')
+    let content
+    try {
+      content = readFileSync(file, 'utf-8')
+    } catch {
+      continue
+    }
     const violations = scanContent(content)
     if (violations.length > 0) {
       hasViolations = true
