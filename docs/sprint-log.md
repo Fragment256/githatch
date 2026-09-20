@@ -4461,3 +4461,11 @@ Explore audit (cycle 175): 2 bugs found and fixed.
 Commit: `b52f382`.
 
 **Next sprint:** 516 (day 1 — baseline, cycle 176).
+
+## Sprint 516 — 2026-09-20 (day 1 — baseline, cycle 176)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 657/657 ✓
+
+No drift from sprint 515. eslint.config.js clean (25 lines, no injected content).
+
+**Next sprint:** 517 (day 2 — baseline, cycle 176).
