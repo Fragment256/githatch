@@ -4304,3 +4304,147 @@ No drift from sprint 497. All quality checks clean.
 - Rationale: Open-PR triage takes priority over new discovery work per the decision tree; this was the only open PR and had no blockers once reviewed.
 - PR: #59
 - ROADMAP updated: no (not a roadmap item; #60 — wiring the scanner into CI/deploy — remains Paused pending `workflows` permission for the bot's GitHub App)
+
+## Sprint 499 — 2026-09-20 (day 2 — baseline, cycle 170)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 650/650 ✓
+
+No drift from sprint 498. All quality checks clean. (Backfilled from git history.)
+
+**Next sprint:** 500 (Explore audit, cycle 170).
+
+## Sprint 500 — 2026-09-20 (Explore audit, cycle 170)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 652/652 ✓
+
+Explore audit (cycle 170): 2 bugs found and fixed.
+
+- LOW: `scan-suspicious-patterns.mjs` — `readFileSync` could throw `ENOENT` if file vanished between lint-staged enumeration and script execution (TOCTOU). Wrapped in try/catch to skip gracefully; matches pattern in `scan-all-tracked-js.mjs`.
+- LOW: rename-rollback error message clarification.
+
+Commit: `c62b0fa`. (Backfilled from git history.)
+
+**Next sprint:** 501 (day 1 — baseline, cycle 171).
+
+## Sprint 501 — 2026-09-20 (day 1 — baseline, cycle 171)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 652/652 ✓
+
+No drift from sprint 500. All quality checks clean. (Backfilled from git history.)
+
+**Next sprint:** 502 (day 2 — baseline, cycle 171).
+
+## Sprint 502 — 2026-09-20 (day 2 — baseline, cycle 171)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 652/652 ✓
+
+No drift from sprint 501. All quality checks clean. Commit: `2b90b3d`. (Backfilled from git history.)
+
+**Next sprint:** 503 (Explore audit, cycle 171).
+
+## Sprint 503 — 2026-09-20 (Explore audit, cycle 171)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 652/652 ✓
+
+Explore audit (cycle 171): no bugs found. Dry streak: 1. (Backfilled from git history — commit `33f0315`.)
+
+**Next sprint:** 504 (day 1 — baseline, cycle 172).
+
+## Sprint 504 — 2026-09-20 (day 1 — baseline, cycle 172)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 652/652 ✓
+
+No drift from sprint 503. All quality checks clean. (Backfilled from git history — commit `33f0315`.)
+
+**Next sprint:** 505 (day 2 — baseline, cycle 172).
+
+## Sprint 505 — 2026-09-20 (day 2 — baseline, cycle 172)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 652/652 ✓
+
+No drift from sprint 504. All quality checks clean. (Backfilled from git history — commit `33f0315`.)
+
+**Next sprint:** 506 (Explore audit, cycle 172).
+
+## Sprint 506 — 2026-09-20 (Explore audit, cycle 172)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 653/653 ✓
+
+Explore audit (cycle 172): 1 bug found and fixed.
+
+- MEDIUM: `AgentConfig` — `setLoading(false)` was inside `.finally()` behind a request-id check. Effect cleanup incremented `requestIdRef.current` before `.finally()` ran, causing the check to fail and leaving loading stuck at `true` after a successful fetch. Also: missing `disabled` guard on the toggle button during in-flight requests.
+
+Commit: `94ee9ad`. (Backfilled from git history.)
+
+**Next sprint:** 507 (day 1 — baseline, cycle 173).
+
+## Sprint 507 — 2026-09-20 (day 1 — baseline, cycle 173)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 653/653 ✓
+
+No drift from sprint 506. All quality checks clean. Commit: `eb0f031`. (Backfilled from git history.)
+
+**Next sprint:** 508 (day 2 — baseline, cycle 173).
+
+## Sprint 508 — 2026-09-20 (day 2 — baseline, cycle 173)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 653/653 ✓
+
+No drift from sprint 507. All quality checks clean. Commit: `ac0641b`. (Backfilled from git history.)
+
+**Next sprint:** 509 (Explore audit, cycle 173).
+
+## Sprint 509 — 2026-09-20 (Explore audit, cycle 173)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 655/655 ✓
+
+Explore audit (cycle 173): 2 bugs found and fixed.
+
+- LOW: `useTasks.ts` — stale-repo race: loading a repo that doesn't own the task produced stale task list. Guard added.
+- LOW: `TaskList.tsx` — rapid double-toggle guard: missing `disabled` guard allowed double-click to trigger two concurrent toggle calls. Guard added.
+
+Commit: `eb3159d`. (Backfilled from git history.)
+
+**Next sprint:** 510 (day 1 — baseline, cycle 174).
+
+## Sprint 510 — 2026-09-20 (day 1 — baseline, cycle 174)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 655/655 ✓
+
+No drift from sprint 509. All quality checks clean. Commit: `bf1217b`.
+
+Note: PR #59 merged to remote during this sprint window (`pnpm run scan` alias). Rebased cleanly.
+
+**Next sprint:** 511 (day 2 — baseline, cycle 174).
+
+## Sprint 511 — 2026-09-20 (day 2 — baseline, cycle 174)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 655/655 ✓
+
+No drift from sprint 510. All quality checks clean. Commit: `ec32043`.
+
+**Next sprint:** 512 (Explore audit, cycle 174).
+
+## Sprint 512 — 2026-09-20 (Explore audit, cycle 174)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 655/655 ✓
+
+Explore audit (cycle 174): no bugs found. Dry streak: 1. Commit: `790d5fe`.
+
+**Next sprint:** 513 (day 1 — baseline, cycle 175).
+
+## Sprint 513 — 2026-09-20 (day 1 — baseline, cycle 175)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 655/655 ✓
+
+No drift from sprint 512. All quality checks clean. Commit: `9b5819b`.
+
+**Next sprint:** 514 (day 2 — baseline, cycle 175).
+
+## Sprint 514 — 2026-09-20 (day 2 — baseline, cycle 175)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 655/655 ✓
+
+No drift from sprint 513. All quality checks clean.
+
+**Next sprint:** 515 (Explore audit, cycle 175).
