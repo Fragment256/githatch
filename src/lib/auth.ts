@@ -98,7 +98,11 @@ export async function exchangeCodeForToken(
 }
 
 export function getStoredToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY)
+  try {
+    return localStorage.getItem(TOKEN_KEY)
+  } catch {
+    return null
+  }
 }
 
 export function storeToken(token: string): void {
@@ -110,7 +114,11 @@ export function storeToken(token: string): void {
 }
 
 export function clearToken(): void {
-  localStorage.removeItem(TOKEN_KEY)
+  try {
+    localStorage.removeItem(TOKEN_KEY)
+  } catch {
+    // SecurityError in restricted contexts; React state is cleared by the caller regardless
+  }
 }
 
 export interface GitHubUser {

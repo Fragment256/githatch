@@ -99,6 +99,20 @@ describe('token storage', () => {
     expect(localStorage.getItem('gh_token')).toBe('gho_test_token')
     expect(sessionStorage.getItem('gh_token')).toBeNull()
   })
+
+  it('getStoredToken returns null when localStorage.getItem throws SecurityError', () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementationOnce(() => {
+      throw new DOMException('The operation is insecure.', 'SecurityError')
+    })
+    expect(getStoredToken()).toBeNull()
+  })
+
+  it('clearToken does not throw when localStorage.removeItem throws SecurityError', () => {
+    vi.spyOn(Storage.prototype, 'removeItem').mockImplementationOnce(() => {
+      throw new DOMException('The operation is insecure.', 'SecurityError')
+    })
+    expect(() => clearToken()).not.toThrow()
+  })
 })
 
 describe('exchangeCodeForToken', () => {
