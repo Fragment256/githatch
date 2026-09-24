@@ -1198,6 +1198,30 @@ describe('TaskList', () => {
       await waitFor(() => expect(screen.queryByText(/^Queued$/i)).not.toBeInTheDocument())
     })
 
+    it('re-enables Run now button after workflowId transitions undefined mid-fetch then comes back', async () => {
+      // Regression: fetchingLastRun stuck true when workflowId transitions to undefined while a
+      // fetch is in-flight. The early return in useEffect skipped setFetchingLastRun(false),
+      // leaving it permanently true until the component unmounted.
+      vi.spyOn(workflows, 'getWorkflowRuns')
+        .mockReturnValueOnce(new Promise(() => {})) // initial: never resolves
+        .mockResolvedValue(asResult([])) // subsequent: resolves immediately
+
+      const { rerender } = render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      // Initial fetch in-flight — button disabled
+      expect(screen.getByRole('button', { name: /run now/i })).toBeDisabled()
+
+      // Workflow disappears mid-fetch (e.g., refresh discovers workflow was deleted)
+      rerender(<TaskList {...BASE_PROPS} tasks={[{ ...TASK, workflowId: undefined }]} />)
+      expect(screen.queryByRole('button', { name: /run now/i })).not.toBeInTheDocument()
+      expect(screen.getByText('Registering…')).toBeInTheDocument()
+
+      // Workflow re-registered — button must eventually be enabled (not stuck disabled)
+      rerender(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+      await waitFor(() =>
+        expect(screen.getByRole('button', { name: /run now/i })).not.toBeDisabled(),
+      )
+    })
+
     it('disables Run now button while initial fetch is in flight', async () => {
       // Initial mount fetch — deferred to test disabled state
       let resolveInitialFetch!: (r: WorkflowRunsResult) => void

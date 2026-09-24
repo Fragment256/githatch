@@ -113,4 +113,22 @@ describe('scan-all-tracked-js', () => {
     execSync('git add eslint.config.js', { cwd: repoDir2 })
     expect(() => execFileSync('node', [scriptPath], { cwd: repoDir2, encoding: 'utf-8' })).toThrow()
   })
+
+  it('does not false-positive on scanner scripts when invoked from a subdirectory', () => {
+    // Regression: SELF_EXEMPT_SET used bare repo-root-relative paths
+    // (e.g. 'scripts/scan-suspicious-patterns.mjs'), but git ls-files returns paths
+    // relative to the current working directory. When run from scripts/, git ls-files
+    // returns 'scan-suspicious-patterns.mjs' (no prefix), which never matched the set.
+    const repoDir = makeGitRepo({
+      'scripts/scan-suspicious-patterns.mjs':
+        'const PATTERNS = [{ name: "createRequire(...) call", regex: /\\bcreateRequire\\s*\\(/ }]\nexport function scanContent(c) { return PATTERNS.filter(({regex}) => regex.test(c)).map(({name})=>name) }\n',
+      'scripts/scan-all-tracked-js.mjs': '// exempt placeholder\n',
+      'scripts/scan-suspicious-patterns.test.mjs': '// tests\n',
+      'scripts/scan-all-tracked-js.test.mjs': '// tests\n',
+    })
+    const scriptsDir = join(repoDir, 'scripts')
+    // Run from scripts/ subdirectory — exempt paths must still match
+    const result = execFileSync('node', [scriptPath], { cwd: scriptsDir, encoding: 'utf-8' })
+    expect(result).toContain('clean')
+  })
 })

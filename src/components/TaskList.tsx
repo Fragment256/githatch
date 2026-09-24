@@ -388,7 +388,10 @@ function TaskRow({
   }, [task.workflowId])
 
   useEffect(() => {
-    if (!task.workflowId) return
+    if (!task.workflowId) {
+      setFetchingLastRun(false)
+      return
+    }
     setFetchingLastRun(true)
     let cancelled = false
     const id = ++fetchLastRunRequestId.current

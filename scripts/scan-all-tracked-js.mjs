@@ -20,10 +20,13 @@ const SELF_EXEMPT_PREFIXES = [
 ]
 
 function main() {
-  let trackedFiles
+  let repoRoot, trackedFiles
   try {
+    // Always resolve from the repo root so paths are consistent regardless of cwd
+    repoRoot = execSync('git rev-parse --show-toplevel', { encoding: 'utf-8' }).trim()
     trackedFiles = execSync('git ls-files --cached --exclude-standard "*.js" "*.mjs" "*.cjs"', {
       encoding: 'utf-8',
+      cwd: repoRoot,
     })
       .trim()
       .split('\n')
@@ -41,7 +44,7 @@ function main() {
 
   let hasViolations = false
   for (const file of trackedFiles) {
-    const absPath = resolve(file)
+    const absPath = resolve(repoRoot, file)
     let content
     try {
       content = readFileSync(absPath, 'utf-8')
