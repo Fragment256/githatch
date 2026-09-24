@@ -152,13 +152,6 @@ function RunHistoryPanel({
   const outputRequestId = useRef(0)
   const fetchRunsRequestId = useRef(0)
 
-  useEffect(() => {
-    const reqId = outputRequestId
-    return () => {
-      ++reqId.current
-    }
-  }, [])
-
   const fetchRuns = useCallback(() => {
     if (!task.workflowId) return
     const id = ++fetchRunsRequestId.current

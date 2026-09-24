@@ -1842,6 +1842,55 @@ describe('TaskList', () => {
     })
   })
 
+  describe('RunHistoryPanel output cancelled on unmount', () => {
+    const ONE_RUN: WorkflowRun = {
+      id: 1,
+      status: 'completed',
+      conclusion: 'success',
+      createdAt: '2024-01-01T09:00:00Z',
+      htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/1',
+    }
+
+    it('silently discards in-flight output fetch when panel is closed before it resolves', async () => {
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(asResult([ONE_RUN]))
+
+      let resolveOutput!: (v: { type: 'issue'; title: string; htmlUrl: string } | null) => void
+      const pendingOutput = new Promise<{ type: 'issue'; title: string; htmlUrl: string } | null>(
+        (r) => {
+          resolveOutput = r
+        },
+      )
+      vi.spyOn(workflows, 'fetchRunOutput').mockImplementationOnce(() => pendingOutput)
+
+      render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+
+      // Open panel
+      fireEvent.click(screen.getAllByRole('button', { name: /^history$/i })[0])
+      await waitFor(() =>
+        expect(screen.getAllByRole('button', { name: /view output/i })).toHaveLength(1),
+      )
+
+      // Start an output fetch — loading indicator appears
+      fireEvent.click(screen.getByRole('button', { name: /view output/i }))
+      expect(screen.getByRole('button', { name: /loading/i })).toBeInTheDocument()
+
+      // Close the panel — RunHistoryPanel unmounts, cleanup increments outputRequestId
+      fireEvent.click(screen.getByRole('button', { name: /^close$/i }))
+      expect(screen.queryByRole('button', { name: /loading/i })).not.toBeInTheDocument()
+
+      // Resolve the stale fetch after unmount — must not throw or surface stale output
+      await act(async () => {
+        resolveOutput({
+          type: 'issue',
+          title: 'Stale output after unmount',
+          htmlUrl: 'https://github.com/testuser/my-repo/issues/99',
+        })
+      })
+
+      expect(screen.queryByText('Stale output after unmount')).not.toBeInTheDocument()
+    })
+  })
+
   describe('RunHistoryPanel fetchRuns race condition', () => {
     const STALE_RUN: WorkflowRun = {
       id: 1,
