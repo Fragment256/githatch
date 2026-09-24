@@ -57,6 +57,13 @@ describe('useRepo — localStorage', () => {
     expect(result.current.activeRepo).toBeNull()
   })
 
+  it('returns null and clears storage when stored JSON lacks full_name', () => {
+    localStorage.setItem('active_repo', JSON.stringify({ id: 1, name: 'x' }))
+    const { result } = renderHook(() => useRepo('gho_test'), { wrapper: createWrapper() })
+    expect(result.current.activeRepo).toBeNull()
+    expect(localStorage.getItem('active_repo')).toBeNull()
+  })
+
   it('setActiveRepo persists to localStorage', () => {
     const { result } = renderHook(() => useRepo('gho_test'), { wrapper: createWrapper() })
     act(() => {

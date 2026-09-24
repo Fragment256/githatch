@@ -113,6 +113,20 @@ describe('token storage', () => {
     })
     expect(() => clearToken()).not.toThrow()
   })
+
+  it('getStoredState returns null when sessionStorage.getItem throws SecurityError', () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementationOnce(() => {
+      throw new DOMException('The operation is insecure.', 'SecurityError')
+    })
+    expect(getStoredState()).toBeNull()
+  })
+
+  it('clearPkceSession does not throw when sessionStorage.removeItem throws SecurityError', () => {
+    vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
+      throw new DOMException('The operation is insecure.', 'SecurityError')
+    })
+    expect(() => clearPkceSession()).not.toThrow()
+  })
 })
 
 describe('exchangeCodeForToken', () => {

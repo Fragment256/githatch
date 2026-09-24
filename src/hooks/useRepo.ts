@@ -7,7 +7,13 @@ const STORAGE_KEY = 'active_repo'
 function loadStoredRepo(): GitHubRepo | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? (JSON.parse(raw) as GitHubRepo) : null
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as GitHubRepo
+    if (typeof parsed?.full_name !== 'string') {
+      localStorage.removeItem(STORAGE_KEY)
+      return null
+    }
+    return parsed
   } catch {
     return null
   }

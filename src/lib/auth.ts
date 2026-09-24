@@ -29,12 +29,20 @@ function generateState(): string {
 }
 
 export function getStoredState(): string | null {
-  return sessionStorage.getItem(PKCE_STATE_KEY)
+  try {
+    return sessionStorage.getItem(PKCE_STATE_KEY)
+  } catch {
+    return null
+  }
 }
 
 export function clearPkceSession(): void {
-  sessionStorage.removeItem(PKCE_VERIFIER_KEY)
-  sessionStorage.removeItem(PKCE_STATE_KEY)
+  try {
+    sessionStorage.removeItem(PKCE_VERIFIER_KEY)
+    sessionStorage.removeItem(PKCE_STATE_KEY)
+  } catch {
+    // SecurityError in restricted contexts; PKCE session cleanup is best-effort
+  }
 }
 
 export async function buildAuthUrl(clientId: string, redirectUri: string): Promise<string> {
@@ -63,7 +71,12 @@ export async function exchangeCodeForToken(
   clientId: string,
   redirectUri: string,
 ): Promise<string> {
-  const verifier = sessionStorage.getItem(PKCE_VERIFIER_KEY)
+  let verifier: string | null = null
+  try {
+    verifier = sessionStorage.getItem(PKCE_VERIFIER_KEY)
+  } catch {
+    // SecurityError in restricted contexts — treat as missing verifier
+  }
   if (!verifier) {
     throw new Error('No PKCE code verifier found in session. Restart the login flow.')
   }

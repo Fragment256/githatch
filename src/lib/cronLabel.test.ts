@@ -251,6 +251,16 @@ describe('nextCronRun', () => {
     expect(nextCronRun('0 9 * * 5-7', SAT_PM)).toEqual(new Date('2026-01-18T09:00:00Z'))
   })
 
+  it('returns next calendar day for DOW range 0-7 (all-days equivalent)', () => {
+    // REF is Wednesday 2026-01-14T14:23Z; '0-7' covers all 7 days
+    // 09:00 already passed today, so next fire is Thursday 2026-01-15
+    expect(nextCronRun('0 9 * * 0-7', REF)).toEqual(new Date('2026-01-15T09:00:00Z'))
+    // From Wednesday 08:00, same-day 09:00 fires today
+    expect(nextCronRun('0 9 * * 0-7', new Date('2026-01-14T08:00:00Z'))).toEqual(
+      new Date('2026-01-14T09:00:00Z'),
+    )
+  })
+
   it('handles wrapping DOW ranges (e.g., 5-1 for Fri-Mon)', () => {
     // REF is Wednesday 2026-01-14 14:23:30
     // '5-1' = Fri-Mon (wrapping around week boundary)

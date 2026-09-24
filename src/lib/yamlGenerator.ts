@@ -59,7 +59,7 @@ function buildPromptWithOutput(config: TaskConfig): string {
       `\nWhen done, create a new GitHub issue with your findings using: gh issue create --title "<descriptive title>" --body "<your response>"`,
     )
   } else if (outputDestination.type === 'file') {
-    const fp = outputDestination.filePath
+    const fp = outputDestination.filePath.replace(/[\r\n]/g, ' ')
     const shellFp = fp.replace(/'/g, "'\\''")
     if (fp.endsWith('/')) {
       lines.push(
@@ -236,7 +236,8 @@ export function generateWorkflowYaml(config: TaskConfig): string {
     : `'${fullPrompt.replace(/'/g, "''")}'`
 
   const onBlock = config.schedule
-    ? `on:\n  schedule:\n    - cron: '${config.schedule}'\n  workflow_dispatch:`
+    ? `on:\n  schedule:\n    - cron: '${config.schedule.replace(/'/g, "''")}'` +
+      `\n  workflow_dispatch:`
     : `on:\n  workflow_dispatch:`
 
   const agentStep = buildAgentStep(config, promptYaml, allowedTools)

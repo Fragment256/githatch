@@ -199,6 +199,14 @@ describe('generateWorkflowYaml — output destinations', () => {
     expect(firstLine).toBe('# Githatch — My Task Evil: injection')
   })
 
+  it('strips embedded newlines from filePath in prompt body to prevent split git commands', () => {
+    const yaml = generateWorkflowYaml(baseTask({ type: 'file', filePath: 'reports/\nsub' }))
+    // Without the fix the prompt block embeds the path split across lines,
+    // producing a garbled shell fragment. The fix normalises [\r\n] to space,
+    // keeping the git add command on a single line.
+    expect(yaml).toContain("git add 'reports/ sub'")
+  })
+
   it('strips newlines from file path in output_type comment', () => {
     const yaml = generateWorkflowYaml(
       baseTask({ type: 'file', filePath: 'reports/\nevil: injection\n' }),
@@ -206,6 +214,19 @@ describe('generateWorkflowYaml — output destinations', () => {
     // Newline in filePath must not break out of the YAML comment — 'evil: injection'
     // must stay on the same comment line, not appear as a bare YAML key.
     expect(yaml).not.toMatch(/^evil: injection/m)
+  })
+})
+
+describe('generateWorkflowYaml — schedule YAML escaping', () => {
+  it('escapes single quotes in cron schedule to produce valid YAML', () => {
+    const yaml = generateWorkflowYaml({
+      name: 'Test',
+      schedule: "0 9 * * 1'foo",
+      provider: 'claude_oauth',
+      prompt: 'test',
+      outputDestination: { type: 'new_issue' },
+    })
+    expect(yaml).toContain("cron: '0 9 * * 1''foo'")
   })
 })
 
