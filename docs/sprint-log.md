@@ -4490,3 +4490,11 @@ Explore audit (cycle 176): 2 bugs found and fixed.
 2 regression tests (RED→GREEN). Commit: `a70fc68`.
 
 **Next sprint:** 519 (day 1 — baseline, cycle 177).
+
+## Sprint 519 — 2026-09-24 (day 1 — baseline, cycle 177)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 659/659 ✓
+
+No drift from sprint 518. eslint.config.js clean (25 lines, no injected content).
+
+**Next sprint:** 520 (day 2 — baseline, cycle 177).
