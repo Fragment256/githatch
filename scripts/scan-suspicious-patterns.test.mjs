@@ -72,6 +72,16 @@ describe('scanContent', () => {
     expect(scanContent("execSync('ls')")).not.toContain('exec(...) shell invocation')
   })
 
+  it('does not flag RegExp.prototype.exec() method calls (false positive regression)', () => {
+    expect(scanContent('const match = pattern.exec(input)')).not.toContain(
+      'exec(...) shell invocation',
+    )
+    expect(scanContent('while ((m = re.exec(line)) !== null)')).not.toContain(
+      'exec(...) shell invocation',
+    )
+    expect(scanContent('if (regex.exec(str)) {}')).not.toContain('exec(...) shell invocation')
+  })
+
   it('returns multiple violations when several patterns match', () => {
     const violations = scanContent('eval(new Function("x")())')
     expect(violations).toContain('eval(...) call')

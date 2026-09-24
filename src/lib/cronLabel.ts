@@ -218,7 +218,11 @@ export function describeCron(expr: string): string {
     if (b >= 7 && a !== 0) dayNames.push(DAYS[0])
     if (dayNames.length > 0) return `Every ${dayNames.join(', ')} at ${time} UTC`
   }
-  if (/^\d+$/.test(dow)) return `Every ${DAYS[+dow % 7] ?? dow} at ${time} UTC`
+  if (/^\d+$/.test(dow)) {
+    const dowNum = parseInt(dow, 10)
+    if (dowNum > 7) return expr
+    return `Every ${DAYS[dowNum === 7 ? 0 : dowNum]} at ${time} UTC`
+  }
   if (dow === '*') return `Daily at ${time} UTC`
   if (dow.includes(',')) {
     const days = parseDayList(dow)

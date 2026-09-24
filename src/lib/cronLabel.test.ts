@@ -74,6 +74,13 @@ describe('describeCron', () => {
     expect(describeCron('0 9 * * 1,')).toBe('0 9 * * 1,')
   })
 
+  it('returns raw expression for out-of-range numeric DOW (> 7)', () => {
+    // DOW=7 is valid (Sunday alias). DOW=8+ is invalid and must not silently wrap modulo 7.
+    expect(describeCron('0 8 * * 8')).toBe('0 8 * * 8')
+    expect(describeCron('0 8 * * 9')).toBe('0 8 * * 9')
+    expect(describeCron('0 8 * * 14')).toBe('0 8 * * 14')
+  })
+
   it('returns the raw expression for minute-range */N-hour patterns (parseInt false-positive)', () => {
     // Without fix: parseInt('0-5',10)===0 causes describeCron to return 'Every 2 hours'
     expect(describeCron('0-5 */2 * * *')).toBe('0-5 */2 * * *')

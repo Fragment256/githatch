@@ -65,6 +65,14 @@ describe('scan-all-tracked-js', () => {
     expect(result).toContain('clean')
   })
 
+  it('catches violations in tracked .mjs files', () => {
+    const repoDir = makeGitRepo({
+      'eslint.config.mjs':
+        "import { createRequire } from 'node:module'\nconst r = createRequire(import.meta.url)\n",
+    })
+    expect(() => execFileSync('node', [scriptPath], { cwd: repoDir, encoding: 'utf-8' })).toThrow()
+  })
+
   it('does not scan untracked (non-committed, non-staged) JS files', () => {
     const repoDir = makeGitRepo({
       'clean.js': 'export const x = 1\n',

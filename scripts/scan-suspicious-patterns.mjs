@@ -13,7 +13,7 @@ const PATTERNS = [
     regex: /["'`][^"'`\s]{300,}["'`]/,
   },
   { name: 'dangerouslySetInnerHTML (XSS risk)', regex: /dangerouslySetInnerHTML/ },
-  { name: 'exec(...) shell invocation', regex: /\bexec\s*\(/ },
+  { name: 'exec(...) shell invocation', regex: /(?<![.\w])exec\s*\(/ },
 ]
 
 export function scanContent(content) {

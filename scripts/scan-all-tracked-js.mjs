@@ -9,10 +9,12 @@ import { resolve } from 'path'
 import { scanContent } from './scan-suspicious-patterns.mjs'
 
 // Exempt this scanner itself and trusted tool directories (Claude Code skill bundles)
-const SELF_EXEMPT_SUFFIXES = [
+const SELF_EXEMPT_SET = new Set([
   'scripts/scan-suspicious-patterns.mjs',
+  'scripts/scan-suspicious-patterns.test.mjs',
   'scripts/scan-all-tracked-js.mjs',
-]
+  'scripts/scan-all-tracked-js.test.mjs',
+])
 const SELF_EXEMPT_PREFIXES = [
   '.claude/', // Claude Code agent/skill scripts are trusted tooling, not project source
 ]
@@ -20,17 +22,13 @@ const SELF_EXEMPT_PREFIXES = [
 function main() {
   let trackedFiles
   try {
-    trackedFiles = execSync('git ls-files --cached --exclude-standard "*.js"', {
+    trackedFiles = execSync('git ls-files --cached --exclude-standard "*.js" "*.mjs" "*.cjs"', {
       encoding: 'utf-8',
     })
       .trim()
       .split('\n')
       .filter(Boolean)
-      .filter(
-        (f) =>
-          !SELF_EXEMPT_SUFFIXES.some((s) => f.endsWith(s)) &&
-          !SELF_EXEMPT_PREFIXES.some((p) => f.startsWith(p)),
-      )
+      .filter((f) => !SELF_EXEMPT_SET.has(f) && !SELF_EXEMPT_PREFIXES.some((p) => f.startsWith(p)))
   } catch {
     // Not in a git repo or git not available — skip silently
     process.exit(0)
