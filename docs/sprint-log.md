@@ -4477,3 +4477,16 @@ No drift from sprint 515. eslint.config.js clean (25 lines, no injected content)
 No drift from sprint 516. eslint.config.js clean.
 
 **Next sprint:** 518 (Explore audit, cycle 176).
+
+## Sprint 518 — 2026-09-24 (Explore audit, cycle 176)
+
+**Baseline:** format:check ✓ · lint 0 warnings ✓ · type-check ✓ · 657/657 ✓
+
+Explore audit (cycle 176): 2 bugs found and fixed.
+
+- MEDIUM: `auth.ts getStoredToken()` — missing try/catch; called from `useState` initializer in `useAuth`, an unguarded `localStorage.getItem` throw crashes the app before React mounts (no ErrorBoundary at root). `storeToken` already had the guard; this is the matching fix.
+- LOW: `auth.ts clearToken()` — missing try/catch; called synchronously before `setState` in `logout()`; a `SecurityError` abort left React state showing user as logged in with stale token still live. React state now cleared even when storage removal fails.
+
+2 regression tests (RED→GREEN). Commit: `a70fc68`.
+
+**Next sprint:** 519 (day 1 — baseline, cycle 177).
