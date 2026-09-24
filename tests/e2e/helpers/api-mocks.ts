@@ -22,7 +22,7 @@ export const TEST_WORKFLOW_ID = 1001
 
 // A minimal githatch workflow YAML, base64-encoded for the GitHub Contents API response.
 // The comment matches parseGithatchYaml's regex so the displayName resolves correctly.
-const TASK_YAML = '# Githatch - my-task\non:\n  workflow_dispatch:\n'
+const TASK_YAML = '# Githatch — my-task\non:\n  workflow_dispatch:\n'
 const TASK_YAML_B64 = Buffer.from(TASK_YAML, 'utf-8').toString('base64')
 
 export const TEST_TASK_FILE = {
@@ -205,7 +205,7 @@ export async function mockWorkflowRuns(page: Page): Promise<void> {
       route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ workflow_runs: [] }),
+        body: JSON.stringify({ workflow_runs: [], total_count: 0 }),
       }),
   )
 }

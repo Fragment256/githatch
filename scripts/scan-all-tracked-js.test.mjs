@@ -23,7 +23,7 @@ function makeGitRepo(files) {
     const dir = join(tmpDir, dirname(name))
     mkdirSync(dir, { recursive: true })
     writeFileSync(join(tmpDir, name), content)
-    execSync(`git add ${name}`, { cwd: tmpDir })
+    execFileSync('git', ['add', '--', name], { cwd: tmpDir })
   }
   execSync('git commit -m "init" --allow-empty', { cwd: tmpDir })
   return tmpDir
