@@ -80,16 +80,21 @@ export function nextCronRun(expr: string, from: Date = new Date()): Date | null 
     if (dow === '*') return c
     if (/^\d+-\d+$/.test(dow)) {
       const dowParts = dow.split('-').map(Number)
-      let a = dowParts[0]
+      const origA = dowParts[0]
+      let a = origA
       const b = dowParts[1]
       // Normalize 7 to 0 (Sunday alias) only for the lower bound
       if (a === 7) a = 0
       const day = c.getUTCDay()
       let inRange: boolean
       if (b === 7) {
-        // b=7 is the Sunday alias: range covers a..6 plus Sunday (0).
-        // Normalising b to 0 when a is also 0 would collapse the range to a single day.
-        inRange = (day >= a && day <= 6) || day === 0
+        if (origA === 7) {
+          // 7-7: both bounds are Sunday aliases — matches only Sunday
+          inRange = day === 0
+        } else {
+          // b=7 is the Sunday alias: range covers a..6 plus Sunday (0).
+          inRange = (day >= a && day <= 6) || day === 0
+        }
       } else {
         // Handle wrapping ranges (e.g., 5-1 for Fri-Mon)
         inRange = a <= b ? day >= a && day <= b : day >= a || day <= b
@@ -121,8 +126,10 @@ export function nextCronRuns(expr: string, count: number, from: Date = new Date(
 function isValidCronField(field: string, min: number, max: number): boolean {
   if (field === '*') return true
   if (field.startsWith('*/')) {
-    const n = parseInt(field.slice(2), 10)
-    return !isNaN(n) && n >= 1 && n <= max
+    const step = field.slice(2)
+    if (!/^\d+$/.test(step)) return false
+    const n = parseInt(step, 10)
+    return n >= 1 && n <= max
   }
   const rangeParts = field.split('-')
   if (rangeParts.length === 2 && rangeParts.every((p) => /^\d+$/.test(p))) {

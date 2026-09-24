@@ -295,6 +295,15 @@ describe('nextCronRun', () => {
     // Verify a concrete value: from 14:23:30 next */6 boundary is 18:00:00
     expect(nextCronRun('00 */6 * * *', REF)).toEqual(new Date('2026-01-14T18:00:00Z'))
   })
+
+  it('DOW range 7-7 matches only Sunday, not every day (Sunday alias in both bounds)', () => {
+    // REF is Wednesday 2026-01-14. Next Sunday is 2026-01-18.
+    // Bug: normalising a=7→0 then checking b===7 branch gives (day>=0 && day<=6)||day===0 = always true
+    expect(nextCronRun('0 9 * * 7-7', REF)).toEqual(new Date('2026-01-18T09:00:00Z'))
+    // Also verify nextCronRun for '0-7' (Sun-Sat via Sunday alias = every day) is NOT affected
+    // From Wed 14:23:30 the next 9am on any day is Thu Jan 15
+    expect(nextCronRun('0 9 * * 0-7', REF)).toEqual(new Date('2026-01-15T09:00:00Z'))
+  })
 })
 
 describe('nextCronRuns', () => {
@@ -393,6 +402,13 @@ describe('isValidCron', () => {
     expect(isValidCron('0 6 * * */2')).toBe(false)
     expect(isValidCron('0 9 * * */3')).toBe(false)
     expect(isValidCron('*/15 * * * */2')).toBe(false)
+  })
+
+  it('returns false for step fields with non-digit suffix — parseInt truncation (*/5-3, */5abc)', () => {
+    expect(isValidCron('*/5-3 * * * *')).toBe(false)
+    expect(isValidCron('*/5abc * * * *')).toBe(false)
+    expect(isValidCron('0 */2-1 * * *')).toBe(false)
+    expect(isValidCron('0 */6x * * *')).toBe(false)
   })
 })
 

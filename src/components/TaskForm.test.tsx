@@ -314,6 +314,17 @@ describe('TaskForm', () => {
     expect(screen.queryByRole('button', { name: /save changes/i })).not.toBeInTheDocument()
   })
 
+  it('shows error when issue number is a decimal (e.g. 1.5) — parseInt truncation bug', () => {
+    render(<TaskForm onSubmit={mockSubmit} />)
+    fireEvent.change(screen.getByLabelText(/output destination/i), {
+      target: { value: 'issue_comment' },
+    })
+    fillMinimal({ issueNumber: '1.5' })
+    fireEvent.click(screen.getByRole('button', { name: /create task/i }))
+    expect(screen.getByText(/positive integer/i)).toBeInTheDocument()
+    expect(mockSubmit).not.toHaveBeenCalled()
+  })
+
   it('submit button is disabled when "Custom cron…" is selected with empty cron field', () => {
     render(<TaskForm onSubmit={mockSubmit} />)
     fireEvent.change(screen.getByLabelText(/schedule/i), { target: { value: 'custom' } })

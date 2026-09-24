@@ -89,8 +89,10 @@ function configToFormValues(config: TaskConfig): TaskFormValues {
 
 function buildOutputDestination(values: TaskFormValues): OutputDestination {
   if (values.outputType === 'issue_comment') {
-    const n = parseInt(values.issueNumber, 10)
-    if (!n || n < 1) throw new Error('Issue number must be a positive integer')
+    const raw = values.issueNumber.trim()
+    const n = parseInt(raw, 10)
+    if (!n || n < 1 || !/^\d+$/.test(raw))
+      throw new Error('Issue number must be a positive integer')
     return { type: 'issue_comment', issueNumber: n }
   }
   if (values.outputType === 'file') {
@@ -329,7 +331,7 @@ export function TaskForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex w-full max-w-lg flex-col gap-5">
+    <form onSubmit={handleSubmit} noValidate className="flex w-full max-w-lg flex-col gap-5">
       <h2 className="font-display text-2xl font-bold tracking-tight">
         {isEditing ? 'Edit task' : 'New task'}
       </h2>
