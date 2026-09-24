@@ -391,6 +391,15 @@ describe('isValidCron', () => {
     expect(isValidCron('0 9 * * 6-1')).toBe(true)
   })
 
+  it('returns false for wrapping DOW ranges where a is out of range (a > 7)', () => {
+    // 8-1: a=8 is out of DOW range — must be rejected even though b=1 is valid
+    expect(isValidCron('0 9 * * 8-1')).toBe(false)
+    // 9-2: a=9 is also out of range
+    expect(isValidCron('0 9 * * 9-2')).toBe(false)
+    // 7-0: a=7 is the Sunday alias — still valid as a wrapping range
+    expect(isValidCron('0 9 * * 7-0')).toBe(true)
+  })
+
   it('returns false for wrapping ranges in non-DOW fields (hour, minute)', () => {
     // hour range 9-5 wrapping is not valid
     expect(isValidCron('0 9-5 * * *')).toBe(false)

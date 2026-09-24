@@ -242,6 +242,19 @@ describe('TaskForm', () => {
     expect(screen.getByRole('button', { name: /create task/i })).toBeDisabled()
   })
 
+  it('rejects submit via Enter key when custom cron is non-empty but invalid', () => {
+    render(<TaskForm onSubmit={mockSubmit} />)
+    fillMinimal()
+    fireEvent.change(screen.getByLabelText(/schedule/i), { target: { value: 'custom' } })
+    fireEvent.change(screen.getByPlaceholderText(/e\.g\. 0 9/i), {
+      target: { value: '99 99 * * *' },
+    })
+    // Simulate pressing Enter inside the cron input (fires form submit even when button is disabled)
+    fireEvent.submit(screen.getByPlaceholderText(/e\.g\. 0 9/i).closest('form')!)
+    expect(mockSubmit).not.toHaveBeenCalled()
+    expect(screen.getAllByText(/invalid cron expression/i).length).toBeGreaterThan(0)
+  })
+
   it('does not show schedule preview when schedule is manual only', () => {
     render(<TaskForm onSubmit={mockSubmit} />)
     expect(screen.queryByText(/next runs/i)).not.toBeInTheDocument()

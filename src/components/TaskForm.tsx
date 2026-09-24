@@ -209,6 +209,7 @@ export function TaskForm({
     if (!values.prompt.trim()) return setError('Prompt is required')
     if (values.schedule === 'custom' && !resolvedSchedule)
       return setError('Enter a cron expression, or choose a different schedule.')
+    if (values.schedule === 'custom' && resolvedSchedule && !isValidCron(resolvedSchedule)) return
 
     const slugCandidate = slugify(values.name.trim())
     if (!slugCandidate)
