@@ -79,10 +79,14 @@ export function nextCronRun(expr: string, from: Date = new Date()): Date | null 
     if (c.getTime() <= from.getTime()) continue
     if (dow === '*') return c
     if (/^\d+-\d+$/.test(dow)) {
-      const [a, b] = dow.split('-').map(Number)
+      let [a, b] = dow.split('-').map(Number)
+      // Normalize 7 to 0 (Sunday alias)
+      if (a === 7) a = 0
+      if (b === 7) b = 0
       const day = c.getUTCDay()
-      // b >= 7 means range includes Sunday alias 7; getUTCDay() returns 0 for Sunday
-      if ((day >= a && day <= b) || (b >= 7 && day === 0)) return c
+      // Check if day is in range, handling wrapping ranges (e.g., 5-1 for Fri-Mon)
+      const inRange = a <= b ? day >= a && day <= b : day >= a || day <= b
+      if (inRange) return c
     } else if (dowList) {
       if (dowList.includes(c.getUTCDay())) return c
     } else if (/^\d+$/.test(dow)) {

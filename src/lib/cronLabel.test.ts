@@ -251,6 +251,22 @@ describe('nextCronRun', () => {
     expect(nextCronRun('0 9 * * 5-7', SAT_PM)).toEqual(new Date('2026-01-18T09:00:00Z'))
   })
 
+  it('handles wrapping DOW ranges (e.g., 5-1 for Fri-Mon)', () => {
+    // REF is Wednesday 2026-01-14 14:23:30
+    // '5-1' = Fri-Mon (wrapping around week boundary)
+    // Next occurrence should be Friday Jan 16
+    expect(nextCronRun('0 9 * * 5-1', REF)).toEqual(new Date('2026-01-16T09:00:00Z'))
+
+    // From Saturday, next wrapping range occurrence
+    const SAT_AM = new Date('2026-01-17T08:00:00Z')
+    // '5-1' from Saturday (before 9am) should be same day (Saturday is in range)
+    expect(nextCronRun('0 9 * * 5-1', SAT_AM)).toEqual(new Date('2026-01-17T09:00:00Z'))
+
+    // From Tuesday, next should be Friday
+    const TUE = new Date('2026-01-20T10:00:00Z')
+    expect(nextCronRun('0 9 * * 5-1', TUE)).toEqual(new Date('2026-01-23T09:00:00Z'))
+  })
+
   it('treats leading-zero minute "00" as equivalent to "0" for every-N-hours pattern', () => {
     // '00 */6 * * *' is valid GHA cron syntax but minute === '0' check fails with strict equality
     expect(nextCronRun('00 */6 * * *', REF)).not.toBeNull()
