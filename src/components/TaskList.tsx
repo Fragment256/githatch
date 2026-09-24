@@ -500,9 +500,9 @@ function TaskRow({
     setTriggeredOutput(null)
     ++outputFetchRequestId.current
     try {
-      prevRunIdRef.current = latestRunIdRef.current
       await triggerWorkflow({ token, owner, repo, workflowId: task.workflowId, defaultBranch })
       if (!isMountedRef.current) return
+      prevRunIdRef.current = latestRunIdRef.current
       setTriggered(true)
       setPolling(true)
       if (triggeredTimerRef.current !== null) clearTimeout(triggeredTimerRef.current)

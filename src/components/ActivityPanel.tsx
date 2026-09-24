@@ -171,7 +171,7 @@ export function ActivityPanel({ tasks, token, owner, repo, defaultBranch }: Prop
       // Page covers the full week if we fetched all runs, or the oldest fetched run is > 7 days old
       const pageCoversWeek =
         a.runs.length >= a.totalCount ||
-        (oldestRun !== undefined && Date.now() - new Date(oldestRun.createdAt).getTime() >= weekMs)
+        (oldestRun?.createdAt && Date.now() - new Date(oldestRun.createdAt).getTime() >= weekMs)
       return {
         runsThisWeek: acc.runsThisWeek + filtered.length,
         runsThisWeekTruncated: acc.runsThisWeekTruncated || !pageCoversWeek,
