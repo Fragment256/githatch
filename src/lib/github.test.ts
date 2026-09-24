@@ -154,6 +154,29 @@ describe('upsertWorkflowFile', () => {
     await expect(upsertWorkflowFile(params)).rejects.toThrow('403')
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
+
+  it('correctly encodes Unicode characters including emojis', async () => {
+    const unicodeYaml = 'name: Test 🚀\ndescription: Emoji test 你好 🎉\n'
+    const unicodeParams = { ...params, yaml: unicodeYaml }
+
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: false, status: 404 })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({}) })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await upsertWorkflowFile(unicodeParams)
+
+    const putCall = fetchMock.mock.calls[1] as [string, RequestInit]
+    const body = JSON.parse(putCall[1].body as string) as { content: string }
+
+    // Decode the same way as fetchFileContent
+    const binary = atob(body.content)
+    const bytes = new Uint8Array(binary.length)
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+    const decoded = new TextDecoder('utf-8').decode(bytes)
+    expect(decoded).toBe(unicodeYaml)
+  })
 })
 
 describe('deleteWorkflowFile', () => {

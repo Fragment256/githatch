@@ -115,7 +115,7 @@ export async function installTool(params: ToolParams & { tool: Tool }): Promise<
     throw new Error(`Failed to fetch tool file: ${getRes.status}`)
   }
 
-  const content = btoa(unescape(encodeURIComponent(tool.workflowYaml)))
+  const content = btoa(String.fromCharCode(...new TextEncoder().encode(tool.workflowYaml)))
   const body: { message: string; content: string; sha?: string } = {
     message: `chore: install githatch tool ${tool.id}`,
     content,

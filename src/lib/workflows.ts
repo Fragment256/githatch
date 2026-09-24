@@ -200,7 +200,7 @@ export async function updateWorkflowSchedule(params: {
   const currentYaml = new TextDecoder('utf-8').decode(bytes)
 
   const updatedYaml = patchScheduleInYaml(currentYaml, schedule)
-  const updatedContent = btoa(unescape(encodeURIComponent(updatedYaml)))
+  const updatedContent = btoa(String.fromCharCode(...new TextEncoder().encode(updatedYaml)))
 
   const putRes = await fetch(url, {
     method: 'PUT',

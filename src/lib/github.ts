@@ -61,7 +61,7 @@ export async function upsertWorkflowFile({
     throw new Error(`Failed to fetch workflow file: ${getResponse.status}`)
   }
 
-  const content = btoa(unescape(encodeURIComponent(yaml)))
+  const content = btoa(String.fromCharCode(...new TextEncoder().encode(yaml)))
 
   const body: { message: string; content: string; sha?: string } = {
     message: sha
