@@ -177,6 +177,29 @@ describe('upsertWorkflowFile', () => {
     const decoded = new TextDecoder('utf-8').decode(bytes)
     expect(decoded).toBe(unicodeYaml)
   })
+
+  it('encodes YAML larger than 65535 bytes without throwing RangeError', async () => {
+    // String.fromCharCode(...bigUint8Array) throws RangeError when the array length exceeds
+    // the engine's maximum argument count. Use a loop-based encoder for large files.
+    const bigYaml = 'prompt: |\n' + '  ' + 'a'.repeat(70000) + '\n'
+    const bigParams = { ...params, yaml: bigYaml }
+
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: false, status: 404 })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({}) })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await upsertWorkflowFile(bigParams)
+
+    const putCall = fetchMock.mock.calls[1] as [string, RequestInit]
+    const body = JSON.parse(putCall[1].body as string) as { content: string }
+    const binary = atob(body.content)
+    const bytes = new Uint8Array(binary.length)
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+    const decoded = new TextDecoder('utf-8').decode(bytes)
+    expect(decoded).toBe(bigYaml)
+  })
 })
 
 describe('deleteWorkflowFile', () => {

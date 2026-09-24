@@ -133,7 +133,7 @@ export async function listGithatchTasks(params: TaskParams): Promise<GithatchTas
   const workflowIdByPath = new Map(workflows.map((w) => [w.path, w.id]))
   const workflowStateByPath = new Map(workflows.map((w) => [w.path, w.state]))
 
-  const results = await Promise.all(
+  const settled = await Promise.allSettled(
     githatchFiles.map(async (file) => {
       const slug = file.name.replace(/^githatch-/, '').replace(/\.yml$/, '')
       const workflowId = workflowIdByPath.get(file.path)
@@ -160,6 +160,7 @@ export async function listGithatchTasks(params: TaskParams): Promise<GithatchTas
     }),
   )
 
+  const results = settled.map((r) => (r.status === 'fulfilled' ? r.value : null))
   return results.filter((t): t is GithatchTask => t !== null)
 }
 
@@ -200,7 +201,11 @@ export async function updateWorkflowSchedule(params: {
   const currentYaml = new TextDecoder('utf-8').decode(bytes)
 
   const updatedYaml = patchScheduleInYaml(currentYaml, schedule)
-  const updatedContent = btoa(String.fromCharCode(...new TextEncoder().encode(updatedYaml)))
+  const updatedBytes = new TextEncoder().encode(updatedYaml)
+  let updatedBinaryStr = ''
+  for (let i = 0; i < updatedBytes.length; i++)
+    updatedBinaryStr += String.fromCharCode(updatedBytes[i])
+  const updatedContent = btoa(updatedBinaryStr)
 
   const putRes = await fetch(url, {
     method: 'PUT',

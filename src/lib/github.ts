@@ -61,7 +61,10 @@ export async function upsertWorkflowFile({
     throw new Error(`Failed to fetch workflow file: ${getResponse.status}`)
   }
 
-  const content = btoa(String.fromCharCode(...new TextEncoder().encode(yaml)))
+  const yamlBytes = new TextEncoder().encode(yaml)
+  let binaryStr = ''
+  for (let i = 0; i < yamlBytes.length; i++) binaryStr += String.fromCharCode(yamlBytes[i])
+  const content = btoa(binaryStr)
 
   const body: { message: string; content: string; sha?: string } = {
     message: sha

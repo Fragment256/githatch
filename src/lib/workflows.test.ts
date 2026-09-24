@@ -266,7 +266,8 @@ describe('listGithatchTasks', () => {
     expect(result).toEqual([])
   })
 
-  it('throws when a per-file content fetch returns a non-404 error (task must not silently vanish)', async () => {
+  it('returns the successfully loaded tasks when a single file fetch returns a transient error', async () => {
+    // Promise.allSettled: one failing fetch must not wipe out all other tasks
     const workflowsListResponse = [
       { name: 'githatch-daily-standup.yml', path: '.github/workflows/githatch-daily-standup.yml' },
       { name: 'githatch-weekly-report.yml', path: '.github/workflows/githatch-weekly-report.yml' },
@@ -298,12 +299,13 @@ describe('listGithatchTasks', () => {
         headers: { get: () => null },
         json: () => Promise.resolve({ content: dailyYaml }),
       })
-      .mockResolvedValueOnce({ ok: false, status: 403 }) // rate-limited / permission error
+      .mockResolvedValueOnce({ ok: false, status: 403 }) // rate-limited / permission error on second file
     vi.stubGlobal('fetch', fetchMock)
 
-    await expect(
-      listGithatchTasks({ token: 'gho_test', owner: 'testuser', repo: 'my-repo' }),
-    ).rejects.toThrow('403')
+    const tasks = await listGithatchTasks({ token: 'gho_test', owner: 'testuser', repo: 'my-repo' })
+    // First task loads; second is skipped due to the 403
+    expect(tasks).toHaveLength(1)
+    expect(tasks[0].slug).toBe('daily-standup')
   })
 
   it('skips a file that returns 404 after the directory listing (race: file just deleted)', async () => {

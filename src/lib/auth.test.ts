@@ -63,6 +63,15 @@ describe('buildAuthUrl', () => {
     const state = new URL(url).searchParams.get('state')
     expect(state).toBe(getStoredState())
   })
+
+  it('throws a descriptive error when sessionStorage.setItem throws SecurityError', async () => {
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementationOnce(() => {
+      throw new DOMException('The operation is insecure.', 'SecurityError')
+    })
+    await expect(buildAuthUrl('test-client-id', 'http://localhost:5173/callback')).rejects.toThrow(
+      /private browsing|session storage/i,
+    )
+  })
 })
 
 describe('clearPkceSession', () => {

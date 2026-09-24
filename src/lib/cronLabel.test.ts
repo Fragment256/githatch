@@ -109,6 +109,17 @@ describe('describeCron', () => {
       'Every Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday at 8 AM UTC',
     )
   })
+
+  it('describes wrapping day-of-week ranges (a > b)', () => {
+    // 5-1: Fri, Sat, Sun, Mon
+    expect(describeCron('0 9 * * 5-1')).toBe('Every Friday, Saturday, Sunday, Monday at 9 AM UTC')
+    // 6-0: Sat, Sun
+    expect(describeCron('0 9 * * 6-0')).toBe('Every Saturday, Sunday at 9 AM UTC')
+    // 4-2: Thu, Fri, Sat, Sun, Mon, Tue
+    expect(describeCron('0 8 * * 4-2')).toBe(
+      'Every Thursday, Friday, Saturday, Sunday, Monday, Tuesday at 8 AM UTC',
+    )
+  })
 })
 
 describe('nextCronRun', () => {

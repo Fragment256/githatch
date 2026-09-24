@@ -50,8 +50,14 @@ export async function buildAuthUrl(clientId: string, redirectUri: string): Promi
   const challenge = await generateCodeChallenge(verifier)
   const state = generateState()
 
-  sessionStorage.setItem(PKCE_VERIFIER_KEY, verifier)
-  sessionStorage.setItem(PKCE_STATE_KEY, state)
+  try {
+    sessionStorage.setItem(PKCE_VERIFIER_KEY, verifier)
+    sessionStorage.setItem(PKCE_STATE_KEY, state)
+  } catch {
+    throw new Error(
+      'Login requires session storage. If you are in private browsing mode, try a regular window.',
+    )
+  }
 
   const params = new URLSearchParams({
     client_id: clientId,
