@@ -1795,6 +1795,53 @@ describe('TaskList', () => {
     })
   })
 
+  describe('RunHistoryPanel output cancelled on deps change', () => {
+    const ONE_RUN: WorkflowRun = {
+      id: 1,
+      status: 'completed',
+      conclusion: 'success',
+      createdAt: '2024-01-01T09:00:00Z',
+      htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/1',
+    }
+
+    it('discards in-flight output fetch when token changes before it resolves', async () => {
+      vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(asResult([ONE_RUN]))
+
+      let resolveOutput!: (v: { type: 'issue'; title: string; htmlUrl: string } | null) => void
+      const pendingOutput = new Promise<{ type: 'issue'; title: string; htmlUrl: string } | null>(
+        (r) => {
+          resolveOutput = r
+        },
+      )
+      vi.spyOn(workflows, 'fetchRunOutput').mockImplementationOnce(() => pendingOutput)
+
+      const { rerender } = render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+
+      fireEvent.click(screen.getAllByRole('button', { name: /^history$/i })[0])
+      await waitFor(() =>
+        expect(screen.getAllByRole('button', { name: /view output/i })).toHaveLength(1),
+      )
+
+      // Start an output fetch that won't resolve yet
+      fireEvent.click(screen.getByRole('button', { name: /view output/i }))
+
+      // Change token before the fetch resolves — fetchRuns deps change → useEffect cleanup fires
+      rerender(<TaskList {...BASE_PROPS} token="gho_new_token" tasks={[TASK]} />)
+
+      // Resolve the stale output fetch (was started with old token)
+      await act(async () => {
+        resolveOutput({
+          type: 'issue',
+          title: 'Stale output from old token',
+          htmlUrl: 'https://github.com/testuser/my-repo/issues/99',
+        })
+      })
+
+      // Stale output must not appear — outputRequestId should have been cancelled on token change
+      expect(screen.queryByText('Stale output from old token')).not.toBeInTheDocument()
+    })
+  })
+
   describe('RunHistoryPanel fetchRuns race condition', () => {
     const STALE_RUN: WorkflowRun = {
       id: 1,

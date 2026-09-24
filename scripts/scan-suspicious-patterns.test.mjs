@@ -39,6 +39,19 @@ describe('scanContent', () => {
     )
   })
 
+  it('does not flag a span that crosses mismatched quote types (no false positive on adjacent literals)', () => {
+    // 300+ non-quote chars appear between a single-quote opener and a backtick closer.
+    // This can happen on one line when two different literal styles are juxtaposed (e.g. in a
+    // generated file). The regex must require matching delimiters, not allow any closer.
+    const blob = 'x'.repeat(305)
+    expect(scanContent("'" + blob + '`')).not.toContain(
+      'long unbroken string literal (possible obfuscated payload)',
+    )
+    expect(scanContent('"' + blob + '`')).not.toContain(
+      'long unbroken string literal (possible obfuscated payload)',
+    )
+  })
+
   it('does not flag normal application code', () => {
     const clean = `
       import js from '@eslint/js'

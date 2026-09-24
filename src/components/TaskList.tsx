@@ -180,8 +180,12 @@ function RunHistoryPanel({
   useEffect(() => {
     fetchRuns()
     return () => {
+      // Cancel both run-list fetches and any in-flight output fetch so stale results from a prior
+      // context (old token, repo, etc.) cannot surface after deps change.
       // eslint-disable-next-line react-hooks/exhaustive-deps
       ++fetchRunsRequestId.current
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      ++outputRequestId.current
     }
   }, [fetchRuns])
 

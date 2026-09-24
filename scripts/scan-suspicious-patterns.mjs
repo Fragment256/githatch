@@ -12,7 +12,7 @@ const PATTERNS = [
   { name: 'createRequire(...) call', regex: /\bcreateRequire\s*\(/ },
   {
     name: 'long unbroken string literal (possible obfuscated payload)',
-    regex: /["'`][^"'`\s]{300,}["'`]/,
+    regex: /"[^"\s]{300,}"|'[^'\s]{300,}'|`[^`\s]{300,}`/,
   },
   { name: 'dangerouslySetInnerHTML (XSS risk)', regex: /dangerouslySetInnerHTML/ },
   { name: 'exec(...) shell invocation', regex: /(?<![.\w])exec\s*\(/ },
