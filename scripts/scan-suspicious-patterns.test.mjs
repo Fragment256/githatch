@@ -2,7 +2,7 @@ import { describe, it, expect, afterEach } from 'vitest'
 import { execFileSync } from 'child_process'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
-import { mkdtempSync, writeFileSync, rmSync } from 'fs'
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'fs'
 import { tmpdir } from 'os'
 import { scanContent } from './scan-suspicious-patterns.mjs'
 
@@ -82,6 +82,22 @@ describe('scanContent', () => {
     expect(scanContent('if (regex.exec(str)) {}')).not.toContain('exec(...) shell invocation')
   })
 
+  it('flags child_process.exec() direct method-call form', () => {
+    expect(scanContent("require('child_process').exec('rm -rf /')")).toContain(
+      'child_process.exec() shell invocation',
+    )
+    expect(scanContent("child_process.exec('evil cmd')")).toContain(
+      'child_process.exec() shell invocation',
+    )
+  })
+
+  it('does not flag execSync or execFileSync (only direct child_process.exec)', () => {
+    expect(scanContent("execSync('ls')")).not.toContain('child_process.exec() shell invocation')
+    expect(scanContent("execFileSync('node', ['--version'])")).not.toContain(
+      'child_process.exec() shell invocation',
+    )
+  })
+
   it('returns multiple violations when several patterns match', () => {
     const violations = scanContent('eval(new Function("x")())')
     expect(violations).toContain('eval(...) call')
@@ -90,6 +106,17 @@ describe('scanContent', () => {
 
   it('CLI exempts its own source file from self-scan (regression: it matches its own patterns)', () => {
     expect(() => execFileSync('node', [scriptPath, scriptPath], { stdio: 'pipe' })).not.toThrow()
+  })
+
+  it('CLI does NOT exempt crafted paths that merely end with an exempt filename', () => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'scan-test-'))
+    const craftedDir = join(tmpDir, 'scripts')
+    mkdirSync(craftedDir, { recursive: true })
+    const craftedPath = join(craftedDir, 'scan-suspicious-patterns.mjs')
+    writeFileSync(craftedPath, 'eval("injected by attacker")\n')
+    // Old bug: endsWith('scripts/scan-suspicious-patterns.mjs') would also match this path
+    // Fix: exact Set.has() on resolved absolute path should NOT exempt it
+    expect(() => execFileSync('node', [scriptPath, craftedPath], { stdio: 'pipe' })).toThrow()
   })
 
   it('CLI exits non-zero when scanning a file with a real violation', () => {

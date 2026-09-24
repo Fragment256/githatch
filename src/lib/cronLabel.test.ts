@@ -365,6 +365,19 @@ describe('isValidCron', () => {
     expect(isValidCron('0 */12 * * 1,3')).toBe(true)
   })
 
+  it('returns true for wrapping day-of-week ranges (e.g., 5-1 for Fri–Mon)', () => {
+    expect(isValidCron('0 9 * * 5-1')).toBe(true)
+    expect(isValidCron('0 9 * * 6-0')).toBe(true)
+    expect(isValidCron('0 9 * * 6-1')).toBe(true)
+  })
+
+  it('returns false for wrapping ranges in non-DOW fields (hour, minute)', () => {
+    // hour range 9-5 wrapping is not valid
+    expect(isValidCron('0 9-5 * * *')).toBe(false)
+    // minute range 30-10 wrapping is not valid
+    expect(isValidCron('30-10 9 * * *')).toBe(false)
+  })
+
   it('returns false for */N day-of-week — nextCronRun has no branch for this pattern', () => {
     expect(isValidCron('0 6 * * */2')).toBe(false)
     expect(isValidCron('0 9 * * */3')).toBe(false)
@@ -416,6 +429,11 @@ describe('canPreviewCron', () => {
     // '0-5 */2 * * *' is valid cron but nextCronRun cannot compute it; parseInt('0-5')===0 is a false-positive
     expect(canPreviewCron('0-5 */2 * * *')).toBe(false)
     expect(canPreviewCron('0-3 */6 * * *')).toBe(false)
+  })
+
+  it('returns true for wrapping day-of-week ranges (nextCronRun handles these correctly)', () => {
+    expect(canPreviewCron('0 9 * * 5-1')).toBe(true)
+    expect(canPreviewCron('0 9 * * 6-1')).toBe(true)
   })
 
   it('returns false for range-based hour or minute expressions (nextCronRun cannot compute ranges in these positions)', () => {

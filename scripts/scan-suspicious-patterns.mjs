@@ -3,6 +3,8 @@
 // (eval, new Function, createRequire, giant unbroken string blobs) — the
 // exact pattern used by the malicious eslint.config.js payload in #46.
 import { readFileSync } from 'fs'
+import { resolve, dirname } from 'path'
+import { fileURLToPath } from 'url'
 
 const PATTERNS = [
   { name: 'eval(...) call', regex: /\beval\s*\(/ },
@@ -14,6 +16,8 @@ const PATTERNS = [
   },
   { name: 'dangerouslySetInnerHTML (XSS risk)', regex: /dangerouslySetInnerHTML/ },
   { name: 'exec(...) shell invocation', regex: /(?<![.\w])exec\s*\(/ },
+  // Catches method-call form missed by the bare-exec pattern above (e.g. require('child_process').exec(...))
+  { name: 'child_process.exec() shell invocation', regex: /\bchild_process\b.*\.exec\s*\(/ },
 ]
 
 export function scanContent(content) {
@@ -22,17 +26,20 @@ export function scanContent(content) {
 
 // This scanner's own source and tests intentionally contain the pattern
 // text (as regex literals / test fixtures), so they're exempt from self-scan.
-const SELF_EXEMPT = [
-  'scripts/scan-suspicious-patterns.mjs',
-  'scripts/scan-suspicious-patterns.test.mjs',
-  'scripts/scan-all-tracked-js.mjs',
-  'scripts/scan-all-tracked-js.test.mjs',
-]
+// Use resolved absolute paths to prevent bypass via crafted paths that merely
+// end with an exempt filename (e.g. /evil/scripts/scan-suspicious-patterns.mjs).
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const SELF_EXEMPT_SET = new Set(
+  [
+    'scripts/scan-suspicious-patterns.mjs',
+    'scripts/scan-suspicious-patterns.test.mjs',
+    'scripts/scan-all-tracked-js.mjs',
+    'scripts/scan-all-tracked-js.test.mjs',
+  ].map((p) => resolve(__dirname, '..', p)),
+)
 
 function main() {
-  const files = process.argv
-    .slice(2)
-    .filter((file) => !SELF_EXEMPT.some((exempt) => file.endsWith(exempt)))
+  const files = process.argv.slice(2).filter((file) => !SELF_EXEMPT_SET.has(resolve(file)))
   let hasViolations = false
 
   for (const file of files) {

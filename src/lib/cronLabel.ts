@@ -127,7 +127,11 @@ function isValidCronField(field: string, min: number, max: number): boolean {
   const rangeParts = field.split('-')
   if (rangeParts.length === 2 && rangeParts.every((p) => /^\d+$/.test(p))) {
     const [a, b] = rangeParts.map(Number)
-    return a >= min && b <= max && a <= b
+    if (a > b) {
+      // Wrapping range — only valid for the DOW field (min=0, max=7)
+      return min === 0 && max === 7 && a >= min && b <= max
+    }
+    return a >= min && b <= max
   }
   if (field.includes(',')) {
     return field
