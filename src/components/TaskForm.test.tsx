@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { TaskForm } from './TaskForm'
 import { generateWorkflowYaml } from '@/lib/yamlGenerator'
 import type { TaskConfig } from '@/lib/yamlGenerator'
+import { axe } from '@/test-utils/axe'
 
 function fillMinimal(
   overrides: Partial<{ name: string; prompt: string; issueNumber: string }> = {},
@@ -343,5 +344,10 @@ describe('TaskForm', () => {
     fireEvent.change(screen.getByLabelText(/schedule/i), { target: { value: 'custom' } })
     const btn = screen.getByRole('button', { name: /create task/i })
     expect((btn as HTMLButtonElement).disabled).toBe(true)
+  })
+
+  it('has no axe violations', async () => {
+    const { container } = render(<TaskForm onSubmit={mockSubmit} />)
+    expect(await axe(container)).toHaveNoViolations()
   })
 })
