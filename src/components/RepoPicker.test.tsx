@@ -2,6 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { RepoPicker } from './RepoPicker'
 import type { GitHubRepo } from '@/lib/github'
+import { axe } from '@/test-utils/axe'
 
 function makeRepo(id: number, fullName: string): GitHubRepo {
   return {
@@ -245,5 +246,18 @@ describe('RepoPicker', () => {
     // Dropdown is now closed; another Enter should not re-select
     fireEvent.keyDown(input, { key: 'Enter' })
     expect(mockOnSelect).not.toHaveBeenCalled()
+  })
+
+  it('has no axe violations', async () => {
+    const { container } = render(
+      <RepoPicker
+        repos={repos}
+        activeRepo={repos[0]}
+        loading={false}
+        error={null}
+        onSelect={mockOnSelect}
+      />,
+    )
+    expect(await axe(container)).toHaveNoViolations()
   })
 })

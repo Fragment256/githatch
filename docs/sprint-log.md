@@ -4571,6 +4571,14 @@ No drift from sprint 518. eslint.config.js clean (25 lines, no injected content)
 - PR: n/a
 - ROADMAP updated: no
 
+## 2026-10-04
+
+- Action: issues
+- Summary: Decision tree exhausted through steps 0-3 (CI green, no open PRs, issues #44/#46/#62 still correctly human-gated with no new comments or permission changes, ROADMAP Backlog empty) — but rather than stop at "nothing-actionable" for a 10th straight day, did a scoped discovery audit (per this project's own precedent of finding real bugs on dry-streak days) and found that the axe-core accessibility setup recorded as done on ROADMAP (2026-05-14) ran zero real assertions: `vitest-axe/extend-expect` only adds TS types, never calls `expect.extend()` at runtime, and `setupTests.ts` discarded the return value of `configureAxe()`. Fixed both and added real `toHaveNoViolations()` checks to ConfirmDialog, RepoPicker, and TaskForm. 692/692 tests pass, format/lint/type-check clean.
+- Rationale: Feature/DX work outranks standalone test or security work per priorities, but this isn't scope-manufacturing — it's closing a false-safety-net gap in existing infra (a "Done" ROADMAP item that wasn't actually functioning), directly in the spirit of past dry-streak audits (PRs #50, #52, #55-58) that are this project's main source of ongoing progress now that Backlog/specs are empty.
+- PR: #63
+- ROADMAP updated: no (no backlog/in-progress items existed to update; this is a fix to a previously-claimed-done item, not a new roadmap entry)
+
 ## 2026-10-05
 
 - Action: nothing-actionable

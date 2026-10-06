@@ -1,11 +1,11 @@
+import { expect } from 'vitest'
 import '@testing-library/jest-dom'
-import { configureAxe } from 'vitest-axe'
+import * as axeMatchers from 'vitest-axe/matchers'
 import 'vitest-axe/extend-expect'
 
-configureAxe({
-  // colour-contrast checks are unreliable in jsdom (no computed styles)
-  rules: { 'color-contrast': { enabled: false } },
-})
+// vitest-axe's extend-expect entry only augments TypeScript types; it never calls
+// expect.extend() at runtime, so toHaveNoViolations() needs registering explicitly.
+expect.extend(axeMatchers)
 
 // jsdom doesn't implement HTMLDialogElement methods
 if (typeof HTMLDialogElement !== 'undefined') {

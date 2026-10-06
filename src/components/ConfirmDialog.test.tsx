@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { ConfirmDialog } from './ConfirmDialog'
+import { axe } from '@/test-utils/axe'
 
 function withStrictShowModal(fn: () => void) {
   let isOpen = false
@@ -106,5 +107,18 @@ describe('ConfirmDialog', () => {
         render(<ConfirmDialog {...props} />)
       }).not.toThrow()
     })
+  })
+
+  it('has no axe violations', async () => {
+    const { container } = render(
+      <ConfirmDialog
+        open={true}
+        title="Delete item"
+        message="Are you sure?"
+        onConfirm={vi.fn()}
+        onCancel={vi.fn()}
+      />,
+    )
+    expect(await axe(container)).toHaveNoViolations()
   })
 })
