@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-10-07
+
+- Action: ci-fix
+- Summary: Step 0 (CI health) found the two most recent "Deploy to GitHub Pages" runs on main failing with `TS2339: Property 'toHaveNoViolations' does not exist on type 'Assertion<AxeResults>'` in three a11y test files (regression from #63, merged yesterday). Root cause: `vitest-axe@0.1.0`'s `extend-expect` entry augments the old `Vi.Assertion` global namespace, which current Vitest (2.1.9) no longer reads for type resolution — `tsc -b`'s stricter project-reference checking caught it even though the runtime matcher (`expect.extend(axeMatchers)`) was already correctly registered and tests passed. Fixed by replacing the import with a direct `declare module 'vitest'` augmentation of `Assertion`/`AsymmetricMatchersContaining`, matching Vitest's own unparameterized `Assertion<T>` signature exactly (a mismatched default type parameter triggers `TS2428` under `tsc -b`, even though plain `tsc --noEmit` doesn't catch it). Verified format/lint/type-check/build/692 tests all green locally, pushed directly to main per the CI-health branch's trivial-fix allowance, and confirmed the next "Deploy to GitHub Pages" run went green. Checked remaining steps: no open PRs; all 4 open issues (#64, #62, #46, #44) are explicitly human-gated (blocked on `workflows` permission, secret rotation, or a force-push decision) with no new state since last run; ROADMAP Backlog is empty; all 7 `docs/specs/` entries already map to merged ROADMAP Done items.
+- Rationale: A broken production deploy outranks all other work by the decision tree's own ordering (step 0 before 1-4), and this was a genuine type-level regression (not a flaky or infra issue) with a precise, verifiable root cause — worth fixing directly rather than filing another human-gated issue alongside #64/#62/#46/#44.
+- PR: n/a (pushed directly to main, trivial type-error fix per CI-health branch instructions)
+- ROADMAP updated: no (no backlog/in-progress items affected)
+
 ## 2026-09-19 (sprint 441 — day 1 baseline, cycle 149)
 
 - Action: day 1 baseline
