@@ -99,6 +99,8 @@ specs/                    — human-authored specs
 docs/
   specs/                  — agent-authored specs (date-prefixed)
   sprint-log.md           — daily sprint run log (agent-maintained)
+  security-audit-2026-08-06-incident.md — forensic audit of the Aug 2026 payload incident (see issue #46)
+sprints/                  — per-run sprint logs, 2026-05 to 2026-09-27; superseded by docs/sprint-log.md
 
 .github/workflows/
   deploy.yml              — builds and publishes to GitHub Pages on push to main
