@@ -9,6 +9,7 @@ import {
   getRecentCommits,
   getRecentPRs,
   getPRCounts,
+  getIssue,
   type GitHubRepo,
 } from './github'
 
@@ -718,5 +719,65 @@ describe('getPRCounts', () => {
       vi.fn().mockResolvedValue({ ok: false, status: 403, headers: { get: () => null } }),
     )
     await expect(getPRCounts(params)).rejects.toThrow('403')
+  })
+})
+
+describe('getIssue', () => {
+  const params = { token: 'gho_test', owner: 'testuser', repo: 'my-repo', issueNumber: 42 }
+
+  beforeEach(() => vi.restoreAllMocks())
+
+  it('returns the issue summary for an open issue', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: () =>
+          Promise.resolve({
+            number: 42,
+            title: 'Fix the thing',
+            state: 'open',
+            html_url: 'https://github.com/testuser/my-repo/issues/42',
+          }),
+      }),
+    )
+    const issue = await getIssue(params)
+    expect(issue).toEqual({
+      number: 42,
+      title: 'Fix the thing',
+      state: 'open',
+      htmlUrl: 'https://github.com/testuser/my-repo/issues/42',
+    })
+  })
+
+  it('returns state "closed" for a closed issue', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: () =>
+          Promise.resolve({
+            number: 42,
+            title: 'Old issue',
+            state: 'closed',
+            html_url: 'https://github.com/testuser/my-repo/issues/42',
+          }),
+      }),
+    )
+    const issue = await getIssue(params)
+    expect(issue?.state).toBe('closed')
+  })
+
+  it('returns null when the issue does not exist', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 404 }))
+    const issue = await getIssue(params)
+    expect(issue).toBeNull()
+  })
+
+  it('throws on non-404 error response', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 403 }))
+    await expect(getIssue(params)).rejects.toThrow('403')
   })
 })

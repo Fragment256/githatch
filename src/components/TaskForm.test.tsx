@@ -1,9 +1,16 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, screen, fireEvent, act } from '@testing-library/react'
 import { TaskForm } from './TaskForm'
 import { generateWorkflowYaml } from '@/lib/yamlGenerator'
 import type { TaskConfig } from '@/lib/yamlGenerator'
 import { axe } from '@/test-utils/axe'
+import * as github from '@/lib/github'
+
+vi.mock('@/lib/github', () => ({
+  getIssue: vi.fn(),
+}))
+
+const mockGetIssue = vi.mocked(github.getIssue)
 
 function fillMinimal(
   overrides: Partial<{ name: string; prompt: string; issueNumber: string }> = {},
@@ -33,6 +40,7 @@ describe('TaskForm', () => {
 
   beforeEach(() => {
     mockSubmit.mockClear()
+    mockGetIssue.mockReset()
   })
 
   it('renders all form fields', () => {
@@ -337,6 +345,112 @@ describe('TaskForm', () => {
     fireEvent.click(screen.getByRole('button', { name: /create task/i }))
     expect(screen.getByText(/positive integer/i)).toBeInTheDocument()
     expect(mockSubmit).not.toHaveBeenCalled()
+  })
+
+  describe('issue existence check', () => {
+    const repoProps = { token: 'gho_test', owner: 'testuser', repo: 'my-repo' }
+
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    })
+
+    afterEach(() => {
+      vi.clearAllTimers()
+      vi.useRealTimers()
+    })
+
+    it('does not call getIssue when token/owner/repo are not provided', async () => {
+      render(<TaskForm onSubmit={mockSubmit} />)
+      fillMinimal({ issueNumber: '42' })
+      await act(async () => {
+        vi.advanceTimersByTime(1000)
+      })
+      expect(mockGetIssue).not.toHaveBeenCalled()
+    })
+
+    it('shows the issue title after debounce when the issue exists', async () => {
+      mockGetIssue.mockResolvedValue({
+        number: 42,
+        title: 'Fix the thing',
+        state: 'open',
+        htmlUrl: 'https://github.com/testuser/my-repo/issues/42',
+      })
+      render(<TaskForm onSubmit={mockSubmit} {...repoProps} />)
+      fillMinimal({ issueNumber: '42' })
+      await act(async () => {
+        vi.advanceTimersByTime(500)
+        await Promise.resolve()
+      })
+      expect(screen.getByText(/fix the thing/i)).toBeInTheDocument()
+      expect(mockGetIssue).toHaveBeenCalledWith({ ...repoProps, issueNumber: 42 })
+    })
+
+    it('shows a "not found" message when the issue does not exist', async () => {
+      mockGetIssue.mockResolvedValue(null)
+      render(<TaskForm onSubmit={mockSubmit} {...repoProps} />)
+      fillMinimal({ issueNumber: '9999' })
+      await act(async () => {
+        vi.advanceTimersByTime(500)
+        await Promise.resolve()
+      })
+      expect(screen.getByText(/not found/i)).toBeInTheDocument()
+    })
+
+    it('shows a "closed" warning when the issue is closed', async () => {
+      mockGetIssue.mockResolvedValue({
+        number: 7,
+        title: 'Old bug',
+        state: 'closed',
+        htmlUrl: 'https://github.com/testuser/my-repo/issues/7',
+      })
+      render(<TaskForm onSubmit={mockSubmit} {...repoProps} />)
+      fillMinimal({ issueNumber: '7' })
+      await act(async () => {
+        vi.advanceTimersByTime(500)
+        await Promise.resolve()
+      })
+      expect(screen.getByText(/closed/i)).toBeInTheDocument()
+    })
+
+    it('discards a stale response if the issue number changes before it resolves', async () => {
+      let resolveFirst!: (v: Awaited<ReturnType<typeof github.getIssue>>) => void
+      mockGetIssue.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFirst = resolve
+          }),
+      )
+      mockGetIssue.mockResolvedValueOnce({
+        number: 2,
+        title: 'Second issue',
+        state: 'open',
+        htmlUrl: 'https://github.com/testuser/my-repo/issues/2',
+      })
+
+      render(<TaskForm onSubmit={mockSubmit} {...repoProps} />)
+      fillMinimal({ issueNumber: '1' })
+      await act(async () => {
+        vi.advanceTimersByTime(500)
+      })
+
+      fireEvent.change(screen.getByPlaceholderText(/issue number/i), { target: { value: '2' } })
+      await act(async () => {
+        vi.advanceTimersByTime(500)
+        await Promise.resolve()
+      })
+      expect(screen.getByText(/second issue/i)).toBeInTheDocument()
+
+      resolveFirst({
+        number: 1,
+        title: 'First issue (stale)',
+        state: 'open',
+        htmlUrl: 'https://github.com/testuser/my-repo/issues/1',
+      })
+      await act(async () => Promise.resolve())
+
+      expect(screen.queryByText(/first issue/i)).not.toBeInTheDocument()
+      expect(screen.getByText(/second issue/i)).toBeInTheDocument()
+    })
   })
 
   it('submit button is disabled when "Custom cron…" is selected with empty cron field', () => {
