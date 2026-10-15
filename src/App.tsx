@@ -554,6 +554,9 @@ export default function App() {
                 }
                 onSubmit={handleTaskFormSubmit}
                 loading={saving}
+                token={token}
+                owner={owner}
+                repo={repo}
                 initialConfig={
                   duplicatingConfig ??
                   (selectedTemplate ? templateToConfig(selectedTemplate) : undefined)
@@ -592,6 +595,9 @@ export default function App() {
                 key={editingTask?.slug ?? 'edit'}
                 onSubmit={handleEditFormSubmit}
                 loading={saving}
+                token={token}
+                owner={owner}
+                repo={repo}
                 initialConfig={editingConfig}
                 originalYaml={editingOriginalYaml ?? undefined}
                 existingSlugs={tasks.filter((t) => t.slug !== editingTask?.slug).map((t) => t.slug)}

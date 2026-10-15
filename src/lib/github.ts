@@ -348,6 +348,39 @@ export async function getRecentPRs(params: {
   }))
 }
 
+export interface IssueSummary {
+  number: number
+  title: string
+  state: 'open' | 'closed'
+  htmlUrl: string
+}
+
+export async function getIssue(params: {
+  token: string
+  owner: string
+  repo: string
+  issueNumber: number
+}): Promise<IssueSummary | null> {
+  const { token, owner, repo, issueNumber } = params
+  const res = await fetch(`${API}/repos/${owner}/${repo}/issues/${issueNumber}`, {
+    headers: authHeaders(token),
+  })
+  if (res.status === 404) return null
+  if (!res.ok) throw new Error(`Failed to fetch issue: ${res.status}`)
+  const data = (await res.json()) as {
+    number: number
+    title: string
+    state: string
+    html_url: string
+  }
+  return {
+    number: data.number,
+    title: data.title,
+    state: data.state as 'open' | 'closed',
+    htmlUrl: data.html_url,
+  }
+}
+
 export interface PRCounts {
   open: number
   merged: number
