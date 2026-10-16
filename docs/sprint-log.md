@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-10-16
+
+- Action: pr-review
+- Summary: Step 0: CI green on main. Step 1: one open PR (#66, "validate issue number exists before committing issue_comment tasks", no review yet). Diffed it and found the legitimate `TaskForm`/`getIssue()` feature work bundled with a reintroduction of the exact malicious obfuscated payload from the 2026-08-06 incident (#46) appended to `eslint.config.js` — verified via GitHub Contents API (read-only, never executed) that the PR branch's file is 7580 bytes ending in the same `createRequire` + self-decoding-blob pattern, while `main`'s copy is clean. CI on #66 was already red for the right reason: `scan-all-tracked-js.mjs` (added post-#46 in #51) caught it in `pnpm lint`'s `prelint` step on both checks — the prior incident's defense-in-depth worked. Could not `gh pr review --request-changes` (GitHub rejects self-review since the PR and this session share the `claude[bot]` identity), so left a detailed comment on #66 explaining the finding and recommending it not be merged, then filed #67 as a dedicated critical issue (distinct from #46, since this is a fresh recurrence two months later in an unrelated feature branch, not a leftover from the original incident). Added a follow-up finding to #67: the repo's local pre-commit hook (`.husky/pre-commit` → the same scanner) should have caught this before the commit was ever made, so the commit that introduced it likely bypassed hooks entirely (`--no-verify`, `HUSKY=0`, or a non-git commit path) rather than slipping past an inactive detector — narrowing the root-cause investigation for whoever picks up #67. Did not touch issues/roadmap/specs this run given the severity of this finding; stopped here deliberately rather than pushing further into the decision tree.
+- Rationale: A live, unreviewed PR containing a credential-exfiltration-shaped payload takes priority over all other decision-tree branches — per project priorities, a concrete identified vulnerability affecting real users is exactly the case where security work is the right call over feature/roadmap work.
+- PR: #66 (left open, unmerged, flagged)
+- ROADMAP updated: no
+
 ## 2026-10-15
 
 - Action: issues
