@@ -9,6 +9,7 @@ import {
 } from '@/lib/yamlGenerator'
 import { describeCron, nextCronRuns, isValidCron, canPreviewCron } from '@/lib/cronLabel'
 import { computeLineDiff } from '@/lib/utils'
+import { getIssue, type IssueSummary } from '@/lib/github'
 
 export interface TaskFormValues {
   name: string
@@ -29,7 +30,19 @@ interface Props {
   originalYaml?: string
   existingSlugs?: string[]
   isDuplicating?: boolean
+  token?: string
+  owner?: string
+  repo?: string
 }
+
+type IssueCheckState =
+  | { status: 'idle' }
+  | { status: 'checking' }
+  | { status: 'found'; issue: IssueSummary }
+  | { status: 'not-found' }
+  | { status: 'error' }
+
+const ISSUE_CHECK_DEBOUNCE_MS = 400
 
 const SCHEDULE_PRESETS = [
   { label: 'Manual only (no schedule)', value: '' },
@@ -181,6 +194,9 @@ export function TaskForm({
   originalYaml,
   existingSlugs = [],
   isDuplicating = false,
+  token,
+  owner,
+  repo,
 }: Props) {
   const isEditing = !!initialConfig && !isDuplicating
   const [values, setValues] = useState<TaskFormValues>(() =>
@@ -193,6 +209,35 @@ export function TaskForm({
   useEffect(() => {
     if (!loading) submittingRef.current = false
   }, [loading])
+
+  const [issueCheck, setIssueCheck] = useState<IssueCheckState>({ status: 'idle' })
+  const issueCheckRequestId = useRef(0)
+  useEffect(() => {
+    const raw = values.issueNumber.trim()
+    const n = parseInt(raw, 10)
+    const isValidNumber = /^\d+$/.test(raw) && n >= 1
+
+    if (values.outputType !== 'issue_comment' || !isValidNumber || !token || !owner || !repo) {
+      setIssueCheck({ status: 'idle' })
+      return
+    }
+
+    setIssueCheck({ status: 'checking' })
+    const reqId = ++issueCheckRequestId.current
+    const timer = setTimeout(() => {
+      getIssue({ token, owner, repo, issueNumber: n })
+        .then((issue) => {
+          if (reqId !== issueCheckRequestId.current) return
+          setIssueCheck(issue ? { status: 'found', issue } : { status: 'not-found' })
+        })
+        .catch(() => {
+          if (reqId !== issueCheckRequestId.current) return
+          setIssueCheck({ status: 'error' })
+        })
+    }, ISSUE_CHECK_DEBOUNCE_MS)
+
+    return () => clearTimeout(timer)
+  }, [values.issueNumber, values.outputType, token, owner, repo])
 
   const set = <K extends keyof TaskFormValues>(key: K, value: TaskFormValues[K]) =>
     setValues((v) => ({ ...v, [key]: value }))
@@ -496,14 +541,35 @@ export function TaskForm({
         </select>
 
         {values.outputType === 'issue_comment' && (
-          <input
-            type="number"
-            min="1"
-            value={values.issueNumber}
-            onChange={(e) => set('issueNumber', e.target.value)}
-            placeholder="Issue number (e.g. 42)"
-            className="mt-2 block w-full border-2 border-black bg-white px-3 py-2 text-sm focus:outline-none"
-          />
+          <>
+            <input
+              type="number"
+              min="1"
+              value={values.issueNumber}
+              onChange={(e) => set('issueNumber', e.target.value)}
+              placeholder="Issue number (e.g. 42)"
+              className="mt-2 block w-full border-2 border-black bg-white px-3 py-2 text-sm focus:outline-none"
+            />
+            {issueCheck.status === 'checking' && (
+              <p className="mt-1 font-mono text-xs text-black/40">Checking…</p>
+            )}
+            {issueCheck.status === 'found' && issueCheck.issue.state === 'open' && (
+              <p className="mt-1 font-mono text-xs text-black/60">
+                ✓ #{issueCheck.issue.number} — {issueCheck.issue.title}
+              </p>
+            )}
+            {issueCheck.status === 'found' && issueCheck.issue.state === 'closed' && (
+              <p className="mt-1 font-mono text-xs text-black/60">
+                ⚠ #{issueCheck.issue.number} — {issueCheck.issue.title} (closed)
+              </p>
+            )}
+            {issueCheck.status === 'not-found' && (
+              <p className="mt-1 font-mono text-xs text-red-600">Issue not found in this repo</p>
+            )}
+            {issueCheck.status === 'error' && (
+              <p className="mt-1 font-mono text-xs text-black/40">Couldn&apos;t verify issue</p>
+            )}
+          </>
         )}
 
         {values.outputType === 'file' && (
