@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-10-17
+
+- Action: pr-closed, issues
+- Summary: Step 0: CI green on main. Step 1: one open PR (#66), still unreviewed, still carrying the same confirmed malicious payload flagged in yesterday's 2026-10-16 entry and filed as #67. Re-verified directly (`git show origin/claude/sprint-2026-10-15:eslint.config.js`): 7580 bytes, same `createRequire` + self-decoding-blob pattern, vs. `main`'s clean 721 bytes. `gh pr review --request-changes` still fails with GitHub's self-review rejection (same `claude[bot]` identity), so closed #66 directly with a comment pointing to #67 rather than leaving it open and unreviewable indefinitely. The underlying feature in #66 (`getIssue()` existence check for `issue_comment` tasks) was good, tested work — rather than trust or cherry-pick anything from the compromised branch, reimplemented it from scratch against current `main`: new `getIssue()` in `src/lib/github.ts`, debounced (400ms) stale-guarded existence check in `TaskForm` (found/closed/not-found inline), `token`/`owner`/`repo` threaded through from `App.tsx`. TDD: wrote `getIssue` and `TaskForm` tests first (confirmed RED against unmodified main), then implemented (GREEN). Full local suite green: format ✓ · lint 0 warnings (scanner clean on the real `eslint.config.js`; a test fixture's synthetic `createRequire` hit during `pnpm test` is expected, from the scanner's own test suite) ✓ · type-check ✓ · 701/701 tests ✓. Opened PR #68. Did not proceed to #64/#62/#46/#44 (all still correctly human-gated, unchanged since 10-15) or ROADMAP/specs (both empty/done) given PR #68 is this run's durable trace.
+- Rationale: A still-open, still-malicious, unreviewable PR is a standing risk (stale-but-mergeable state, visible to anyone with admin override) that should be resolved before anything else; reimplementing its legitimate feature is the right next move since it's good feature work already proven out in review, and feature development is the default priority once the security item is handled — safer to rebuild clean than to salvage any artifact from a compromised branch.
+- PR: #68 (new), #66 (closed)
+- ROADMAP updated: no
+
 ## 2026-10-16
 
 - Action: pr-review
