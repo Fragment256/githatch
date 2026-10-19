@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-10-19
+
+- Action: nothing-actionable (CI fix applied directly)
+- Summary: Step 0: found the two most recent `Deploy to GitHub Pages` runs on `main` (headSha `f4ab7e9`, from yesterday's sprint-log commit, and its predecessor `eccc0d9`) both failing with `conclusion: failure`. Root cause via `gh run view --log-failed`: `tsc -b` failing the `pnpm build` step in the deploy workflow with `TS2322: Type 'string | null' is not assignable to type 'string | undefined'` at `src/App.tsx:557` and `:598` — `useAuth`'s `token` is typed `string | null`, but `TaskForm`'s `token` prop is `string | undefined`; every other call site in `App.tsx` narrows `token` first via `token &&`, but the `new-task`/`edit-task` view blocks only guard on `user && activeRepo`, so `token` flowed through unnarrowed. Fixed by coercing at both call sites (`token={token ?? undefined}`), matching the existing `originalYaml ?? undefined` pattern already used two lines below. Ran the full required local suite before pushing: `pnpm install --frozen-lockfile` ✓, `pnpm format` (no changes) ✓, `pnpm lint` (scanner clean, 0 eslint warnings) ✓, `pnpm type-check` ✓, `pnpm test` (701/701 passed) ✓. Committed directly to `main` (trivial type fix, per decision tree step 0) and pushed; confirmed the next `Deploy to GitHub Pages` run (triggered by the push, `databaseId` 39213387384) completed with `conclusion: success`. Did not proceed further in the decision tree since this CI fix is this run's durable trace, per the "fix it, go to REPORT" instruction for step 0.
+- Rationale: CI health is step 0 and gates everything else in the decision tree; a broken production build on `main` (the Pages deploy was serving a stale/non-updated bundle for at least two pushes) outranks open PRs, issues, or roadmap work until green.
+- PR: n/a (direct commit `5fc63c4`)
+- ROADMAP updated: no
+
 ## 2026-10-18
 
 - Action: pr-merged
