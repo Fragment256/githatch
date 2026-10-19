@@ -554,7 +554,7 @@ export default function App() {
                 }
                 onSubmit={handleTaskFormSubmit}
                 loading={saving}
-                token={token}
+                token={token ?? undefined}
                 owner={owner}
                 repo={repo}
                 initialConfig={
@@ -595,7 +595,7 @@ export default function App() {
                 key={editingTask?.slug ?? 'edit'}
                 onSubmit={handleEditFormSubmit}
                 loading={saving}
-                token={token}
+                token={token ?? undefined}
                 owner={owner}
                 repo={repo}
                 initialConfig={editingConfig}
