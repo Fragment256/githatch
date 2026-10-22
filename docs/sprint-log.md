@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-10-22
+
+- Action: issues
+- Summary: Step 0: CI green on `main` (`12f362b`) — latest completed `Deploy to GitHub Pages` and `githatch-senior-engineer-daily-sprint` runs both succeeded; the only non-`success` entry was this run's own in-progress invocation. Step 1: no open PRs. Step 2: same 5 open issues as the prior two days (#67, #64, #62, #46, #44); re-verified #67 specifically since it's the newest/most critical — confirmed PR #66 is `CLOSED`/`mergedAt: null` (never reached `main`) and `main`'s `eslint.config.js` is the clean 721-byte version. Went further than a re-check: confirmed the payload scanner (`scripts/scan-all-tracked-js.mjs`) is wired into _both_ `.husky/pre-commit` and the `prelint` CI hook (defense-in-depth, not just one layer); checked `pnpm-lock.yaml` for `postinstall`/`preinstall` scripts (none found) and the dependency list (8 prod/~24 dev, all well-known packages, no typosquats) — this rules out the supply-chain-dependency hypothesis in #67. Found one new, previously-undocumented gap: the scanner's `SELF_EXEMPT_PREFIXES` blanket-exempts `.claude/` from scanning, meaning any `.js`/`.mjs`/`.cjs` dropped under `.claude/` is invisible to both scan layers. Posted this as a new comment on #67 (https://github.com/Fragment256/githatch/issues/67#issuecomment-6334544121) for human judgment — not implicated in this specific incident (payload was in `eslint.config.js`), but relevant to the issue's own "something in the pipeline reintroduces this independent of task" hypothesis. Did not attempt token rotation, environment audit, or workflow-permission changes — all remain human-only per the issues' own prior conclusions. Step 3: ROADMAP Backlog still empty. Step 4: all 7 `docs/specs/*.md` entries still `status: done` with matching ROADMAP PRs — nothing outstanding. Local baseline from clean `--frozen-lockfile` install: format ✓ · lint 0 warnings ✓ · type-check ✓ · 701/701 tests ✓ (26 files) — matches prior days, no drift.
+- Rationale: No open PR or roadmap/spec work existed, and re-litigating the four already-human-gated issues would add nothing — but #67 was new enough (filed 10-16, most recent of the five) to warrant a fresh look rather than a rubber-stamp re-check, and that look surfaced one real, previously unreported defense gap worth a human's attention. Posting a comment is the right scope: informational, non-destructive, doesn't touch credentials or force-push shared history, consistent with how prior runs correctly declined those actions.
+- PR: n/a
+- ROADMAP updated: no
+
 ## 2026-10-21
 
 - Action: nothing-actionable
