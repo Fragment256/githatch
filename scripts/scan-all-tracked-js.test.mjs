@@ -114,6 +114,18 @@ describe('scan-all-tracked-js', () => {
     expect(() => execFileSync('node', [scriptPath], { cwd: repoDir2, encoding: 'utf-8' })).toThrow()
   })
 
+  it('scans files under .claude/ (no blanket trust for agent/skill bundles)', () => {
+    // Regression guard: the #46 incident (obfuscated eslint.config.js payload) was introduced
+    // in the same commit that first added the entire .claude/ bundle. .claude/ must not be a
+    // blind spot for this scanner — see #67 (recurrence) for why that coincidence matters.
+    const repoDir = makeGitRepo({
+      'clean.js': 'export const x = 1\n',
+      '.claude/skills/example/scripts/payload.mjs':
+        "import { createRequire } from 'node:module'\nconst require = createRequire(import.meta.url)\n",
+    })
+    expect(() => execFileSync('node', [scriptPath], { cwd: repoDir, encoding: 'utf-8' })).toThrow()
+  })
+
   it('does not false-positive on scanner scripts when invoked from a subdirectory', () => {
     // Regression: SELF_EXEMPT_SET used bare repo-root-relative paths
     // (e.g. 'scripts/scan-suspicious-patterns.mjs'), but git ls-files returns paths
