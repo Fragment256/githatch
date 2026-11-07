@@ -8,16 +8,18 @@ import { resolve } from 'path'
 
 import { scanContent } from './scan-suspicious-patterns.mjs'
 
-// Exempt this scanner itself and trusted tool directories (Claude Code skill bundles)
+// Exempt only this scanner's own source/tests, which intentionally contain the
+// pattern text as regex literals and fixtures. .claude/ is NOT exempt: the
+// 2026-08-06 incident (#46) that introduced the obfuscated eslint.config.js
+// payload is the same commit that first added the entire .claude/ bundle, so
+// treating that directory as blanket-trusted would hide a plausible recurrence
+// vector from the one check that has caught this payload twice (see #67).
 const SELF_EXEMPT_SET = new Set([
   'scripts/scan-suspicious-patterns.mjs',
   'scripts/scan-suspicious-patterns.test.mjs',
   'scripts/scan-all-tracked-js.mjs',
   'scripts/scan-all-tracked-js.test.mjs',
 ])
-const SELF_EXEMPT_PREFIXES = [
-  '.claude/', // Claude Code agent/skill scripts are trusted tooling, not project source
-]
 
 function main() {
   let repoRoot, trackedFiles
@@ -31,7 +33,7 @@ function main() {
       .trim()
       .split('\n')
       .filter(Boolean)
-      .filter((f) => !SELF_EXEMPT_SET.has(f) && !SELF_EXEMPT_PREFIXES.some((p) => f.startsWith(p)))
+      .filter((f) => !SELF_EXEMPT_SET.has(f))
   } catch {
     // Not in a git repo or git not available — skip silently
     process.exit(0)
