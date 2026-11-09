@@ -124,6 +124,44 @@ describe('TaskList', () => {
     expect(screen.getByRole('link', { name: /view logs/i })).toBeInTheDocument()
   })
 
+  it('shows run duration for a completed run', async () => {
+    vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(
+      asResult([
+        {
+          id: 100,
+          status: 'completed',
+          conclusion: 'success',
+          createdAt: '2024-01-01T09:00:00Z',
+          runStartedAt: '2024-01-01T09:00:00Z',
+          updatedAt: '2024-01-01T09:02:15Z',
+          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/100',
+        },
+      ]),
+    )
+    render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+    fireEvent.click(screen.getAllByRole('button', { name: /^history$/i })[0])
+    await waitFor(() => expect(screen.getByText(/2m 15s/)).toBeInTheDocument())
+  })
+
+  it('omits duration for a run still in progress', async () => {
+    vi.spyOn(workflows, 'getWorkflowRuns').mockResolvedValue(
+      asResult([
+        {
+          id: 101,
+          status: 'in_progress',
+          conclusion: null,
+          createdAt: '2024-01-01T09:00:00Z',
+          runStartedAt: '2024-01-01T09:00:00Z',
+          htmlUrl: 'https://github.com/testuser/my-repo/actions/runs/101',
+        },
+      ]),
+    )
+    render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
+    fireEvent.click(screen.getAllByRole('button', { name: /^history$/i })[0])
+    await waitFor(() => expect(screen.getAllByText(/Running/).length).toBeGreaterThan(0))
+    expect(screen.queryByText(/·/)).not.toBeInTheDocument()
+  })
+
   it('shows empty run history message when no runs', async () => {
     render(<TaskList {...BASE_PROPS} tasks={[TASK]} />)
     fireEvent.click(screen.getAllByRole('button', { name: /^history$/i })[0])

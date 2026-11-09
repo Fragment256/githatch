@@ -6,6 +6,7 @@ import {
   nextCronRuns,
   isValidCron,
   canPreviewCron,
+  formatDuration,
 } from './cronLabel'
 
 describe('describeCron', () => {
@@ -518,5 +519,26 @@ describe('formatRelativeTime', () => {
   it('formats days', () => {
     expect(formatRelativeTime(new Date('2026-01-15T14:00:00Z'), FROM)).toBe('in 1 day')
     expect(formatRelativeTime(new Date('2026-01-17T14:00:00Z'), FROM)).toBe('in 3 days')
+  })
+})
+
+describe('formatDuration', () => {
+  it('formats sub-minute durations as seconds', () => {
+    expect(formatDuration(0)).toBe('0s')
+    expect(formatDuration(45_000)).toBe('45s')
+  })
+
+  it('formats minute-scale durations as minutes and seconds', () => {
+    expect(formatDuration(60_000)).toBe('1m 0s')
+    expect(formatDuration(135_000)).toBe('2m 15s')
+  })
+
+  it('formats hour-scale durations as hours and minutes', () => {
+    expect(formatDuration(3_600_000)).toBe('1h 0m')
+    expect(formatDuration(5_400_000)).toBe('1h 30m')
+  })
+
+  it('treats negative durations as zero', () => {
+    expect(formatDuration(-500)).toBe('0s')
   })
 })

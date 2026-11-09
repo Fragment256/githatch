@@ -1,7 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react'
 import type { GithatchTask, WorkflowRun } from '@/lib/workflows'
 import type { OutputDestination } from '@/lib/yamlGenerator'
-import { describeCron, nextCronRun, formatRelativeTime } from '@/lib/cronLabel'
+import { describeCron, nextCronRun, formatRelativeTime, formatDuration } from '@/lib/cronLabel'
 import {
   triggerWorkflow,
   getWorkflowRuns,
@@ -61,6 +61,14 @@ function LastRunIndicator({ run, queued }: { run: WorkflowRun | null; queued?: b
       {label}
     </a>
   )
+}
+
+function runDuration(run: WorkflowRun): string | null {
+  if (run.status !== 'completed' || !run.updatedAt) return null
+  const start = new Date(run.runStartedAt ?? run.createdAt).getTime()
+  const end = new Date(run.updatedAt).getTime()
+  if (isNaN(start) || isNaN(end)) return null
+  return formatDuration(end - start)
 }
 
 function RunStatus({ run }: { run: WorkflowRun }) {
@@ -251,46 +259,50 @@ function RunHistoryPanel({
       )}
       {runs && runs.length > 0 && (
         <ul className="space-y-2">
-          {runs.map((run) => (
-            <li key={run.id}>
-              <div className="flex items-center justify-between gap-2">
-                <RunStatus run={run} />
-                <span className="flex-1 text-xs text-gray-400">
-                  {new Date(run.createdAt).toLocaleString()}
-                </span>
-                {canViewOutput && run.status === 'completed' && run.conclusion === 'success' && (
-                  <button
-                    onClick={() => void handleViewOutput(run)}
-                    disabled={loadingOutput === run.id}
-                    className="text-xs text-gray-500 underline hover:text-gray-700 disabled:opacity-50"
+          {runs.map((run) => {
+            const duration = runDuration(run)
+            return (
+              <li key={run.id}>
+                <div className="flex items-center justify-between gap-2">
+                  <RunStatus run={run} />
+                  <span className="flex-1 text-xs text-gray-400">
+                    {new Date(run.createdAt).toLocaleString()}
+                    {duration && <> · {duration}</>}
+                  </span>
+                  {canViewOutput && run.status === 'completed' && run.conclusion === 'success' && (
+                    <button
+                      onClick={() => void handleViewOutput(run)}
+                      disabled={loadingOutput === run.id}
+                      className="text-xs text-gray-500 underline hover:text-gray-700 disabled:opacity-50"
+                    >
+                      {loadingOutput === run.id
+                        ? 'Loading…'
+                        : viewingOutput?.runId === run.id
+                          ? 'Hide output'
+                          : 'View output'}
+                    </button>
+                  )}
+                  <a
+                    href={run.htmlUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-gray-500 underline hover:text-gray-700"
                   >
-                    {loadingOutput === run.id
-                      ? 'Loading…'
-                      : viewingOutput?.runId === run.id
-                        ? 'Hide output'
-                        : 'View output'}
-                  </button>
+                    View logs
+                  </a>
+                </div>
+                {outputErrors[run.id] && (
+                  <p className="mt-1 text-xs text-red-600">{outputErrors[run.id]}</p>
                 )}
-                <a
-                  href={run.htmlUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-gray-500 underline hover:text-gray-700"
-                >
-                  View logs
-                </a>
-              </div>
-              {outputErrors[run.id] && (
-                <p className="mt-1 text-xs text-red-600">{outputErrors[run.id]}</p>
-              )}
-              {viewingOutput?.runId === run.id && (
-                <RunOutputViewer
-                  output={viewingOutput.output}
-                  onClose={() => setViewingOutput(null)}
-                />
-              )}
-            </li>
-          ))}
+                {viewingOutput?.runId === run.id && (
+                  <RunOutputViewer
+                    output={viewingOutput.output}
+                    onClose={() => setViewingOutput(null)}
+                  />
+                )}
+              </li>
+            )
+          })}
         </ul>
       )}
     </div>

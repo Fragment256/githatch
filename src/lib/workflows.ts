@@ -43,6 +43,8 @@ export interface WorkflowRun {
   status: string
   conclusion: string | null
   createdAt: string
+  updatedAt?: string
+  runStartedAt?: string
   htmlUrl: string
   headSha?: string
 }
@@ -403,6 +405,8 @@ export async function getWorkflowRuns(
       status: string
       conclusion: string | null
       created_at: string
+      updated_at?: string
+      run_started_at?: string
       html_url: string
       head_sha: string
     }>
@@ -413,6 +417,8 @@ export async function getWorkflowRuns(
       status: r.status,
       conclusion: r.conclusion,
       createdAt: r.created_at,
+      updatedAt: r.updated_at,
+      runStartedAt: r.run_started_at,
       htmlUrl: r.html_url,
       headSha: r.head_sha,
     })),
