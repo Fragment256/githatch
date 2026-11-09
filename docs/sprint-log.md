@@ -4849,3 +4849,11 @@ No drift from sprint 518. eslint.config.js clean (25 lines, no injected content)
 - Rationale: An unreviewed PR takes priority over discovery work per the decision tree's PR step; this is also the natural continuation of 11-07's concrete security-hardening thread rather than a fresh audit.
 - PR: #69
 - ROADMAP updated: no
+
+## 2026-11-09
+
+- Action: issues
+- Summary: Step 0: CI green on `main`. Step 1: no open PRs. Step 2: same five open issues as 11-08 (#67, #64, #62, #46, #44), all still correctly human-gated with no new angle — rather than re-confirm containment for a fourth time, surveyed the codebase against `specs/githatch-v0.md` and `docs/specs/` (all 7 entries `status: done`) for a concrete, falsifiable feature gap, per this run's explicit priority ordering (user-facing feature work first) and the 10-04/11-07 precedent for when discovery work is justified. Found one: the v0 spec checks off "Run history — last 20 runs per task with status, started, **duration**" as done, but `WorkflowRun` only ever carried `createdAt` — duration was parsed nowhere and rendered nowhere, the same "checked off but not actually built" pattern as #63's axe-core gap. Added `updated_at`/`run_started_at` parsing to `getWorkflowRuns`, a `formatDuration` util in `cronLabel.ts`, and duration display (e.g. "2m 15s") in `RunHistoryPanel` for completed runs (omitted for in-progress/queued, matching existing `RunStatus` behavior). TDD: wrote failing tests in `cronLabel.test.ts`, `workflows.test.ts`, and `TaskList.test.tsx` first, then implemented. 711/711 tests pass, lint/format/type-check/build all clean.
+- Rationale: This run's priorities explicitly rank user-facing feature work above re-verifying unchanged human-gated issues; a spec-promised-but-missing capability is a concrete gap (not manufactured scope) and a direct precedent match for how this project's "Done" claims have been found stale before (#63).
+- PR: #70
+- ROADMAP updated: no
