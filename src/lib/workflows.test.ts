@@ -1401,6 +1401,8 @@ describe('getWorkflowRuns', () => {
           status: 'completed',
           conclusion: 'success',
           created_at: '2024-01-01T09:00:00Z',
+          updated_at: '2024-01-01T09:02:30Z',
+          run_started_at: '2024-01-01T09:00:05Z',
           html_url: 'https://github.com/testuser/my-repo/actions/runs/100',
         },
         {
@@ -1408,6 +1410,8 @@ describe('getWorkflowRuns', () => {
           status: 'in_progress',
           conclusion: null,
           created_at: '2024-01-02T09:00:00Z',
+          updated_at: '2024-01-02T09:00:05Z',
+          run_started_at: '2024-01-02T09:00:05Z',
           html_url: 'https://github.com/testuser/my-repo/actions/runs/101',
         },
       ],
@@ -1435,6 +1439,8 @@ describe('getWorkflowRuns', () => {
     expect(runs[0].status).toBe('completed')
     expect(runs[0].conclusion).toBe('success')
     expect(runs[0].createdAt).toBe('2024-01-01T09:00:00Z')
+    expect(runs[0].updatedAt).toBe('2024-01-01T09:02:30Z')
+    expect(runs[0].runStartedAt).toBe('2024-01-01T09:00:05Z')
     expect(runs[0].htmlUrl).toContain('runs/100')
     expect(runs[1].conclusion).toBeNull()
   })

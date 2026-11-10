@@ -198,6 +198,16 @@ export function formatRelativeTime(future: Date, from: Date = new Date()): strin
   return `in ${diffDays} day${diffDays === 1 ? '' : 's'}`
 }
 
+export function formatDuration(ms: number): string {
+  const totalSeconds = Math.max(0, Math.round(ms / 1000))
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+  if (hours > 0) return `${hours}h ${minutes}m`
+  if (minutes > 0) return `${minutes}m ${seconds}s`
+  return `${seconds}s`
+}
+
 function formatTime(h: number, m: number): string {
   const period = h >= 12 ? 'PM' : 'AM'
   const h12 = h % 12 || 12
