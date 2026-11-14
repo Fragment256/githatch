@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-11-14
+
+- Action: pr-merged (direct-to-main security fix; no PR — see rationale)
+- Summary: Step 0 CI health check found the most recent `Deploy to GitHub Pages` run on `main` (`0d0e5c4`, "chore: sprint log 2026-11-13") failing at the `prelint` scanner step with `✖ eslint.config.js — createRequire(...) call`. Investigation (unshallowed the clone to get real history, diffed `0d0e5c4` against its real parent `7d54a5b`) confirmed this was **not** a false positive or a severed-history artifact: that exact commit's diff touched only `docs/sprint-log.md` and `eslint.config.js`, and the `eslint.config.js` change was the same obfuscated require-hijack payload from #46/#67 silently appended — while that same commit's own sprint-log entry claimed `nothing-actionable` and never mentioned touching the file. This is a new, worse development versus #67 (which only saw the payload caught pre-merge on a feature branch): this time it reached `main` directly via the daily sprint-log commit path and sat there ~21 hours blocking CI/deploy (though the deploy itself never shipped the bad file, since `checks` failed first). Restored the known-clean 25-line `eslint.config.js` from `7d54a5b` directly on `main` (commit `361fa2b`) — verified locally first (scanner clean, lint 0 warnings, type-check clean, 708/708 tests) and confirmed the next `Deploy to GitHub Pages` run went green on the fix commit. Posted a detailed update to #67 escalating the risk assessment and reiterating the human-required actions (token/App credential rotation, environment audit, requiring sprint-log commits to go through a gated PR instead of direct-to-main push). Step 1: no open PRs after the fix. Did not proceed further down the decision tree given the severity and time spent on this branch.
+- Rationale: A concrete, actively-exploited security incident on `main` (not speculative hardening) outranks every other item in the priority order; fixed directly on `main` per the decision tree's "trivial issue" allowance since the correction itself is a one-line revert to a byte-verified known-good prior version, not a judgment call, but documented and escalated via #67 rather than treating it as routine because the recurrence pattern (silent injection independent of narrated agent intent) remains an unresolved, human-only root cause.
+- PR: n/a (direct commit `361fa2b`, flagged in #67)
+- ROADMAP updated: no
+
 ## 2026-11-13
 
 - Action: nothing-actionable
