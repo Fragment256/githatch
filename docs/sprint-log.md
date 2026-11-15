@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-11-15
+
+- Action: issues
+- Summary: Step 0: CI green — most recent completed `Deploy to GitHub Pages` run on `main` (`ab5ac5c`) succeeded; the only `in_progress` entry is this sprint invocation itself. Step 1: no open PRs. Step 2: same 5 open issues as recent days (#67, #64, #62, #46, #44). Re-verified #67's containment empirically: `main`'s `eslint.config.js` is still the clean 25-line flat-config export (no `createRequire`/eval/long-string-blob pattern), consistent with 11-14's direct-to-`main` fix (`361fa2b`). Went further than a status re-check given #67 is still an open, twice-recurring, unexplained compromise of this exact pipeline: audited `package.json` scripts/deps (no postinstall/preinstall, no unrecognized dependencies), `.husky/pre-commit` + `lint-staged` config (only runs the two scanner scripts and standard prettier/eslint, nothing writes to `eslint.config.js`), and the full `.claude/agents/` + `.claude/skills/` tree (contents still look like legitimate vendored skill docs/scripts; confirmed the #69 fix — scanner no longer blanket-exempts `.claude/` — is in place and covering it). Found no additional injection vector in tracked repo state; posted the audit as a status comment on #67. #64/#46/#44/#62 unchanged: still genuinely human-only (GitHub App `workflows` permission grant; `CLAUDE_CODE_OAUTH_TOKEN`/credential rotation; destructive force-push decision on severed history; filed-for-visibility no-op). Also noted the abandoned branch `claude/sprint-2026-10-15` (closed, unmerged PR #66) still carries the live payload on the remote — flagging again rather than deleting it myself, consistent with 11-07's precedent of deferring destructive ops on shared refs to a human. Step 3: ROADMAP Backlog empty. Step 4: all 7 `docs/specs/*.md` entries `status: done`.
+- Rationale: With #67 still open and already escalated once this week (11-14's direct-to-main containment failure), re-verifying containment and extending the audit to rule out tracked-repo-config vectors outranks picking fresh feature/roadmap work — per priorities, this is response to a concrete, actively-recurring vulnerability, not speculative hardening; no code change was warranted since the audit found nothing to fix.
+- PR: n/a
+- ROADMAP updated: no
+
 ## 2026-11-14
 
 - Action: pr-merged (direct-to-main security fix; no PR — see rationale)
