@@ -1,16 +1,10 @@
 # SPEC: Githatch — v0
 
-## Status (2026-05-13)
+## Status (2026-11-18)
 
-**Parked.** Core scaffold, task creation, task list, manual trigger, run history, output viewer, and OAuth token setup helper are all built and on main. The app deploys to `https://fragment256.github.io/githatch/`.
+**Done.** Shipped and in daily use. All "must" requirements and all nice-to-haves below are built and on main; see `ROADMAP.md`'s Done table for the full feature history past v0. Superseded as a planning document — kept for historical record of the original scope and auth-mechanism pivot.
 
-**Auth — migrated to GitHub App.** Dropped the Cloudflare Worker proxy. GitHub Apps as public clients support PKCE without `client_secret`; `exchangeCodeForToken` now calls `https://github.com/login/oauth/access_token` directly from the browser. One runtime uncertainty: whether GitHub's token endpoint sends CORS headers for GitHub App requests — will be confirmed on first login attempt after the app is registered.
-
-**Next action when resumed:**
-
-1. Create a GitHub App on GitHub (instructions below).
-2. Update `VITE_GITHUB_CLIENT_ID` repo variable with the new App's client ID.
-3. Test login end-to-end — if CORS blocks the token exchange, fallback is device flow (no infra, different UX).
+**Auth — migrated to GitHub App (OAuth PKCE), not PAT.** The original "must" list below called for a pasted fine-grained PAT; that was superseded during initial build by GitHub OAuth PKCE (no `client_secret`, token never leaves the browser). This is the auth flow live today — see `src/hooks/useAuth.ts` and `src/lib/auth.ts`. CORS on the token endpoint was confirmed working; no device-flow fallback was needed.
 
 ---
 
@@ -40,7 +34,7 @@ A static web app that lets a single user schedule recurring agentic GitHub Actio
 
 ## Requirements (must)
 
-- [x] ~~GitHub OAuth login via PKCE (no server-side secret).~~ **Replaced — see auth decision above.** New requirement: PAT input screen. User pastes a fine-grained GitHub PAT (`repo` + `workflow` scopes); token stored in `sessionStorage`.
+- [x] GitHub OAuth login via PKCE (no server-side secret). _(Original spec briefly called for a pasted PAT instead — see auth note above; PKCE is what shipped.)_
 - [x] Repo picker — list user's repos (filter `permissions.push = true`), select one as the active repo; selection persists in `sessionStorage`.
 - [x] Scheduled task creation form:
   - Task name (becomes workflow filename slug)
@@ -59,17 +53,17 @@ A static web app that lets a single user schedule recurring agentic GitHub Actio
 
 ## Nice-to-haves (v0, only if cheap)
 
-- [ ] Delete a scheduled task (delete the workflow file).
-- [ ] Enable/disable a task without deleting (workflows enable/disable API).
-- [ ] Dark mode.
+- [x] Delete a scheduled task (delete the workflow file).
+- [x] Enable/disable a task without deleting (workflows enable/disable API).
+- [x] Dark mode.
 
 ## Acceptance criteria (definition of done)
 
-- [ ] Public URL loads and shows PAT input screen with link to GitHub's fine-grained PAT creation page.
+- [x] Public URL loads and shows the GitHub OAuth login screen. _(PAT input screen was the original plan; superseded by OAuth PKCE — see auth note above.)_
 - [x] After token entry, user sees their repos and can pick one.
 - [x] User can fill the task creation form and submit; a workflow file appears at `.github/workflows/githatch-{slug}.yml` in the active repo with the configured schedule and prompt.
 - [x] User can manually trigger the workflow from Githatch; it runs in GitHub Actions.
-- [ ] The workflow completes successfully and produces the configured output (issue comment / new issue / file). _(not yet end-to-end tested with a real run)_
+- [x] The workflow completes successfully and produces the configured output (issue comment / new issue / file). _(confirmed by months of daily `githatch-senior-engineer-daily-sprint` runs since; see `docs/sprint-log.md`.)_
 - [x] Run history view shows the run with correct status; clicking a successful run shows the produced output inside Githatch.
 - [x] OAuth token setup flow works end-to-end: `CLAUDE_CODE_OAUTH_TOKEN` lands in the repo's Actions secrets, workflows can use it, secret never leaves the browser unencrypted.
 - [x] Lint, format, type-check, and tests pass in CI.
@@ -87,7 +81,7 @@ A static web app that lets a single user schedule recurring agentic GitHub Actio
 ## Issue breakdown
 
 1. **chore: project scaffold + GitHub Pages deploy** ✅ done
-2. **feat: GitHub OAuth login (PKCE)** ✅ done — _to be replaced by PAT auth (see status)_
+2. **feat: GitHub OAuth login (PKCE)** ✅ done
 3. **feat: repo picker** ✅ done
 
 4. **feat: scheduled task creation form + provider abstraction** ✅ done
@@ -96,17 +90,7 @@ A static web app that lets a single user schedule recurring agentic GitHub Actio
 7. **feat: Claude Code OAuth token setup helper** ✅ done
 8. **feat: tasks list + manual trigger + run history + output viewer** ✅ done
 
-9. **feat: GitHub App registration + CORS verification** _(next)_
-   - Description: Register a GitHub App (see setup instructions below). Update `VITE_GITHUB_CLIENT_ID` repo variable. Test the login flow end-to-end to confirm GitHub's token endpoint returns CORS headers for the App. If CORS fails, implement device flow fallback.
-   - GitHub App settings to configure:
-     - Homepage URL: `https://fragment256.github.io/githatch/`
-     - Callback URL: `https://fragment256.github.io/githatch/` + `http://localhost:5173/`
-     - Webhooks: disabled
-     - Repository permissions: Contents (R/W), Actions (R), Workflows (R/W), Secrets (R/W)
-     - Installation: "Only on this account" (v0)
-     - Optional features: enable "Public client" / device flow if the option is present
-   - Acceptance: clicking "Login with GitHub" completes the full OAuth round-trip and lands the user on the repo picker.
-   - Test plan: login, pick repo, create task — full happy path.
+9. **feat: GitHub App registration + CORS verification** ✅ done — App registered, CORS confirmed working, `VITE_GITHUB_CLIENT_ID` set. No device-flow fallback was needed.
 
 ## PR discipline
 
