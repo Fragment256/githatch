@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-11-18
+
+- Action: issues (doc fix, no issue closed — see rationale)
+- Summary: Step 0: CI green on `main`. Step 1: no open PRs. Step 2: same 5 open issues as the last 9+ days (#67, #64, #62, #46, #44), all still genuinely human-gated (token/App-credential rotation, destructive force-push decision on severed history, GitHub App `workflows` permission grant, filed-for-visibility no-op) — re-verified PR #66 is closed/unmerged and `main`'s `eslint.config.js` is clean (25 lines). Rather than re-running yet another status-check pass on the same five issues, read `specs/githatch-v0.md` (priority #3, docs) and found it badly stale: still "Parked" from 2026-05-13, describing a never-shipped PAT-auth plan (superseded by OAuth PKCE during initial build) and three unchecked nice-to-haves (delete task, enable/disable task, dark mode) that have all been live on `main` for months per `ROADMAP.md`'s Done table — verified each in code (`github.ts` delete/enable/disable calls, `useTheme.ts`) before editing. Updated status, auth section, and all checkboxes to match shipped reality; no code changes. Step 3: ROADMAP Backlog still empty. Step 4: all 7 `docs/specs/*.md` entries still `status: done`.
+- Rationale: Per priorities (docs ranks above a 10th consecutive re-verification of unchanged, human-gated security issues), a concrete and verified documentation drift — a planning doc that actively misrepresents shipped state as TODO — outranks repeating the same "nothing new" audit again; kept it doc-only and routed through a PR (not a direct-main commit) since this isn't a CI-break/trivial-fix case.
+- PR: #71
+- ROADMAP updated: no
+
 ## 2026-11-17
 
 - Action: nothing-actionable
