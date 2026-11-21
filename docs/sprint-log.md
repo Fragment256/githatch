@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-11-21
+
+- Action: issues (DX fix, no issue closed — see rationale)
+- Summary: Step 0: CI green on `main`. Step 1: no open PRs. Step 2: same five open issues as recent runs (#67, #64, #62, #46, #44), all still genuinely human-gated (token/credential rotation, destructive force-push decision, GitHub App `workflows` permission grant, filed-for-visibility no-op) — no new angle found, re-verification would just repeat 11-20's. Step 3: ROADMAP Backlog empty. Step 4: all 7 `docs/specs/` entries `status: done`. Rather than stop at a sixth consecutive "nothing-actionable," ran the standard local baseline (`pnpm install --frozen-lockfile && pnpm format && pnpm lint && pnpm type-check && pnpm test`) and hit `pnpm: command not found` — this environment had no pnpm pre-provisioned and `package.json` carries no `packageManager` field, so `corepack enable` silently downloaded pnpm 12.21.0 (current latest) instead of the v9 major CI pins via `pnpm/action-setup`. Installed fine against the v9 lockfile with no errors, but this is a real, unpinned version-drift risk between local/agent runs and CI that nobody had flagged before (checked: no prior mention in `sprint-log.md` or `package.json`). Added `"packageManager": "pnpm@9.15.9"` (latest 9.x, matching CI's major pin). Verified: install via corepack now resolves 9.15.9 exactly; format/lint/type-check/test (708/708) all pass on the pinned version.
+- Rationale: Per priorities, DX/build/automation work (#2) outranks a sixth repeat of the same five human-gated issue re-checks (which would add nothing new); this was a concrete, freshly-discovered gap (not a manufactured audit) found while running the routine pre-work baseline, not a speculative hardening pass.
+- PR: #72
+- ROADMAP updated: no
+
 ## 2026-11-18
 
 - Action: issues (doc fix, no issue closed — see rationale)
