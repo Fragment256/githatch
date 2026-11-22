@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-11-22
+
+- Action: pr-merged
+- Summary: Step 0: CI green on `main` (the lone non-success run was a `cancelled` Deploy superseded by a later push, not a failure). Step 1: one open PR, #72 ("chore: pin packageManager to pnpm@9.15.9 to match CI"), no review yet. Checked out the branch and verified the claim end-to-end rather than trusting the diff alone: confirmed `.github/workflows/ci.yml` pins `pnpm/action-setup@v4` to major `9` and the lockfile is `lockfileVersion: '9.0'`; ran `corepack pnpm install --frozen-lockfile` and confirmed it now resolves exactly `9.15.9` (previously would have drifted to latest). Ran the full local baseline on the branch: format:check, lint, type-check, and test all passed (708/708). `gh pr review --approve` was rejected as self-review (same `claude[bot]`/`app/claude` identity as the PR author, the documented 11-07/11-08/11-19 pattern), so merged directly (squash, branch deleted) since verification was complete and CI was green.
+- Rationale: An unreviewed PR takes priority over discovery work per the decision tree's PR step; this was a low-risk one-line config fix already flagged as a real drift risk in yesterday's entry, so full local verification was sufficient diligence before merging.
+- PR: #72
+- ROADMAP updated: no
+
 ## 2026-11-21
 
 - Action: issues (DX fix, no issue closed — see rationale)
