@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-11-23
+
+- Action: nothing-actionable
+- Summary: Step 0: CI health check found `Deploy to GitHub Pages` failing on `main`'s HEAD (`2a1c4b7`) and its predecessor with `Error: Multiple versions of pnpm specified` from `pnpm/action-setup`'s self-installer — both its hardcoded `version: 9` input (in `ci.yml`/`deploy.yml`) and `package.json`'s `packageManager: pnpm@9.15.9` field (added by yesterday's PR #72, merged 08:56:21Z, right before both failures) now conflict. The canonical fix — dropping the redundant `version: 9` input from all three `pnpm/action-setup` steps — requires editing `.github/workflows/*.yml`; confirmed (again) that pushes touching workflow files are rejected even on a fresh feature branch (`refusing to allow a GitHub App to create or update workflow ... without workflows permission`), the same blocker as #47/#54/#60/#64/#36. Applied a workaround from the non-workflow side instead: removed the `packageManager` field PR #72 had just added (commit `35f369a`, pushed directly to `main` per the trivial-fix path). Verified locally (`pnpm install --frozen-lockfile`, lint, format:check, type-check, test — 708/708) and confirmed the next `Deploy to GitHub Pages` run on `main` went green. Filed #73 with the exact diff for the complete fix (remove `version: 9` from the three workflow steps _and_ restore the exact `packageManager` pin) once `workflows` permission is granted, and added it to the ROADMAP Paused item alongside #36/#60/#64. Checked for other actionable work after: no open PRs, same five human-gated issues as recent runs (#67/#64/#62/#46/#44, now plus #73) with no new angle, ROADMAP Backlog empty, all `docs/specs/` entries `status: done`.
+- Rationale: CI health is step 0 of the decision tree and overrides all other discovery work; a broken `Deploy to GitHub Pages` on `main` means the live site stops updating on every push, which is a direct, user-visible regression from yesterday's own sprint run.
+- PR: n/a (direct push to `main`, workflow-permission-blocked fix filed as #73)
+- ROADMAP updated: yes
+
 ## 2026-11-22
 
 - Action: pr-merged
