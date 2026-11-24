@@ -4,6 +4,14 @@ Agent-maintained. One entry per daily sprint run.
 
 ---
 
+## 2026-11-24
+
+- Action: issues
+- Summary: Step 0: CI green on `main` — before trusting that, re-verified after `git show` on the latest sprint-log commit (`97ee85c`) appeared to show 352 files added as pure insertions, matching the #44 history-severing pattern exactly; traced it to the local clone being shallow (`fetch-depth`-limited), where `git show` on the shallow boundary commit diffs against an empty tree. Unshallowing confirmed the real commit only touched `ROADMAP.md` and `docs/sprint-log.md` (9 insertions/1 deletion) — a false alarm, not a recurrence. Step 1: no open PRs. Step 2: same six open issues as recent runs (#73/#67/#64/#62/#46/#44), all still correctly human-gated — but #67's own 2026-11-17 audit comment had explicitly flagged `vitest@2.1.9`'s 3 critical/27 high `pnpm audit` findings (via `tinypool`) as "recommend scoping as a deliberate, reviewed upgrade (own PR, own test pass)," and no later run had done that upgrade. Did it: bumped vite 5→7 and vitest 2→4 (not the newest majors — vite 8 needs an unrelated rolldown/oxc plugin migration, vitest 5 needs Node 22+ but CI's `setup-node` is pinned to Node 20 and editing workflow YAML is still blocked by the same `workflows`-permission gap as #36/#60/#64/#73), plus `@vitejs/plugin-react` 4→5 and `@tailwindcss/vite`/`tailwindcss` to latest 4.3.x. The upgrade surfaced 11 failing tests in `App.test.tsx`/`useAuth.test.ts`/`useRepo.test.ts`/`useTasks.test.ts`: all four relied on `vi.restoreAllMocks()` in `beforeEach` to reset call counts on `vi.mock()`-factory `vi.fn()`s (none use `vi.spyOn()`) — vitest 2.x apparently cleared plain `vi.fn()` call history as a side effect of `restoreAllMocks()`, but vitest 4 follows the documented spec where it only affects `vi.spyOn()` mocks. Fixed by switching to `vi.clearAllMocks()`. `pnpm audit` now: 0 critical (was 3), 28 total findings (was 51), remainder in nested `jsdom`/`eslint` transitive devDependencies with no direct upgrade path, never shipped to users. Verified with `pnpm install --frozen-lockfile`: format ✓, lint ✓ (0 warnings), type-check ✓, build ✓, 708/708 tests ✓.
+- Rationale: Per priorities, standalone security work is only warranted for a concrete, already-identified risk — this one was identified and explicitly scoped by a prior run's audit, so executing it outranked re-confirming the same six human-gated issues for the Nth consecutive day with no new angle.
+- PR: #74
+- ROADMAP updated: no
+
 ## 2026-11-23
 
 - Action: nothing-actionable
