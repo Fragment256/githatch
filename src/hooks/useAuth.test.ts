@@ -47,7 +47,7 @@ function setSearch(params: Record<string, string>) {
 
 describe('useAuth — no stored token, no code in URL', () => {
   beforeEach(() => {
-    vi.restoreAllMocks()
+    vi.clearAllMocks()
     setSearch({})
     mockGetStoredToken.mockReturnValue(null)
   })
@@ -73,7 +73,7 @@ describe('useAuth — no stored token, no code in URL', () => {
 
 describe('useAuth — stored token present', () => {
   beforeEach(() => {
-    vi.restoreAllMocks()
+    vi.clearAllMocks()
     setSearch({})
     mockGetStoredToken.mockReturnValue('gho_stored')
   })
@@ -137,7 +137,7 @@ describe('useAuth — stored token present', () => {
 
 describe('useAuth — OAuth callback (code in URL)', () => {
   beforeEach(() => {
-    vi.restoreAllMocks()
+    vi.clearAllMocks()
     mockGetStoredToken.mockReturnValue(null)
     mockGetStoredState.mockReturnValue('test-state')
     window.history.replaceState = vi.fn()
@@ -226,7 +226,7 @@ describe('useAuth — OAuth callback (code in URL)', () => {
 
 describe('useAuth — login / logout', () => {
   beforeEach(() => {
-    vi.restoreAllMocks()
+    vi.clearAllMocks()
     setSearch({})
     mockGetStoredToken.mockReturnValue(null)
   })

@@ -102,7 +102,7 @@ function wrapper({ children }: { children: React.ReactNode }) {
 
 describe('App — unauthenticated', () => {
   beforeEach(() => {
-    vi.restoreAllMocks()
+    vi.clearAllMocks()
     mockUseAuth.mockReturnValue({
       token: null,
       user: null,
@@ -128,7 +128,7 @@ describe('App — unauthenticated', () => {
 
 describe('App — authenticated, no repo selected', () => {
   beforeEach(() => {
-    vi.restoreAllMocks()
+    vi.clearAllMocks()
     mockUseAuth.mockReturnValue({
       token: 'gho_test_token',
       user: { id: 1, login: 'testuser', avatar_url: 'https://github.com/avatar.png', name: 'Test' },
@@ -158,7 +158,7 @@ describe('App — authenticated, no repo selected', () => {
 
 describe('App — authenticated, repo selected', () => {
   beforeEach(() => {
-    vi.restoreAllMocks()
+    vi.clearAllMocks()
     mockUseAuth.mockReturnValue({
       token: 'gho_test_token',
       user: { id: 1, login: 'testuser', avatar_url: 'https://github.com/avatar.png', name: 'Test' },
@@ -185,7 +185,7 @@ describe('App — authenticated, repo selected', () => {
 
 describe('App — error state', () => {
   beforeEach(() => {
-    vi.restoreAllMocks()
+    vi.clearAllMocks()
     mockUseAuth.mockReturnValue({
       token: null,
       user: null,
@@ -206,7 +206,7 @@ describe('App — error state', () => {
 
 describe('App — view navigation', () => {
   beforeEach(() => {
-    vi.restoreAllMocks()
+    vi.clearAllMocks()
     authWithRepo()
     vi.mocked(github.listRepoSecrets).mockResolvedValue([])
   })
@@ -474,7 +474,7 @@ describe('App — view navigation', () => {
 
 describe('App — task form submission', () => {
   beforeEach(() => {
-    vi.restoreAllMocks()
+    vi.clearAllMocks()
     authWithRepo()
     vi.mocked(github.listRepoSecrets).mockResolvedValue([])
     vi.mocked(github.upsertWorkflowFile).mockResolvedValue(undefined)

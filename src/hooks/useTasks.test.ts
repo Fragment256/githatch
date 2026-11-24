@@ -29,7 +29,7 @@ function makeOptimistic(slug: string): GithatchTask {
 
 describe('useTasks', () => {
   beforeEach(() => {
-    vi.restoreAllMocks()
+    vi.clearAllMocks()
   })
 
   it('loads tasks for the given repo', async () => {

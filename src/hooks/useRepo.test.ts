@@ -32,7 +32,7 @@ function createWrapper() {
 describe('useRepo — localStorage', () => {
   beforeEach(() => {
     localStorage.clear()
-    vi.restoreAllMocks()
+    vi.clearAllMocks()
     mockListPushableRepos.mockResolvedValue([])
   })
 
@@ -120,7 +120,7 @@ describe('useRepo — localStorage', () => {
 describe('useRepo — repos query', () => {
   beforeEach(() => {
     localStorage.clear()
-    vi.restoreAllMocks()
+    vi.clearAllMocks()
   })
 
   afterEach(() => {
